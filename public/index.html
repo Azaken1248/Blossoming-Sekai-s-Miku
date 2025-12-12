@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blossoming Sekai's Miku - API Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 8px;
+            color: #cba6f7;
+        }
+
+        .subtitle {
+            font-size: 0.95em;
+            color: #a6adc8;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: #313244;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #45475a;
+        }
+
+        .card h2 {
+            color: #f5c2e7;
+            margin-bottom: 16px;
+            font-size: 1.2em;
+            border-bottom: 1px solid #45475a;
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #bac2de;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            background: #1e1e2e;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            color: #cdd6f4;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #89b4fa;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #89b4fa;
+            color: #1e1e2e;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+
+        button:hover {
+            background: #74c7ec;
+        }
+
+        button:active {
+            background: #89dceb;
+        }
+
+        .response-area {
+            background: #313244;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #45475a;
+        }
+
+        .response-area h2 {
+            color: #f5c2e7;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+        }
+
+        #response {
+            background: #1e1e2e;
+            padding: 16px;
+            border-radius: 6px;
+            min-height: 150px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #45475a;
+            color: #cdd6f4;
+        }
+
+        .success {
+            color: #a6e3a1;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #f38ba8;
+            font-weight: bold;
+        }
+
+        .info {
+            background: #313244;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 3px solid #89b4fa;
+            color: #cdd6f4;
+        }
+
+        .info strong {
+            color: #89b4fa;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.75em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Blossoming Sekai's Miku</h1>
+            <p class="subtitle">Assignment & User Management API Tester</p>
+        </header>
+
+        <div class="info">
+            <strong>Instructions:</strong> Start by creating a user, then you can create assignments and test other operations. Copy the user's <code>_id</code> from the response for assignment operations.
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Create/Find User</h2>
+                <div class="form-group">
+                    <label>Discord ID</label>
+                    <input type="text" id="createDiscordId" placeholder="123456789012345678" value="123456789012345678">
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="createUsername" placeholder="TestUser" value="TestUser">
+                </div>
+                <button onclick="createUser()">Create User</button>
+            </div>
+
+            <div class="card">
+                <h2>Get User Profile</h2>
+                <div class="form-group">
+                    <label>Discord ID</label>
+                    <input type="text" id="getDiscordId" placeholder="123456789012345678" value="123456789012345678">
+                </div>
+                <button onclick="getUserProfile()">Get Profile</button>
+            </div>
+
+            <div class="card">
+                <h2>Add Strike</h2>
+                <div class="form-group">
+                    <label>Discord ID</label>
+                    <input type="text" id="addStrikeUserId" placeholder="123456789012345678" value="123456789012345678">
+                </div>
+                <button onclick="addStrike()">Add Strike</button>
+            </div>
+
+            <div class="card">
+                <h2>Remove Strike</h2>
+                <div class="form-group">
+                    <label>Discord ID</label>
+                    <input type="text" id="removeStrikeUserId" placeholder="123456789012345678" value="123456789012345678">
+                </div>
+                <button onclick="removeStrike()">Remove Strike</button>
+            </div>
+
+            <div class="card">
+                <h2>Create Assignment</h2>
+                <div class="form-group">
+                    <label>Discord ID</label>
+                    <input type="text" id="assignDiscordId" placeholder="123456789012345678" value="123456789012345678">
+                </div>
+                <div class="form-group">
+                    <label>Role Category ID</label>
+                    <input type="text" id="roleCategoryId" placeholder="artist" value="artist">
+                </div>
+                <div class="form-group">
+                    <label>Task Type</label>
+                    <input type="text" id="taskType" placeholder="drawing" value="drawing">
+                </div>
+                <div class="form-group">
+                    <label>Deadline (hours from now)</label>
+                    <input type="number" id="deadlineHours" placeholder="24" value="24">
+                </div>
+                <button onclick="createAssignment()">Create Assignment</button>
+            </div>
+
+            <div class="card">
+                <h2>Complete Assignment</h2>
+                <div class="form-group">
+                    <label>Assignment ID</label>
+                    <input type="text" id="completeTaskId" placeholder="Paste assignment _id from response">
+                </div>
+                <div class="form-group">
+                    <label>User Database ID (_id)</label>
+                    <input type="text" id="completeUserDbId" placeholder="Paste user _id from response">
+                </div>
+                <button onclick="completeAssignment()">Complete Assignment</button>
+            </div>
+
+            <div class="card">
+                <h2>Extend Assignment</h2>
+                <div class="form-group">
+                    <label>Assignment ID</label>
+                    <input type="text" id="extendTaskId" placeholder="Paste assignment _id from response">
+                </div>
+                <div class="form-group">
+                    <label>Extension (hours)</label>
+                    <input type="number" id="extensionHours" placeholder="12" value="12">
+                </div>
+                <button onclick="extendAssignment()">Extend Deadline</button>
+            </div>
+
+            <div class="card">
+                <h2>Get Pending Task</h2>
+                <div class="form-group">
+                    <label>Discord ID</label>
+                    <input type="text" id="pendingDiscordId" placeholder="123456789012345678" value="123456789012345678">
+                </div>
+                <button onclick="getPendingTask()">Get Pending Task</button>
+            </div>
+
+            <div class="card">
+                <h2>Get Overdue Tasks</h2>
+                <p style="margin-bottom: 15px; color: #666;">Fetches all overdue assignments across all users</p>
+                <button onclick="getOverdueTasks()">Get Overdue Tasks</button>
+            </div>
+        </div>
+
+        <div class="response-area">
+            <h2>Response</h2>
+            <div id="response">Waiting for API call...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+
+        function displayResponse(data, isError = false) {
+            const responseDiv = document.getElementById('response');
+            const className = isError ? 'error' : 'success';
+            responseDiv.innerHTML = `<span class="${className}">${isError ? 'Error' : 'Success'}:</span>\n\n${JSON.stringify(data, null, 2)}`;
+        }
+
+        async function createUser() {
+            const discordId = document.getElementById('createDiscordId').value;
+            const username = document.getElementById('createUsername').value;
+
+            if (!discordId || !username) {
+                displayResponse({ error: 'Please fill all fields' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ discordId, username })
+                });
+                const data = await response.json();
+                displayResponse(data, !response.ok);
+            } catch (error) {
+                displayResponse({ error: error.message }, true);
+            }
+        }
+
+        async function getUserProfile() {
+            const discordId = document.getElementById('getDiscordId').value;
+
+            if (!discordId) {
+                displayResponse({ error: 'Please enter Discord ID' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/users/${discordId}`);
+                const data = await response.json();
+                displayResponse(data, !response.ok);
+            } catch (error) {
+                displayResponse({ error: error.message }, true);
+            }
+        }
+
+        async function addStrike() {
+            const discordId = document.getElementById('addStrikeUserId').value;
+
+            if (!discordId) {
+                displayResponse({ error: 'Please enter Discord ID' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/users/${discordId}/strikes/add`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                displayResponse(data, !response.ok);
+            } catch (error) {
+                displayResponse({ error: error.message }, true);
+            }
+        }
+
+        async function removeStrike() {
+            const discordId = document.getElementById('removeStrikeUserId').value;
+
+            if (!discordId) {
+                displayResponse({ error: 'Please enter Discord ID' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/users/${discordId}/strikes/remove`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                displayResponse(data, !response.ok);
+            } catch (error) {
+                displayResponse({ error: error.message }, true);
+            }
+        }
+
+        async function createAssignment() {
+            const discordId = document.getElementById('assignDiscordId').value;
+            const roleCategoryId = document.getElementById('roleCategoryId').value;
+            const taskType = document.getElementById('taskType').value;
+            const deadlineHours = document.getElementById('deadlineHours').value;
+
+            if (!discordId || !roleCategoryId || !taskType || !deadlineHours) {
+                displayResponse({ error: 'Please fill all fields' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/assignments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        discordId, 
+                        roleCategoryId, 
+                        taskType, 
+                        deadlineHours: parseInt(deadlineHours) 
+                    })
+                });
+                const data = await response.json();
+                displayResponse(data, !response.ok);
+            } catch (error) {
+                displayResponse({ error: error.message }, true);
+            }
+        }
+
+        async function completeAssignment() {
+            const taskId = document.getElementById('completeTaskId').value;
+            const userDbId = document.getElementById('completeUserDbId').value;
+
+            if (!taskId || !userDbId) {
+                displayResponse({ error: 'Please fill all fields' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/assignments/${taskId}/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userDbId })
+                });
+                const data = await response.json();
+                displayResponse(data, !response.ok);
+            } catch (error) {
+                displayResponse({ error: error.message }, true);
+            }
+        }
+
+        async function extendAssignment() {
+            const taskId = document.getElementById('extendTaskId').value;
+            const extensionHours = document.getElementById('extensionHours').value;
+
+            if (!taskId || !extensionHours) {
+                displayResponse({ error: 'Please fill all fields' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/assignments/${taskId}/extend`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ extensionHours: parseInt(extensionHours) })
+                });
+                const data = await response.json();
+                displayResponse(data, !response.ok);
+            } catch (error) {
+                displayResponse({ error: error.message }, true);
+            }
+        }
+
+        async function getPendingTask() {
+            const discordId = document.getElementById('pendingDiscordId').value;
+
+            if (!discordId) {
+                displayResponse({ error: 'Please enter Discord ID' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/assignments/pending/${discordId}`);
+                const data = await response.json();
+                displayResponse(data, !response.ok);
+            } catch (error) {
+                displayResponse({ error: error.message }, true);
+            }
+        }
+
+        async function getOverdueTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/api/assignments/overdue`);
+                const data = await response.json();
+                displayResponse(data, !response.ok);
+            } catch (error) {
+                displayResponse({ error: error.message }, true);
+            }
+        }
+    </script>
+</body>
+</html>
