@@ -1,7 +1,7 @@
 import express from 'express';
 import connectDB from './DB/db.js';
-import * as userUtils from './Utils/userUtils.js';
-import * as taskUtils from './Utils/taskUtils.js';
+import * as userUtils from './Utils/DBUtils/userUtils.js';
+import * as taskUtils from './Utils/DBUtils/taskUtils.js';
 import cors from 'cors';
 
 const app = express();
