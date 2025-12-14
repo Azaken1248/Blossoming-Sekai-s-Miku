@@ -14,9 +14,21 @@ const assignmentSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
+    roleName: {
+        type: String,
+        required: true
+    },
     taskType: { 
         type: String, 
         required: true 
+    },
+    taskName: {
+        type: String,
+        default: ''
+    },
+    description: {
+        type: String,
+        default: ''
     },
     assignedAt: { 
         type: Date, 
