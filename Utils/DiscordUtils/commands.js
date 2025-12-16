@@ -66,7 +66,7 @@ const coreAssign = async (guild, author, targetUser, taskType, roleName, taskNam
 
     await logAction(guild, `Assigned **${taskType}** to <@${targetUser.id}>`, author);
     const ts = Math.round(deadline.getTime() / 1000);
-    return { content: `✅ Assigned **${taskType}** to <@${targetUser.id}>.\n📅 Deadline: <t:${ts}:F> (<t:${ts}:R>)` };
+    return { content: `✨ Assigned **${taskType}** to <@${targetUser.id}>! Let's create something wonderful together!\n📅 Deadline: <t:${ts}:F> (<t:${ts}:R>)` };
 };
 
 const coreSubmit = async (guild, author, targetUser, taskName = '') => {
@@ -91,9 +91,9 @@ const coreSubmit = async (guild, author, targetUser, taskName = '') => {
     }
 
     const embed = new EmbedBuilder()
-        .setTitle('📤 Submission Approval Required')
+        .setTitle('📤 Submission Ready for Review! ♪')
         .setColor(0xf9e2af)
-        .setDescription(`<@${targetUser.id}> has submitted a task for approval.`)
+        .setDescription(`<@${targetUser.id}> has completed their work and is ready to shine! Let's check it out~`)
         .addFields(
             { name: 'Task', value: task.taskName || task.taskType, inline: true },
             { name: 'Role', value: task.roleName, inline: true },
@@ -117,12 +117,12 @@ const coreSubmit = async (guild, author, targetUser, taskName = '') => {
                 .setStyle(ButtonStyle.Danger)
         );
 
-    const logChannel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
-    if (logChannel) {
-        await logChannel.send({ embeds: [embed], components: [row] });
+    const approvalChannel = guild.channels.cache.get(config.APPROVAL_CHANNEL_ID);
+    if (approvalChannel) {
+        await approvalChannel.send({ embeds: [embed], components: [row] });
     }
 
-    return { content: `✅ Submission request sent for **${task.taskName || task.taskType}**. Awaiting approval.` };
+    return { content: `✅ Yay! Your submission for **${task.taskName || task.taskType}** has been sent for review! Keep up the amazing work~ ♪` };
 };
 
 const coreExtension = async (guild, author, targetUser, taskName = '', reason = '') => {
@@ -165,9 +165,9 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
     const extDays = Math.floor(extTime / (24 * 60 * 60 * 1000));
 
     const embed = new EmbedBuilder()
-        .setTitle('⏰ Extension Request')
+        .setTitle('⏰ Extension Request ♪')
         .setColor(0xfab387)
-        .setDescription(`<@${targetUser.id}> is requesting a deadline extension.`)
+        .setDescription(`<@${targetUser.id}> needs a little more time to create something amazing!`)
         .addFields(
             { name: 'Task', value: task.taskName || task.taskType, inline: true },
             { name: 'Role', value: task.roleName, inline: true },
@@ -189,12 +189,12 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
                 .setStyle(ButtonStyle.Danger)
         );
 
-    const logChannel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
-    if (logChannel) {
-        await logChannel.send({ embeds: [embed], components: [row] });
+    const approvalChannel = guild.channels.cache.get(config.APPROVAL_CHANNEL_ID);
+    if (approvalChannel) {
+        await approvalChannel.send({ embeds: [embed], components: [row] });
     }
 
-    return { content: `✅ Extension request sent for **${task.taskName || task.taskType}**. Awaiting approval.` };
+    return { content: `✅ Extension request sent for **${task.taskName || task.taskType}**! Don't worry, everyone needs extra time sometimes~ ♪` };
 };
 
 const coreProfile = async (targetUser, guild = null) => {
@@ -312,7 +312,7 @@ const coreStrike = async (guild, author, targetUser, action, reason) => {
 const coreOnboard = async (guild, author, targetUser) => {
     const user = await UserUtils.findOrCreateUser(targetUser.id, targetUser.username);
     await logAction(guild, `Onboarded <@${targetUser.id}>`, author);
-    return { content: `✅ User <@${targetUser.id}> has been onboarded.\nStrikes: **${user.strikes}/3**` };
+    return { content: `🎉 Welcome to our SEKAI, <@${targetUser.id}>! I'm so excited to create amazing things with you~ ♪\nStrikes: **${user.strikes}/3**` };
 };
 
 const coreTasks = async (targetUser) => {
@@ -338,7 +338,8 @@ const coreTasks = async (targetUser) => {
         const extStatus = task.hasExtended ? ' [Extended]' : '';
         const taskTitle = task.taskName || task.taskType;
         
-        let fieldValue = `**Type:** ${task.taskType}\n**Role:** ${task.roleName || 'N/A'}\n**Deadline:** <t:${ts}:F> (<t:${ts}:R>)${extStatus}`;
+        const deadlineText = profile.isOnHiatus ? 'N/A (On Hiatus)' : `<t:${ts}:F> (<t:${ts}:R>)`;
+        let fieldValue = `**Type:** ${task.taskType}\n**Role:** ${task.roleName || 'N/A'}\n**Deadline:** ${deadlineText}${extStatus}`;
         
         if (task.description) {
             fieldValue += `\n**Description:** ${task.description}`;
@@ -402,9 +403,9 @@ const coreHistory = async (filters = {}, page = 0) => {
 
 const coreHelp = async () => {
     const embed = new EmbedBuilder()
-        .setTitle('Bot Commands')
-        .setColor(0x89b4fa)
-        .setDescription('Here are all available commands. Use `/` for slash commands or `!` for prefix commands.')
+        .setTitle('🎤 Miku\'s Command Guide ♪')
+        .setColor(0x39c5bb)
+        .setDescription('Hi there! Let me show you all the ways I can help our SEKAI shine! Use `/` for slash commands or `!` for prefix commands~')
         .setTimestamp();
 
     embed.addFields({
@@ -415,7 +416,7 @@ const coreHelp = async () => {
 
     embed.addFields({
         name: '👤 User Management',
-        value: '`/onboard` - Add a new crew member\n`/profile` - View user profile with stats\n`/strike add` - Add strike with reason (required)\n`/strike remove` - Remove a strike\n`/hiatus on/off` - Set hiatus status',
+        value: '`/onboard` - Add a new crew member\n`/profile` - View user profile with stats\n`/strike add` - Add strike with reason (required)\n`/strike remove` - Remove a strike\n`/hiatus` - Request hiatus with reason (requires approval)\n`/endhiatus` - End hiatus for a user (admin only)',
         inline: false
     });
 
@@ -440,34 +441,72 @@ const coreHelp = async () => {
     return { embeds: [embed] };
 };
 
-const coreHiatus = async (guild, author, targetUser, action) => {
-    const isOnHiatus = action === 'on';
-    const user = await UserUtils.setHiatus(targetUser.id, isOnHiatus);
+const coreHiatus = async (guild, author, reason) => {
+    if (!reason) {
+        return { content: '⚠️ Please provide a reason for the hiatus request.' };
+    }
+
+    const embed = new EmbedBuilder()
+        .setTitle('🏖️ Hiatus Request ♪')
+        .setColor(0xf9e2af)
+        .setDescription(`<@${author.id}> needs to take a break from their tasks.`)
+        .addFields(
+            { name: 'User', value: `<@${author.id}>`, inline: true },
+            { name: 'Username', value: author.tag, inline: true },
+            { name: 'Reason', value: reason, inline: false }
+        )
+        .setTimestamp();
+
+    const row = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`hiatus_approve_${author.id}`)
+                .setLabel('Approve')
+                .setStyle(ButtonStyle.Success),
+            new ButtonBuilder()
+                .setCustomId(`hiatus_deny_${author.id}`)
+                .setLabel('Deny')
+                .setStyle(ButtonStyle.Danger)
+        );
+
+    const approvalChannel = guild.channels.cache.get(config.APPROVAL_CHANNEL_ID);
+    if (approvalChannel) {
+        await approvalChannel.send({ embeds: [embed], components: [row] });
+    }
+
+    return { content: `✅ Your hiatus request has been sent for review! I hope everything is okay~ ♪` };
+};
+
+const coreHiatusEnd = async (guild, author, targetUser) => {
+    const user = await UserUtils.setHiatus(targetUser.id, false);
     
     if (!user) return { content: '❌ User not found.' };
-        if (action === 'off') {
-        const profile = await UserUtils.getUserProfile(targetUser.id);
-        if (profile && profile.assignments) {
-            const pendingTasks = profile.assignments.filter(a => a.status === 'PENDING');
-            
-            for (const task of pendingTasks) {
-                const rule = config.RULES[task.roleCategoryId];
-                if (rule && rule.tasks[task.taskType]) {
-                    const newDeadline = new Date(Date.now() + rule.tasks[task.taskType]);
-                    task.deadline = newDeadline;
-                    task.hasExtended = false;
-                    await task.save();
-                }
-            }
-            
-            if (pendingTasks.length > 0) {
-                await logAction(guild, `Set hiatus ${action} for <@${targetUser.id}> - Restored ${pendingTasks.length} deadline(s)`, author);
-                return { content: `\u2705 Hiatus disabled for <@${targetUser.id}>.\n\u23f0 Restored ${pendingTasks.length} deadline(s) based on task types.` };
-            }
+
+    const Assignment = (await import('../../DB/Schemas/assignment.js')).default;
+    const pendingTasks = await Assignment.find({
+        discordUserId: targetUser.id,
+        status: 'PENDING'
+    });
+    
+    for (const task of pendingTasks) {
+        const rule = config.RULES[task.roleCategoryId];
+        if (rule && rule.tasks[task.taskType]) {
+            const newDeadline = new Date(Date.now() + rule.tasks[task.taskType]);
+            task.deadline = newDeadline;
+            task.hasExtended = false;
+            task.firstReminderSent = false;
+            task.finalReminderSent = false;
+            await task.save();
         }
     }
-        await logAction(guild, `Set hiatus ${action} for <@${targetUser.id}>`, author);
-    return { content: `✅ Hiatus ${action === 'on' ? 'enabled' : 'disabled'} for <@${targetUser.id}>.` };
+    
+    if (pendingTasks.length > 0) {
+        await logAction(guild, `Ended hiatus for <@${targetUser.id}> - Set new deadlines for ${pendingTasks.length} task(s)`, author);
+        return { content: `✅ Hiatus ended for <@${targetUser.id}>.\n⏰ Set new deadlines for ${pendingTasks.length} task(s) based on their task types. Welcome back! ♪` };
+    }
+
+    await logAction(guild, `Ended hiatus for <@${targetUser.id}>`, author);
+    return { content: `✅ Hiatus ended for <@${targetUser.id}>.` };
 };
 
 export const handleAssignSlash = async (interaction) => {
@@ -510,7 +549,14 @@ export const handleOnboardSlash = async (interaction) => {
 };
 
 export const handleHiatusSlash = async (interaction) => {
-    const result = await coreHiatus(interaction.guild, interaction.user, interaction.options.getUser('user'), interaction.options.getSubcommand());
+    const reason = interaction.options.getString('reason');
+    const result = await coreHiatus(interaction.guild, interaction.user, reason);
+    return interaction.reply(result);
+};
+
+export const handleEndHiatusSlash = async (interaction) => {
+    const targetUser = interaction.options.getUser('user') || interaction.user;
+    const result = await coreHiatusEnd(interaction.guild, interaction.user, targetUser);
     return interaction.reply(result);
 };
 
@@ -672,12 +718,18 @@ export const handlePrefixCommand = async (message) => {
     }
 
     if (command === 'hiatus') {
-        const action = args[0];
+        const reason = args.join(' ');
+        if (!reason) return message.reply("Usage: `!hiatus <reason>`");
+        
+        const res = await coreHiatus(guild, author, reason);
+        return message.reply(res);
+    }
+
+    if (command === 'endhiatus') {
         const target = resolveTarget(message);
+        if (!target) return message.reply("Usage: `!endhiatus @User`");
         
-        if (!target || !['on', 'off'].includes(action)) return message.reply("Usage: `!hiatus on @User` or `!hiatus off @User`");
-        
-        const res = await coreHiatus(guild, author, target, action);
+        const res = await coreHiatusEnd(guild, author, target);
         return message.reply(res);
     }
     if (command === 'tasks') {
