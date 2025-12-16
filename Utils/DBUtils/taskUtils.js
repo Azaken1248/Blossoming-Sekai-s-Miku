@@ -102,3 +102,47 @@ export const fetchTaskHistory = async (filters = {}) => {
 export const fetchTaskById = async (taskId) => {
     return await Assignment.findById(taskId).populate('userId');
 };
+
+
+export const fetchTasksNeedingReminders = async (config) => {
+    const now = new Date();
+    
+    const tasks = await Assignment.find({
+        status: 'PENDING',
+        deadline: { $gt: now }
+    }).populate('userId');
+    
+    const tasksToRemind = [];
+    
+    for (const task of tasks) {
+        const timeUntilDeadline = task.deadline.getTime() - now.getTime();
+        const taskDuration = task.deadline.getTime() - task.assignedAt.getTime();
+        
+        let firstThreshold, finalThreshold;
+        
+        if (taskDuration <= config.REMINDER_THRESHOLDS.SHORT_TASK.duration) {
+            firstThreshold = config.REMINDER_THRESHOLDS.SHORT_TASK.firstReminder;
+            finalThreshold = config.REMINDER_THRESHOLDS.SHORT_TASK.finalReminder;
+        } else if (taskDuration <= config.REMINDER_THRESHOLDS.MEDIUM_TASK.duration) {
+            firstThreshold = config.REMINDER_THRESHOLDS.MEDIUM_TASK.firstReminder;
+            finalThreshold = config.REMINDER_THRESHOLDS.MEDIUM_TASK.finalReminder;
+        } else {
+            firstThreshold = config.REMINDER_THRESHOLDS.LONG_TASK.firstReminder;
+            finalThreshold = config.REMINDER_THRESHOLDS.LONG_TASK.finalReminder;
+        }
+        
+        if (!task.firstReminderSent && timeUntilDeadline <= firstThreshold) {
+            tasksToRemind.push({ task, reminderType: 'first' });
+        } else if (!task.finalReminderSent && timeUntilDeadline <= finalThreshold) {
+            tasksToRemind.push({ task, reminderType: 'final' });
+        }
+    }
+    
+    return tasksToRemind;
+};
+
+
+export const markReminderSent = async (taskId, reminderType) => {
+    const updateField = reminderType === 'first' ? { firstReminderSent: true } : { finalReminderSent: true };
+    return await Assignment.findByIdAndUpdate(taskId, updateField);
+};
