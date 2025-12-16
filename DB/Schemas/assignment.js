@@ -42,6 +42,14 @@ const assignmentSchema = new mongoose.Schema({
         type: Boolean, 
         default: false 
     },
+    firstReminderSent: {
+        type: Boolean,
+        default: false
+    },
+    finalReminderSent: {
+        type: Boolean,
+        default: false
+    },
     status: { 
         type: String, 
         default: 'PENDING',
