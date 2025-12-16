@@ -5,7 +5,28 @@ const WEEK = 7 * 24 * 60 * 60 * 1000;
 const MONTH = 4 * WEEK;
 
 export default {
-    LOG_CHANNEL_ID: '1449396640044810531', 
+    LOG_CHANNEL_ID: '1449396640044810531',
+    REMINDER_CHANNEL_ID: '1450543772009107596',
+    APPROVAL_CHANNEL_ID: '1450576609127043284',
+    
+    SCHEDULER_INTERVAL_MINUTES: 60,
+    
+    REMINDER_THRESHOLDS: {
+        SHORT_TASK: {
+            duration: 7 * 24 * 60 * 60 * 1000,
+            firstReminder: 2 * 24 * 60 * 60 * 1000,
+            finalReminder: 1 * 24 * 60 * 60 * 1000
+        },
+        MEDIUM_TASK: {
+            duration: 21 * 24 * 60 * 60 * 1000,
+            firstReminder: 5 * 24 * 60 * 60 * 1000,
+            finalReminder: 1 * 24 * 60 * 60 * 1000
+        },
+        LONG_TASK: {
+            firstReminder: 7 * 24 * 60 * 60 * 1000,
+            finalReminder: 1 * 24 * 60 * 60 * 1000
+        }
+    },
     
     // 2. List of Role IDs to REMOVE when someone gets 3 strikes
     
