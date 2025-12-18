@@ -42,6 +42,14 @@ const assignmentSchema = new mongoose.Schema({
         type: Boolean, 
         default: false 
     },
+    customExtension: {
+        type: Number,
+        default: null
+    },
+    submissionChannelId: {
+        type: String,
+        default: null
+    },
     firstReminderSent: {
         type: Boolean,
         default: false
