@@ -190,10 +190,13 @@ const commands = [
                 { name: 'Short Song', value: 'short_song' },
                 { name: 'Long Song', value: 'long_song' },
                 { name: 'Color MV', value: 'color_mv' },
-                { name: '2D MV', value: '2d_mv' }
+                { name: '2D MV', value: '2d_mv' },
+                { name: 'Custom', value: 'custom' }
             ))
         .addStringOption(o => o.setName('name').setDescription('Task name').setRequired(false))
-        .addStringOption(o => o.setName('description').setDescription('Task description').setRequired(false)),
+        .addStringOption(o => o.setName('description').setDescription('Task description').setRequired(false))
+        .addIntegerOption(o => o.setName('duration_days').setDescription('Duration in days (ONLY for Custom tasks)').setRequired(false).setMinValue(1))
+        .addIntegerOption(o => o.setName('extension_days').setDescription('Extension days (ONLY for Custom tasks)').setRequired(false).setMinValue(1)),
     new SlashCommandBuilder().setName('submit').setDescription('Complete task')
         .addUserOption(o => o.setName('user').setDescription('User').setRequired(false))
         .addStringOption(o => o.setName('task').setDescription('Task name (use /tasks to see list)').setRequired(false)),
@@ -226,7 +229,9 @@ const commands = [
             )
             .setRequired(false))
         .addStringOption(o => o.setName('role').setDescription('Filter by role name').setRequired(false)),
-    new SlashCommandBuilder().setName('help').setDescription('Show all available commands')
+    new SlashCommandBuilder().setName('help').setDescription('Show all available commands'),
+    new SlashCommandBuilder().setName('ping').setDescription('Check bot response time'),
+    new SlashCommandBuilder().setName('uptime').setDescription('Check how long the bot has been running')
 ].map(c => c.toJSON());
 
 
@@ -278,6 +283,8 @@ client.on('interactionCreate', async interaction => {
             if (commandName === 'endhiatus') await Commands.handleEndHiatusSlash(interaction);
             if (commandName === 'history') await Commands.handleHistorySlash(interaction);
             if (commandName === 'help') await Commands.handleHelpSlash(interaction);
+            if (commandName === 'ping') await Commands.handlePingSlash(interaction);
+            if (commandName === 'uptime') await Commands.handleUptimeSlash(interaction);
             console.log(`[COMMAND] ✅ /${commandName} completed successfully`);
         } catch (e) {
             console.error(`[COMMAND] ❌ Error in /${commandName}:`, e);
@@ -288,6 +295,15 @@ client.on('interactionCreate', async interaction => {
     if (interaction.isButton()) {
         console.log(`[BUTTON] ${interaction.customId} by ${interaction.user.tag} (${interaction.user.id})`);
         try {
+            await interaction.deferUpdate();
+            console.log(`[BUTTON]   Interaction deferred`);
+            
+            const member = await interaction.guild.members.fetch(interaction.user.id);
+            const isAdminUser = config.ADMIN_USER_IDS.includes(interaction.user.id);
+            const isOwner = isAdminUser || member.roles.cache.has(config.OWNER_ROLE_ID);
+            const isManager = isAdminUser || config.MANAGER_ROLE_IDS.some(roleId => member.roles.cache.has(roleId));
+            const isManagerOrOwner = isOwner || isManager;
+            
             const [action, type, taskId] = interaction.customId.split('_');
             console.log(`[BUTTON]   Action: ${action} | Type: ${type} | Task ID: ${taskId}`);
             
@@ -295,60 +311,108 @@ client.on('interactionCreate', async interaction => {
                 const task = await TaskUtils.fetchTaskById(taskId);
                 if (!task) {
                     console.log(`[BUTTON]   ❌ Task not found: ${taskId}`);
-                    return interaction.reply({ content: '❌ Task not found.', flags: 64 });
+                    return interaction.editReply({ content: '❌ Task not found.' });
                 }
                 
                 console.log(`[BUTTON]   Task found: "${task.taskName || task.taskType}" for user ${task.discordUserId}`);
 
                 if (type === 'approve') {
                     if (action === 'submit') {
+                        if (!isOwner) {
+                            console.log(`[BUTTON]   ❌ Permission denied: Only owners can approve submissions`);
+                            return interaction.editReply({ content: 'Thanks for checking, but only owners can approve submissions! ♪' });
+                        }
                         console.log(`[BUTTON]   Approving submission...`);
                         await TaskUtils.completeAssignment(task._id, task.userId);
                         const newCount = await UserUtils.removeStrike(task.userId);
                         console.log(`[BUTTON]   Strike removed. New count: ${newCount}/3`);
-                        await interaction.update({ 
+                        await interaction.editReply({ 
                             content: `✅ Submission approved by <@${interaction.user.id}>`,
                             embeds: interaction.message.embeds,
                             components: []
                         });
+                        
+                        if (task.submissionChannelId) {
+                            const submissionChannel = interaction.guild.channels.cache.get(task.submissionChannelId);
+                            if (submissionChannel) {
+                                submissionChannel.send(`✨ Congratulations <@${task.discordUserId}>! Your submission for **${task.taskName || task.taskType}** has been approved! Amazing work~ ♪`);
+                            }
+                        }
+                        
                         const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                         if (logChannel) {
-                            logChannel.send(`✅ **${task.taskName || task.taskType}** completed by <@${task.discordUserId}>. Strike removed. Current: ${newCount}/3`);
+                            logChannel.send(`✅ **${task.taskName || task.taskType}** completed by <@${task.discordUserId}>! Amazing work~ Strike removed. Current: ${newCount}/3 ♪`);
                         }
                         console.log(`[BUTTON]   ✅ Submission approved successfully`);
                     } else if (action === 'extension') {
+                        if (!isManagerOrOwner) {
+                            console.log(`[BUTTON]   ❌ Permission denied: Only managers/owners can approve extensions`);
+                            return interaction.editReply({ content: 'Extension approvals are handled by managers and owners! Thanks for checking though~ ♪' });
+                        }
                         console.log(`[BUTTON]   Approving extension...`);
                         const rule = config.RULES[task.roleCategoryId];
-                        let extTime = rule.extension;
+                        let extTime = task.customExtension || rule.extension;
                         if (!extTime) extTime = (task.taskType.includes('skit')) ? rule.extension_skit : rule.extension_mv;
                         console.log(`[BUTTON]   Extension duration: ${extTime / (24 * 60 * 60 * 1000)} days`);
                         
                         const updated = await TaskUtils.extendAssignment(task._id, extTime);
                         const ts = Math.round(updated.deadline.getTime() / 1000);
                         console.log(`[BUTTON]   New deadline: ${updated.deadline.toISOString()}`);
-                        await interaction.update({
+                        await interaction.editReply({
                             content: `✅ Extension approved by <@${interaction.user.id}>`,
                             embeds: interaction.message.embeds,
                             components: []
                         });
+                        
+                        if (task.submissionChannelId) {
+                            const submissionChannel = interaction.guild.channels.cache.get(task.submissionChannelId);
+                            if (submissionChannel) {
+                                submissionChannel.send(`✨ Good news <@${task.discordUserId}>! Your extension request for **${task.taskName || task.taskType}** has been approved! New deadline: <t:${ts}:F> ♪`);
+                            }
+                        }
+                        
                         const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                         if (logChannel) {
-                            logChannel.send(`⏰ Extension granted for <@${task.discordUserId}> - **${task.taskName || task.taskType}**. New deadline: <t:${ts}:F>`);
+                            logChannel.send(`⏰ Extension granted for <@${task.discordUserId}> - **${task.taskName || task.taskType}**! New deadline: <t:${ts}:F> ♪`);
                         }
                         console.log(`[BUTTON]   ✅ Extension approved successfully`);
                     }
                 } else if (type === 'deny') {
+                    // Check permissions for denials
+                    if (action === 'submit' && !isOwner) {
+                        console.log(`[BUTTON]   ❌ Permission denied: Only owners can deny submissions`);
+                        return interaction.editReply({ content: 'Thanks for checking, but only owners can deny submissions! ♪' });
+                    }
+                    if (action === 'extension' && !isManagerOrOwner) {
+                        console.log(`[BUTTON]   ❌ Permission denied: Only managers/owners can deny extensions`);
+                        return interaction.editReply({ content: 'Extension decisions are handled by managers and owners! Thanks for checking though~ ♪' });
+                    }
                     console.log(`[BUTTON]   Denying ${action}...`);
-                    await interaction.update({
+                    await interaction.editReply({
                         content: `❌ ${action === 'submit' ? 'Submission' : 'Extension'} denied by <@${interaction.user.id}>`,
                         embeds: interaction.message.embeds,
                         components: []
                     });
+                    
+                    if (task.submissionChannelId) {
+                        const submissionChannel = interaction.guild.channels.cache.get(task.submissionChannelId);
+                        if (submissionChannel) {
+                            const actionText = action === 'submit' ? 'submission' : 'extension request';
+                            submissionChannel.send(`<@${task.discordUserId}> Your ${actionText} for **${task.taskName || task.taskType}** was not approved. Please check with staff for feedback! 💖`);
+                        }
+                    }
                     console.log(`[BUTTON]   ✅ ${action} denied successfully`);
                 }
             } else if (action === 'hiatus') {
                 const userId = taskId;
+                const hiatusChannelId = interaction.message.embeds[0]?.footer?.text?.match(/Channel: (\d+)/)?.[1];
                 console.log(`[BUTTON]   Processing hiatus ${type} for user ${userId}`);
+                
+                // Only managers and owners can approve/deny hiatus
+                if (!isManagerOrOwner) {
+                    console.log(`[BUTTON]   ❌ Permission denied: Only managers/owners can handle hiatus requests`);
+                    return interaction.editReply({ content: 'Hiatus requests are handled by managers and owners! Thanks for looking out for everyone though~ ♪' });
+                }
                 
                 if (type === 'approve') {
                     console.log(`[BUTTON]   Approving hiatus...`);
@@ -369,11 +433,19 @@ client.on('interactionCreate', async interaction => {
                     }
                     console.log(`[BUTTON]   Paused all deadlines`);
                     
-                    await interaction.update({
+                    await interaction.editReply({
                         content: `✅ Hiatus approved by <@${interaction.user.id}>`,
                         embeds: interaction.message.embeds,
                         components: []
                     });
+                    
+                    if (hiatusChannelId) {
+                        const hiatusChannel = interaction.guild.channels.cache.get(hiatusChannelId);
+                        if (hiatusChannel) {
+                            hiatusChannel.send(`🌸 <@${userId}> Your hiatus request has been approved! All your tasks are paused. Take care and come back when you're ready~ ♪`);
+                        }
+                    }
+                    
                     const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                     if (logChannel) {
                         logChannel.send(`🏖️ Hiatus approved for <@${userId}>. All ${pendingTasks.length} pending task(s) paused. Take the time you need!`);
@@ -381,17 +453,28 @@ client.on('interactionCreate', async interaction => {
                     console.log(`[BUTTON]   ✅ Hiatus approved successfully with ${pendingTasks.length} tasks paused`);
                 } else if (type === 'deny') {
                     console.log(`[BUTTON]   Denying hiatus...`);
-                    await interaction.update({
+                    await interaction.editReply({
                         content: `❌ Hiatus denied by <@${interaction.user.id}>`,
                         embeds: interaction.message.embeds,
                         components: []
                     });
+                    
+                    if (hiatusChannelId) {
+                        const hiatusChannel = interaction.guild.channels.cache.get(hiatusChannelId);
+                        if (hiatusChannel) {
+                            hiatusChannel.send(`<@${userId}> Your hiatus request was not approved. Please reach out to staff if you have questions! 💖`);
+                        }
+                    }
                     console.log(`[BUTTON]   ✅ Hiatus denied successfully`);
                 }
             }
         } catch (e) {
             console.error(`[BUTTON] ❌ Error processing ${interaction.customId}:`, e);
-            if (!interaction.replied) interaction.reply({ content: "❌ Error processing request.", flags: 64 });
+            if (!interaction.replied && !interaction.deferred) {
+                interaction.reply({ content: "❌ Error processing request.", flags: 64 });
+            } else if (interaction.deferred) {
+                interaction.editReply({ content: "❌ Error processing request." });
+            }
         }
     }
 });
