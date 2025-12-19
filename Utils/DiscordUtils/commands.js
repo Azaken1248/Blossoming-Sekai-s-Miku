@@ -788,7 +788,7 @@ export const handleHistorySlash = async (interaction) => {
             response.edit({ components: [disabledRow] }).catch(() => {});
         });
     } else {
-        return interaction.reply(result);
+        return interaction.editReply(result);
     }
 };
 
