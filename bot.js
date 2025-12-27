@@ -146,7 +146,7 @@ async function runScheduler(isStartup = false) {
         const logChannel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
         if (logChannel) {
             console.log(`[OVERDUE-CHECK]   📤 Sending overdue notification to log channel...`);
-            await logChannel.send(`💔 **Oh no... Deadline Missed**\n<@${task.discordUserId}> The deadline for **${task.taskType}** has passed...\nStrike added. Total: ${newStrikeCount}/3\nLet's work together to stay on track next time, okay? ♪`);
+            await logChannel.send(`💔 **Oh no... Deadline Missed**\n<@${task.discordUserId}> The deadline for **${task.taskName || task.taskType}** has passed...\nStrike added. Total: ${newStrikeCount}/3\nLet's work together to stay on track next time, okay? ♪`);
             console.log(`[OVERDUE-CHECK]   ✅ Notification sent`);
         } else {
             console.log(`[OVERDUE-CHECK]   ❌ ERROR - Log channel not found (${config.LOG_CHANNEL_ID})`);
