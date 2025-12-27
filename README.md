@@ -262,9 +262,11 @@ The bot includes an Express API server for potential integrations:
 ## Credits
 
 ### Development
-- **Primary Developer**: Rohit Sinha
+- **Primary Developer**: Azaken/Aza
 - **Bot Character**: Hatsune Miku (Project SEKAI)
 - **Framework**: Discord.js v14
+- **Server Owner**:
+- **Bot Icon**:
 
 ### Acknowledgments
 - Discord.js community for excellent documentation
