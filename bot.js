@@ -211,8 +211,9 @@ const commands = [
         .addSubcommand(s => s.setName('remove').setDescription('Remove Strike').addUserOption(o=>o.setName('user').setDescription('User').setRequired(true))),
     new SlashCommandBuilder().setName('onboard').setDescription('Onboard a new user')
         .addUserOption(o => o.setName('user').setDescription('User').setRequired(true)),
-    new SlashCommandBuilder().setName('hiatus').setDescription('Request hiatus')
-        .addStringOption(o => o.setName('reason').setDescription('Reason for hiatus').setRequired(true)),
+    new SlashCommandBuilder().setName('hiatus').setDescription('Request or grant hiatus')
+        .addStringOption(o => o.setName('reason').setDescription('Reason for hiatus').setRequired(true))
+        .addUserOption(o => o.setName('user').setDescription('User (owners only - grants directly)').setRequired(false)),
     new SlashCommandBuilder().setName('endhiatus').setDescription('End hiatus (leave blank to end your own)')
         .addUserOption(o => o.setName('user').setDescription('User (optional)').setRequired(false)),
     new SlashCommandBuilder().setName('tasks').setDescription('View detailed tasks')
@@ -378,7 +379,6 @@ client.on('interactionCreate', async interaction => {
                         console.log(`[BUTTON]   ✅ Extension approved successfully`);
                     }
                 } else if (type === 'deny') {
-                    // Check permissions for denials
                     if (action === 'submit' && !isOwner) {
                         console.log(`[BUTTON]   ❌ Permission denied: Only owners can deny submissions`);
                         return interaction.editReply({ content: 'Thanks for checking, but only owners can deny submissions! ♪' });
@@ -408,7 +408,6 @@ client.on('interactionCreate', async interaction => {
                 const hiatusChannelId = interaction.message.embeds[0]?.footer?.text?.match(/Channel: (\d+)/)?.[1];
                 console.log(`[BUTTON]   Processing hiatus ${type} for user ${userId}`);
                 
-                // Only managers and owners can approve/deny hiatus
                 if (!isManagerOrOwner) {
                     console.log(`[BUTTON]   ❌ Permission denied: Only managers/owners can handle hiatus requests`);
                     return interaction.editReply({ content: 'Hiatus requests are handled by managers and owners! Thanks for looking out for everyone though~ ♪' });

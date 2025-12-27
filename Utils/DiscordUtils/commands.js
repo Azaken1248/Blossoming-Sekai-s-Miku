@@ -2,8 +2,7 @@ import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'disc
 import config from '../../config.js';
 import * as UserUtils from '../DBUtils/userUtils.js';
 import * as TaskUtils from '../DBUtils/taskUtils.js';
-
-// Permission checking helpers
+s
 const isAdmin = (userId) => {
     return config.ADMIN_USER_IDS.includes(userId);
 };
@@ -260,7 +259,6 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
 };
 
 const coreProfile = async (targetUser, guild = null) => {
-    // Easter egg: if someone asks about Miku herself!
     if (targetUser.id === '1449394728863924354') {
         const embed = new EmbedBuilder()
             .setTitle('🎤 Hatsune Miku')
@@ -372,7 +370,6 @@ const coreProfile = async (targetUser, guild = null) => {
 };
 
 const coreStrike = async (guild, author, targetUser, action, reason) => {
-    // Ensure user exists
     await UserUtils.findOrCreateUser(targetUser.id, targetUser.username);
     
     if (action === 'add') {
@@ -522,18 +519,46 @@ const coreHelp = async () => {
     return { embeds: [embed] };
 };
 
-const coreHiatus = async (guild, author, reason, channelId = null) => {
+const coreHiatus = async (guild, author, targetUser, reason, channelId = null, isDirect = false) => {
     if (!reason) {
         return { content: '⚠️ Please provide a reason for the hiatus request.' };
+    }
+
+    if (isDirect) {
+        await UserUtils.setHiatus(targetUser.id, true);
+        
+        const Assignment = (await import('../../DB/Schemas/assignment.js')).default;
+        const pendingTasks = await Assignment.find({
+            discordUserId: targetUser.id,
+            status: 'PENDING'
+        });
+        
+        for (const task of pendingTasks) {
+            task.deadline = new Date('2099-12-31');
+            task.firstReminderSent = true;
+            task.finalReminderSent = true;
+            await task.save();
+        }
+        
+        await logAction(guild, `🏖️ Hiatus granted directly to <@${targetUser.id}> by <@${author.id}>. All ${pendingTasks.length} pending task(s) paused.`, author);
+        
+        if (channelId) {
+            const channel = guild.channels.cache.get(channelId);
+            if (channel) {
+                channel.send(`🌸 <@${targetUser.id}> You've been granted hiatus! All your tasks are paused. Take the time you need and come back when you're ready~ ♪`);
+            }
+        }
+        
+        return { content: `✅ Hiatus granted to <@${targetUser.id}>! All ${pendingTasks.length} pending task(s) have been paused.` };
     }
 
     const embed = new EmbedBuilder()
         .setTitle('🏖️ Hiatus Request ♪')
         .setColor(0x39c5bb)
-        .setDescription(`<@${author.id}> needs to take a little break. Taking care of yourself is important! 💖`)
+        .setDescription(`<@${targetUser.id}> needs to take a little break. Taking care of yourself is important! 💖`)
         .addFields(
-            { name: 'User', value: `<@${author.id}>`, inline: true },
-            { name: 'Username', value: author.tag, inline: true },
+            { name: 'User', value: `<@${targetUser.id}>`, inline: true },
+            { name: 'Username', value: targetUser.tag, inline: true },
             { name: 'Reason', value: reason, inline: false }
         )
         .setFooter({ text: channelId ? `Channel: ${channelId}` : null })
@@ -542,11 +567,11 @@ const coreHiatus = async (guild, author, reason, channelId = null) => {
     const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`hiatus_approve_${author.id}`)
+                .setCustomId(`hiatus_approve_${targetUser.id}`)
                 .setLabel('Approve')
                 .setStyle(ButtonStyle.Success),
             new ButtonBuilder()
-                .setCustomId(`hiatus_deny_${author.id}`)
+                .setCustomId(`hiatus_deny_${targetUser.id}`)
                 .setLabel('Deny')
                 .setStyle(ButtonStyle.Danger)
         );
@@ -611,12 +636,10 @@ export const handleSubmitSlash = async (interaction) => {
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const user = interaction.options.getUser('user') || interaction.user;
     
-    // Only owners can submit for others
     if (user.id !== interaction.user.id && !isOwner(member)) {
         return interaction.editReply({ content: 'I appreciate the help, but you can only submit your own tasks! ♪' });
     }
     
-    // Must be onboarded
     if (!(await isOnboarded(user.id))) {
         return interaction.editReply({ content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪' });
     }
@@ -631,12 +654,10 @@ export const handleExtensionSlash = async (interaction) => {
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const user = interaction.options.getUser('user') || interaction.user;
     
-    // Only owners can request extensions for others
     if (user.id !== interaction.user.id && !isOwner(member)) {
         return interaction.editReply({ content: 'You can only request extensions for your own tasks! If someone else needs help, they should ask directly~ ♪' });
     }
     
-    // Must be onboarded
     if (!(await isOnboarded(user.id))) {
         return interaction.editReply({ content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪' });
     }
@@ -676,12 +697,28 @@ export const handleOnboardSlash = async (interaction) => {
 
 export const handleHiatusSlash = async (interaction) => {
     await interaction.deferReply();
-    // Must be onboarded to request hiatus
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    const reason = interaction.options.getString('reason');
+    const targetUser = interaction.options.getUser('user');
+
+    if (targetUser) {
+        if (!isOwner(member)) {
+            return interaction.editReply({ content: 'Only owners can grant hiatus directly to other users! Normal users can request their own hiatus~ ♪' });
+        }
+        
+        if (!(await isOnboarded(targetUser.id))) {
+            return interaction.editReply({ content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪' });
+        }
+        
+        const result = await coreHiatus(interaction.guild, interaction.user, targetUser, reason, interaction.channelId, true);
+        return interaction.editReply(result);
+    }
+    
     if (!(await isOnboarded(interaction.user.id))) {
         return interaction.editReply({ content: 'You need to be onboarded before requesting a hiatus! Talk to an owner to get started~ ♪' });
     }
-    const reason = interaction.options.getString('reason');
-    const result = await coreHiatus(interaction.guild, interaction.user, reason, interaction.channelId);
+    
+    const result = await coreHiatus(interaction.guild, interaction.user, interaction.user, reason, interaction.channelId, false);
     return interaction.editReply(result);
 };
 
@@ -690,12 +727,10 @@ export const handleEndHiatusSlash = async (interaction) => {
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const targetUser = interaction.options.getUser('user') || interaction.user;
     
-    // Only owners can end hiatus for others; onboarded users can end their own
     if (targetUser.id !== interaction.user.id && !isOwner(member)) {
         return interaction.editReply({ content: 'You can only end your own hiatus! If someone else is ready to return, they should let us know themselves~ ♪' });
     }
     
-    // Must be onboarded
     if (!(await isOnboarded(targetUser.id))) {
         return interaction.editReply({ content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪' });
     }
