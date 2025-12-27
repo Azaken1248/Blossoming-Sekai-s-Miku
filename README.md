@@ -274,7 +274,7 @@ The bot includes an Express API server for potential integrations:
 - MongoDB team for reliable database solutions
 
 ### License
-This project is licensed under the ISC License.
+This project is licensed under the [MIT](LICENSE.md)  License.
 
 ---
 
