@@ -121,13 +121,16 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
         return { content: "⚠️ No pending assignments found for this user." };
     }
 
-    const pendingTasks = profile.assignments.filter(a => a.status === 'PENDING');
+    const pendingTasks = profile.assignments.filter(a => a.status === 'PENDING' || a.status === 'LATE');
     if (pendingTasks.length === 0) {
         return { content: "⚠️ No pending assignments found for this user." };
     }
 
     if (!taskName) {
-        const taskList = pendingTasks.map(t => `• **${t.taskName || t.taskType}** (${t.roleName})`).join('\n');
+        const taskList = pendingTasks.map(t => {
+            const lateTag = t.status === 'LATE' ? ' [LATE]' : '';
+            return `• **${t.taskName || t.taskType}** (${t.roleName})${lateTag}`;
+        }).join('\n');
         return { content: `⚠️ Please specify which task to submit:\n${taskList}\n\nUse: \`/submit task:<task_name>\`` };
     }
 
@@ -141,16 +144,24 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
         await Assignment.updateOne({ _id: task._id }, { submissionChannelId: channelId });
     }
 
+    const isLate = task.status === 'LATE';
     const embed = new EmbedBuilder()
-        .setTitle('✨ Submission Ready for Review! ♪')
-        .setColor(0x39c5bb)
-        .setDescription(`Yay! <@${targetUser.id}> has finished their task and it\'s ready to shine! Let\'s take a look at this amazing work~ 🎉`)
+        .setTitle(isLate ? '⚠️ Late Submission Ready for Review! ♪' : '✨ Submission Ready for Review! ♪')
+        .setColor(isLate ? 0xfab387 : 0x39c5bb)
+        .setDescription(isLate 
+            ? `<@${targetUser.id}> has finished their task, although it was submitted after the deadline. Let\'s take a look~ 🎉`
+            : `Yay! <@${targetUser.id}> has finished their task and it\'s ready to shine! Let\'s take a look at this amazing work~ 🎉`)
         .addFields(
             { name: 'Task', value: task.taskName || task.taskType, inline: true },
             { name: 'Role', value: task.roleName, inline: true },
             { name: 'Type', value: task.taskType, inline: true }
         )
         .setTimestamp();
+
+    if (isLate) {
+        const deadlineTs = Math.round(new Date(task.deadline).getTime() / 1000);
+        embed.addFields({ name: '⏰ Original Deadline', value: `<t:${deadlineTs}:R>`, inline: true });
+    }
 
     if (task.description) {
         embed.addFields({ name: 'Description', value: task.description, inline: false });
@@ -400,7 +411,7 @@ const coreTasks = async (targetUser) => {
         return { content: `<@${targetUser.id}> has no tasks.` };
     }
 
-    const activeTasks = profile.assignments.filter(a => a.status === 'PENDING');
+    const activeTasks = profile.assignments.filter(a => a.status === 'PENDING' || a.status === 'LATE');
     
     if (activeTasks.length === 0) {
         return { content: `<@${targetUser.id}> has no active tasks.` };
@@ -414,10 +425,11 @@ const coreTasks = async (targetUser) => {
     for (const task of activeTasks) {
         const ts = Math.round(new Date(task.deadline).getTime() / 1000);
         const extStatus = task.hasExtended ? ' [Extended]' : '';
+        const lateStatus = task.status === 'LATE' ? ' ⚠️ [LATE]' : '';
         const taskTitle = task.taskName || task.taskType;
         
         const deadlineText = profile.isOnHiatus ? 'N/A (On Hiatus)' : `<t:${ts}:F> (<t:${ts}:R>)`;
-        let fieldValue = `**Type:** ${task.taskType}\n**Role:** ${task.roleName || 'N/A'}\n**Deadline:** ${deadlineText}${extStatus}`;
+        let fieldValue = `**Type:** ${task.taskType}\n**Role:** ${task.roleName || 'N/A'}\n**Deadline:** ${deadlineText}${extStatus}${lateStatus}`;
         
         if (task.description) {
             fieldValue += `\n**Description:** ${task.description}`;

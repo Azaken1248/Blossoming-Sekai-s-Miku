@@ -183,7 +183,7 @@ const commands = [
         .addStringOption(o => o.setName('task').setDescription('Task type').setRequired(true)
             .addChoices(
                 { name: 'Skit', value: 'skit' },
-                { name: 'Story', value: 'story' },
+                { name: 'Story (Editing)', value: 'story' },
                 { name: 'Joke Cover', value: 'joke_cover' },
                 { name: 'Short Cover', value: 'short_cover' },
                 { name: 'Full Cover', value: 'full_cover' },
