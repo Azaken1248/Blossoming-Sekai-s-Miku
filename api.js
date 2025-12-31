@@ -146,6 +146,27 @@ app.get('/api/assignments/overdue', async (_req, res) => {
     }
 });
 
+app.get('/api/stats', async (_req, res) => {
+    try {
+        const User = (await import('./DB/Schemas/user.js')).default;
+        const Assignment = (await import('./DB/Schemas/assignment.js')).default;
+        const totalTasks = await Assignment.countDocuments();
+
+        const activeUsers = await User.countDocuments({ isOnboarded: true });
+        const completedTasks = await Assignment.countDocuments({ status: 'COMPLETED' });
+        const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        res.json({
+            success: true,
+            totalTasks,
+            activeUsers,
+            completionRate
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Test server running on http://localhost:${PORT}`);
     console.log(`Open http://localhost:${PORT} to access the test interface`);

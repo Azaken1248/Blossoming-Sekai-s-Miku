@@ -3,483 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blossoming Sekai's Miku - API Tester</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1e1e2e;
-            color: #cdd6f4;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        h1 {
-            font-size: 2em;
-            margin-bottom: 8px;
-            color: #cba6f7;
-        }
-
-        .subtitle {
-            font-size: 0.95em;
-            color: #a6adc8;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .card {
-            background: #313244;
-            border-radius: 8px;
-            padding: 20px;
-            border: 1px solid #45475a;
-        }
-
-        .card h2 {
-            color: #f5c2e7;
-            margin-bottom: 16px;
-            font-size: 1.2em;
-            border-bottom: 1px solid #45475a;
-            padding-bottom: 8px;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #bac2de;
-            font-weight: 500;
-            font-size: 0.85em;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            background: #1e1e2e;
-            border: 1px solid #45475a;
-            border-radius: 6px;
-            color: #cdd6f4;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #89b4fa;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #89b4fa;
-            color: #1e1e2e;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 8px;
-        }
-
-        button:hover {
-            background: #74c7ec;
-        }
-
-        button:active {
-            background: #89dceb;
-        }
-
-        .response-area {
-            background: #313244;
-            border-radius: 8px;
-            padding: 20px;
-            border: 1px solid #45475a;
-        }
-
-        .response-area h2 {
-            color: #f5c2e7;
-            margin-bottom: 12px;
-            font-size: 1.2em;
-        }
-
-        #response {
-            background: #1e1e2e;
-            padding: 16px;
-            border-radius: 6px;
-            min-height: 150px;
-            max-height: 500px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            border: 1px solid #45475a;
-            color: #cdd6f4;
-        }
-
-        .success {
-            color: #a6e3a1;
-            font-weight: bold;
-        }
-
-        .error {
-            color: #f38ba8;
-            font-weight: bold;
-        }
-
-        .info {
-            background: #313244;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border-left: 3px solid #89b4fa;
-            color: #cdd6f4;
-        }
-
-        .info strong {
-            color: #89b4fa;
-        }
-
-        @media (max-width: 768px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-            
-            h1 {
-                font-size: 1.75em;
-            }
-        }
-    </style>
+    <title>Blossoming Sekai's Miku - Task Management Bot</title>
+    <link rel="icon" type="image/png" href="assets/PNG 1.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Blossoming Sekai's Miku</h1>
-            <p class="subtitle">Assignment & User Management API Tester</p>
-        </header>
-
-        <div class="info">
-            <strong>Instructions:</strong> Start by creating a user, then you can create assignments and test other operations. Copy the user's <code>_id</code> from the response for assignment operations.
+    <div class="stars"></div>
+    <div class="stars2"></div>
+    <div class="stars3"></div>
+    
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-text">Blossoming Sekai's Miku</span>
+            </div>
+            <ul class="nav-menu">
+                <li>
+                    <a href="#home">
+                        <img src="assets/PNG 1.png" alt="" class="nav-icon">
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#features">
+                        <img src="assets/PNG 2.png" alt="" class="nav-icon">
+                        <span>Features</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#commands">
+                        <img src="assets/PNG 5.png" alt="" class="nav-icon">
+                        <span>Commands</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#setup">
+                        <img src="assets/PNG 7.png" alt="" class="nav-icon">
+                        <span>Setup</span>
+                    </a>
+                </li>
+            </ul>
         </div>
+    </nav>
 
-        <div class="grid">
-            <div class="card">
-                <h2>Create/Find User</h2>
-                <div class="form-group">
-                    <label>Discord ID</label>
-                    <input type="text" id="createDiscordId" placeholder="123456789012345678" value="123456789012345678">
-                </div>
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="createUsername" placeholder="TestUser" value="TestUser">
-                </div>
-                <button onclick="createUser()">Create User</button>
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-glow"></div>
+            <div class="miku-illustration">
+                <img src="assets/PNG 1.png" alt="Hatsune Miku" class="miku-img">
             </div>
+            <h1 class="hero-title">
+                <span class="title-line">Welcome to</span>
+                <span class="title-main">Blossoming SEKAI</span>
+            </h1>
+            <p class="hero-subtitle">Your friendly task management companion powered by Hatsune Miku</p>
+        </div>
+    </section>
 
-            <div class="card">
-                <h2>Get User Profile</h2>
-                <div class="form-group">
-                    <label>Discord ID</label>
-                    <input type="text" id="getDiscordId" placeholder="123456789012345678" value="123456789012345678">
+    <section id="features" class="features">
+        <div class="floating-miku miku-features-top">
+            <img src="assets/PNG 2.png" alt="Miku">
+        </div>
+        <div class="floating-miku miku-features-bottom">
+            <img src="assets/PNG 9.png" alt="Miku">
+        </div>
+        <div class="container">
+            <h2 class="section-title">Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-clipboard-user"></i></div>
+                    <h3>Smart Task Assignment</h3>
+                    <p>Role-based task system with configurable deadlines and automatic deadline calculation based on task type and role.</p>
                 </div>
-                <button onclick="getUserProfile()">Get Profile</button>
-            </div>
-
-            <div class="card">
-                <h2>Add Strike</h2>
-                <div class="form-group">
-                    <label>Discord ID</label>
-                    <input type="text" id="addStrikeUserId" placeholder="123456789012345678" value="123456789012345678">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-bell"></i></div>
+                    <h3>Intelligent Reminders</h3>
+                    <p>Two-tier reminder system that notifies you before deadlines with configurable thresholds based on task duration.</p>
                 </div>
-                <button onclick="addStrike()">Add Strike</button>
-            </div>
-
-            <div class="card">
-                <h2>Remove Strike</h2>
-                <div class="form-group">
-                    <label>Discord ID</label>
-                    <input type="text" id="removeStrikeUserId" placeholder="123456789012345678" value="123456789012345678">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-check-double"></i></div>
+                    <h3>Approval Workflow</h3>
+                    <p>Button-based approval system for submissions, extensions, and hiatus requests with channel notifications.</p>
                 </div>
-                <button onclick="removeStrike()">Remove Strike</button>
-            </div>
-
-            <div class="card">
-                <h2>Create Assignment</h2>
-                <div class="form-group">
-                    <label>Discord ID</label>
-                    <input type="text" id="assignDiscordId" placeholder="123456789012345678" value="123456789012345678">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-gavel"></i></div>
+                    <h3>Strike Management</h3>
+                    <p>Automatic strike system with task completion rewards and configurable three-strike demotion policy.</p>
                 </div>
-                <div class="form-group">
-                    <label>Role Category ID</label>
-                    <input type="text" id="roleCategoryId" placeholder="artist" value="artist">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-bed"></i></div>
+                    <h3>Hiatus System</h3>
+                    <p>Request-based hiatus that pauses all deadlines and provides fresh starts upon return with reset reminders.</p>
                 </div>
-                <div class="form-group">
-                    <label>Task Type</label>
-                    <input type="text" id="taskType" placeholder="drawing" value="drawing">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <h3>Custom Tasks</h3>
+                    <p>Create custom tasks with flexible durations and extension settings tailored to your project needs.</p>
                 </div>
-                <div class="form-group">
-                    <label>Deadline (hours from now)</label>
-                    <input type="number" id="deadlineHours" placeholder="24" value="24">
-                </div>
-                <button onclick="createAssignment()">Create Assignment</button>
-            </div>
-
-            <div class="card">
-                <h2>Complete Assignment</h2>
-                <div class="form-group">
-                    <label>Assignment ID</label>
-                    <input type="text" id="completeTaskId" placeholder="Paste assignment _id from response">
-                </div>
-                <div class="form-group">
-                    <label>User Database ID (_id)</label>
-                    <input type="text" id="completeUserDbId" placeholder="Paste user _id from response">
-                </div>
-                <button onclick="completeAssignment()">Complete Assignment</button>
-            </div>
-
-            <div class="card">
-                <h2>Extend Assignment</h2>
-                <div class="form-group">
-                    <label>Assignment ID</label>
-                    <input type="text" id="extendTaskId" placeholder="Paste assignment _id from response">
-                </div>
-                <div class="form-group">
-                    <label>Extension (hours)</label>
-                    <input type="number" id="extensionHours" placeholder="12" value="12">
-                </div>
-                <button onclick="extendAssignment()">Extend Deadline</button>
-            </div>
-
-            <div class="card">
-                <h2>Get Pending Task</h2>
-                <div class="form-group">
-                    <label>Discord ID</label>
-                    <input type="text" id="pendingDiscordId" placeholder="123456789012345678" value="123456789012345678">
-                </div>
-                <button onclick="getPendingTask()">Get Pending Task</button>
-            </div>
-
-            <div class="card">
-                <h2>Get Overdue Tasks</h2>
-                <p style="margin-bottom: 15px; color: #666;">Fetches all overdue assignments across all users</p>
-                <button onclick="getOverdueTasks()">Get Overdue Tasks</button>
             </div>
         </div>
+    </section>
 
-        <div class="response-area">
-            <h2>Response</h2>
-            <div id="response">Waiting for API call...</div>
+    <section id="commands" class="commands">
+        <div class="floating-miku miku-commands-left">
+            <img src="assets/PNG 5.png" alt="Miku">
         </div>
-    </div>
+        <div class="floating-miku miku-commands-right">
+            <img src="assets/PNG 10.png" alt="Miku">
+        </div>
+        <div class="container">
+            <h2 class="section-title">Commands</h2>
+            <div class="commands-table-container">
+                <table class="commands-table">
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>/assign</code></td>
+                            <td>Assign tasks to team members</td>
+                            <td><span class="badge-category">Task Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/submit</code></td>
+                            <td>Submit completed work</td>
+                            <td><span class="badge-category">Task Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/extension</code></td>
+                            <td>Request deadline extension</td>
+                            <td><span class="badge-category">Task Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/tasks</code></td>
+                            <td>View active tasks</td>
+                            <td><span class="badge-category">Task Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/history</code></td>
+                            <td>View task completion history</td>
+                            <td><span class="badge-category">Task Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/onboard</code></td>
+                            <td>Add new team members</td>
+                            <td><span class="badge-category">User Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/profile</code></td>
+                            <td>View user profiles</td>
+                            <td><span class="badge-category">User Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/strike</code></td>
+                            <td>Manage accountability strikes</td>
+                            <td><span class="badge-category">User Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/hiatus</code></td>
+                            <td>Request or grant hiatus</td>
+                            <td><span class="badge-category">Status Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/endhiatus</code></td>
+                            <td>End hiatus period</td>
+                            <td><span class="badge-category">Status Management</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/help</code></td>
+                            <td>View all commands</td>
+                            <td><span class="badge-category">Utility</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/ping</code></td>
+                            <td>Check bot response time</td>
+                            <td><span class="badge-category">Utility</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>/uptime</code></td>
+                            <td>Check bot uptime</td>
+                            <td><span class="badge-category">Utility</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
 
-    <script>
-        const API_BASE = '';
+    <section id="setup" class="setup">
+        <div class="floating-miku miku-setup-right">
+            <img src="assets/PNG 7.png" alt="Miku">
+        </div>
+        <div class="floating-miku miku-setup-left">
+            <img src="assets/PNG 8.png" alt="Miku">
+        </div>
+        <div class="container">
+            <h2 class="section-title">Setup Guide</h2>
+            <div class="setup-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Prerequisites</h3>
+                        <p>Ensure you have <a href="https://nodejs.org/" target="_blank">Node.js</a> (v16.9+) and <a href="https://www.mongodb.com/" target="_blank">MongoDB</a> installed.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Clone & Install</h3>
+                        <p>Clone the repository and install the required dependencies.</p>
+                        <code class="code-block">git clone https://github.com/Azaken1248/Blossoming-Sekai-s-Miku.git
+cd Blossoming-Sekai-s-Miku
+npm install</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Environment Variables</h3>
+                        <p>Create a <code>.env</code> file in the root directory with your credentials.</p>
+                        <code class="code-block">DISCORD_TOKEN=your_bot_token
+MONGODB_URI=mongodb://localhost:27017/miku_bot
+CLIENT_ID=your_application_id
+GUILD_ID=your_server_id</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Configuration</h3>
+                        <p>Open <code>config.js</code> and configure your server's specific IDs.</p>
+                        <ul style="list-style: disc; margin-left: 1.5rem; color: var(--text-muted); margin-bottom: 1rem;">
+                            <li><strong>Channel IDs:</strong> Set <code>LOG_CHANNEL_ID</code>, <code>REMINDER_CHANNEL_ID</code>, etc.</li>
+                            <li><strong>Role IDs:</strong> Define <code>OWNER_ROLE_ID</code>, <code>MANAGER_ROLE_IDS</code>, and <code>CREW_ROLE_IDS</code>.</li>
+                            <li><strong>Rules:</strong> Customize deadlines and reminders for each role in the <code>RULES</code> object.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>Launch Miku</h3>
+                        <p>Start the bot application.</p>
+                        <code class="code-block">node bot.js</code>
+                    </div>
+                </div>
+            </div>
+            <div class="tech-stack">
+                <h3>Tech Stack</h3>
+                <div class="tech-badges">
+                    <span class="tech-badge">Node.js</span>
+                    <span class="tech-badge">Discord.js v14</span>
+                    <span class="tech-badge">MongoDB</span>
+                    <span class="tech-badge">Mongoose</span>
+                    <span class="tech-badge">Express.js</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        function displayResponse(data, isError = false) {
-            const responseDiv = document.getElementById('response');
-            const className = isError ? 'error' : 'success';
-            responseDiv.innerHTML = `<span class="${className}">${isError ? 'Error' : 'Success'}:</span>\n\n${JSON.stringify(data, null, 2)}`;
-        }
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-main-layout">
+                <div class="footer-miku-container">
+                    <img src="assets/PNG 11.png" alt="Miku">
+                </div>
+                <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Blossoming Sekai's Miku</h4>
+                    <p>A comprehensive task management bot for creative teams</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/Azaken1248/Blossoming-Sekai-s-Miku" target="_blank"><i class="fa-brands fa-github"></i> GitHub Repository</a></li>
+                        <li><a href="https://discord.com/invite/D6FX2m3UJ8" target="_blank"><i class="fa-brands fa-discord"></i> Blossoming Sekai Discord</a></li>
+                        <li><a href="https://discord.js.org" target="_blank"><i class="fa-solid fa-book"></i> Discord.js Docs</a></li>
+                        <li><a href="https://mongodb.com" target="_blank"><i class="fa-solid fa-database"></i> MongoDB</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Credits</h4>
+                    <p>Character: Hatsune Miku</p>
+                    <p>Developer: Azaken</p>
+                    <p>Server Owner: Charlie</p>
+                </div>
+            </div>
+        </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Blossoming Sekai's Miku. Licensed under MIT License.</p>
+            </div>
+        </div>
+    </footer>
 
-        async function createUser() {
-            const discordId = document.getElementById('createDiscordId').value;
-            const username = document.getElementById('createUsername').value;
-
-            if (!discordId || !username) {
-                displayResponse({ error: 'Please fill all fields' }, true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/users`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ discordId, username })
-                });
-                const data = await response.json();
-                displayResponse(data, !response.ok);
-            } catch (error) {
-                displayResponse({ error: error.message }, true);
-            }
-        }
-
-        async function getUserProfile() {
-            const discordId = document.getElementById('getDiscordId').value;
-
-            if (!discordId) {
-                displayResponse({ error: 'Please enter Discord ID' }, true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/users/${discordId}`);
-                const data = await response.json();
-                displayResponse(data, !response.ok);
-            } catch (error) {
-                displayResponse({ error: error.message }, true);
-            }
-        }
-
-        async function addStrike() {
-            const discordId = document.getElementById('addStrikeUserId').value;
-
-            if (!discordId) {
-                displayResponse({ error: 'Please enter Discord ID' }, true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/users/${discordId}/strikes/add`, {
-                    method: 'POST'
-                });
-                const data = await response.json();
-                displayResponse(data, !response.ok);
-            } catch (error) {
-                displayResponse({ error: error.message }, true);
-            }
-        }
-
-        async function removeStrike() {
-            const discordId = document.getElementById('removeStrikeUserId').value;
-
-            if (!discordId) {
-                displayResponse({ error: 'Please enter Discord ID' }, true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/users/${discordId}/strikes/remove`, {
-                    method: 'POST'
-                });
-                const data = await response.json();
-                displayResponse(data, !response.ok);
-            } catch (error) {
-                displayResponse({ error: error.message }, true);
-            }
-        }
-
-        async function createAssignment() {
-            const discordId = document.getElementById('assignDiscordId').value;
-            const roleCategoryId = document.getElementById('roleCategoryId').value;
-            const taskType = document.getElementById('taskType').value;
-            const deadlineHours = document.getElementById('deadlineHours').value;
-
-            if (!discordId || !roleCategoryId || !taskType || !deadlineHours) {
-                displayResponse({ error: 'Please fill all fields' }, true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/assignments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        discordId, 
-                        roleCategoryId, 
-                        taskType, 
-                        deadlineHours: parseInt(deadlineHours) 
-                    })
-                });
-                const data = await response.json();
-                displayResponse(data, !response.ok);
-            } catch (error) {
-                displayResponse({ error: error.message }, true);
-            }
-        }
-
-        async function completeAssignment() {
-            const taskId = document.getElementById('completeTaskId').value;
-            const userDbId = document.getElementById('completeUserDbId').value;
-
-            if (!taskId || !userDbId) {
-                displayResponse({ error: 'Please fill all fields' }, true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/assignments/${taskId}/complete`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userDbId })
-                });
-                const data = await response.json();
-                displayResponse(data, !response.ok);
-            } catch (error) {
-                displayResponse({ error: error.message }, true);
-            }
-        }
-
-        async function extendAssignment() {
-            const taskId = document.getElementById('extendTaskId').value;
-            const extensionHours = document.getElementById('extensionHours').value;
-
-            if (!taskId || !extensionHours) {
-                displayResponse({ error: 'Please fill all fields' }, true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/assignments/${taskId}/extend`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ extensionHours: parseInt(extensionHours) })
-                });
-                const data = await response.json();
-                displayResponse(data, !response.ok);
-            } catch (error) {
-                displayResponse({ error: error.message }, true);
-            }
-        }
-
-        async function getPendingTask() {
-            const discordId = document.getElementById('pendingDiscordId').value;
-
-            if (!discordId) {
-                displayResponse({ error: 'Please enter Discord ID' }, true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/assignments/pending/${discordId}`);
-                const data = await response.json();
-                displayResponse(data, !response.ok);
-            } catch (error) {
-                displayResponse({ error: error.message }, true);
-            }
-        }
-
-        async function getOverdueTasks() {
-            try {
-                const response = await fetch(`${API_BASE}/api/assignments/overdue`);
-                const data = await response.json();
-                displayResponse(data, !response.ok);
-            } catch (error) {
-                displayResponse({ error: error.message }, true);
-            }
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
