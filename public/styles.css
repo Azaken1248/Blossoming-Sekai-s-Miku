@@ -273,8 +273,8 @@ body {
 .floating-miku {
     position: absolute;
     pointer-events: none;
-    z-index: 1;
-    opacity: 0.6;
+    z-index: 10;
+    opacity: 0.8;
     transition: opacity 0.3s ease;
 }
 
@@ -642,9 +642,14 @@ section {
     padding: 1rem;
     border-radius: 8px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     margin-top: 0.5rem;
     position: relative;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .tech-stack {
@@ -768,7 +773,7 @@ section {
 /* Animations */
 @keyframes float {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
 }
 
 @keyframes pulse {
