@@ -98,12 +98,14 @@ export default {
             name: "editor",
             tasks: {
                 'skit': 1 * WEEK,
+                'story': 1 * WEEK,
                 'color_mv': 2 * WEEK,
                 '2d_mv': 4 * WEEK
             },
             // Special split extensions logic is handled in commands.js
             extension_mv: 2 * WEEK,
-            extension_skit: 1 * WEEK
+            extension_skit: 1 * WEEK,
+            extension_story: 1 * WEEK
         },
         // VA Group 4
         '1449416803452194929': {
