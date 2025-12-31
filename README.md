@@ -265,8 +265,8 @@ The bot includes an Express API server for potential integrations:
 - **Primary Developer**: Azaken/Aza
 - **Bot Character**: Hatsune Miku (Project SEKAI)
 - **Framework**: Discord.js v14
-- **Server Owner**:
-- **Bot Icon**:
+- **Server Owner**: Charlie
+- **Bot Icon**: Sunny
 
 ### Acknowledgments
 - Discord.js community for excellent documentation
