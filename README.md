@@ -262,9 +262,11 @@ The bot includes an Express API server for potential integrations:
 ## Credits
 
 ### Development
-- **Primary Developer**: Rohit Sinha
+- **Primary Developer**: Azaken/Aza
 - **Bot Character**: Hatsune Miku (Project SEKAI)
 - **Framework**: Discord.js v14
+- **Server Owner**:
+- **Bot Icon**:
 
 ### Acknowledgments
 - Discord.js community for excellent documentation
@@ -272,7 +274,7 @@ The bot includes an Express API server for potential integrations:
 - MongoDB team for reliable database solutions
 
 ### License
-This project is licensed under the ISC License.
+This project is licensed under the [MIT](LICENSE)  License.
 
 ---
 
