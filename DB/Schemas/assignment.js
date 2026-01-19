@@ -42,6 +42,10 @@ const assignmentSchema = new mongoose.Schema({
         type: Boolean, 
         default: false 
     },
+    extensionCount: {
+        type: Number,
+        default: 0
+    },
     customExtension: {
         type: Number,
         default: null

@@ -37,10 +37,15 @@ export const completeAssignment = async (taskId, userDbId) => {
 export const extendAssignment = async (taskId, extensionMs) => {
     const task = await Assignment.findById(taskId);
     if (!task) throw new Error("Task not found");
-    if (task.hasExtended) throw new Error("ALREADY_EXTENDED");
+    
+    // Check extension limit
+    const currentExtensions = task.extensionCount || (task.hasExtended ? 1 : 0);
+    if (currentExtensions >= 2) throw new Error("ALREADY_EXTENDED");
 
     task.deadline = new Date(task.deadline.getTime() + extensionMs);
     task.hasExtended = true;
+    task.extensionCount = currentExtensions + 1;
+    
     await task.save();
 
     return task;

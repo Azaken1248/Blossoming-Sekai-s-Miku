@@ -30,6 +30,8 @@ const logAction = async (guild, content, executorUser) => {
     if (channel) {
         const timestamp = new Date().toLocaleTimeString();
         await channel.send(`\`[${timestamp}]\` 🎵 **${executorUser.username}**: ${content}`).catch(console.error);
+    } else {
+        console.warn(`[LOG-ACTION] ⚠️ Log channel ${config.LOG_CHANNEL_ID} not found! Content: ${content}`);
     }
 };
 
@@ -216,8 +218,9 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
         task = pendingTasks[0];
     }
 
-    if (task.hasExtended) {
-        return { content: "⚠️ This task has already been extended once." };
+    const currentExtCount = task.extensionCount || (task.hasExtended ? 1 : 0);
+    if (currentExtCount >= 2) {
+        return { content: "⚠️ This task has already been extended the maximum number of times (2)." };
     }
     
     if (channelId) {
@@ -230,6 +233,9 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
         extTime = task.customExtension;
     } else {
         const rule = config.RULES[task.roleCategoryId];
+        if (!rule) {
+            return { content: `⚠️ Configuration error: Role ID ${task.roleCategoryId} not found in config rules. Please contact an admin.` };
+        }
         extTime = rule.extension;
         if (!extTime) extTime = (task.taskType.includes('skit')) ? rule.extension_skit : rule.extension_mv;
     }
@@ -667,6 +673,7 @@ export const handleExtensionSlash = async (interaction) => {
     const user = interaction.options.getUser('user') || interaction.user;
     
     if (user.id !== interaction.user.id && !isOwner(member)) {
+        console.log("Is Owner:" ,isOwner(member));
         return interaction.editReply({ content: 'You can only request extensions for your own tasks! If someone else needs help, they should ask directly~ ♪' });
     }
     

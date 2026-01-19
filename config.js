@@ -8,9 +8,8 @@ export default {
     LOG_CHANNEL_ID: '1449396640044810531',
     REMINDER_CHANNEL_ID: '1450543772009107596',
     APPROVAL_CHANNEL_ID: '1450576609127043284',
-    
-    OWNER_ROLE_ID: '1450880407993319495',
-    MANAGER_ROLE_IDS: ['1451202870455173151'],
+    OWNER_ROLE_ID: '1393977289540239410',
+    MANAGER_ROLE_IDS: ['1451202870455173151', '1447982308878717141'],
     ADMIN_USER_IDS: ['1213817849693478972', '867113282929557514'],
     
     SCHEDULER_INTERVAL_MINUTES: 60,
@@ -115,6 +114,15 @@ export default {
                 'full_cover': 3 * WEEK
             },
             extension: 2 * WEEK
+        },
+        // Bot Dev
+        '1462373658344423515': {
+            name: "BOT DEV",
+            tasks: {
+                'bot_feature': 7 * 24 * 60 * 60 * 1000,
+                'bug_fix': 3 * 24 * 60 * 60 * 1000
+            },
+            extension: 3 * 24 * 60 * 60 * 1000
         }
     }
 };

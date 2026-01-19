@@ -178,7 +178,8 @@ const commands = [
                 { name: 'Lyricist', value: 'lyricist' },
                 { name: 'Composer', value: 'composer' },
                 { name: 'Editor', value: 'editor' },
-                { name: 'Mixer', value: 'mixer' }
+                { name: 'Mixer', value: 'mixer' },
+                { name: 'Bot Dev', value: 'BOT DEV' }
             ))
         .addStringOption(o => o.setName('task').setDescription('Task type').setRequired(true)
             .addChoices(
@@ -191,6 +192,8 @@ const commands = [
                 { name: 'Long Song', value: 'long_song' },
                 { name: 'Color MV', value: 'color_mv' },
                 { name: '2D MV', value: '2d_mv' },
+                { name: 'Bot Feature', value: 'bot_feature' },
+                { name: 'Bug Fix', value: 'bug_fix' },
                 { name: 'Custom', value: 'custom' }
             ))
         .addStringOption(o => o.setName('name').setDescription('Task name').setRequired(false))
