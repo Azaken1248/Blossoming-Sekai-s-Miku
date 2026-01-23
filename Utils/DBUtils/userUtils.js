@@ -68,3 +68,7 @@ export const setHiatus = async (discordId, isOnHiatus) => {
     );
     return updatedUser;
 };
+
+export const getUsersWithStrikes = async () => {
+    return await User.find({ strikes: { $gt: 0 } }).sort({ strikes: -1 }).lean();
+};

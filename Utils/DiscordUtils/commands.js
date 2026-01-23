@@ -403,6 +403,27 @@ const coreStrike = async (guild, author, targetUser, action, reason) => {
     }
 };
 
+const coreStrikeList = async (guild, author) => {
+    const usersWithStrikes = await UserUtils.getUsersWithStrikes();
+    
+    if (!usersWithStrikes || usersWithStrikes.length === 0) {
+        return { content: '✨ Wonderful news! No one currently has any strikes. Everyone is doing amazing work! ♪' };
+    }
+
+    const description = usersWithStrikes.map(u => {
+        return `• <@${u.discordId}>: **${u.strikes}** strike(s)`;
+    }).join('\n');
+
+    const embed = new EmbedBuilder()
+        .setTitle('⚠️ active Strikes List')
+        .setColor(0xff6b6b) 
+        .setDescription(`Here is the list of users with active strikes.\nLet's do our best to clear them!\n\n${description}`)
+        .setFooter({ text: 'Keep doing your best everyone! ♪' })
+        .setTimestamp();
+
+    return { embeds: [embed] };
+};
+
 const coreOnboard = async (guild, author, targetUser) => {
     const user = await UserUtils.findOrCreateUser(targetUser.id, targetUser.username);
     await logAction(guild, `🎉 Welcomed <@${targetUser.id}> to our SEKAI!`, author);
@@ -697,10 +718,19 @@ export const handleProfileSlash = async (interaction) => {
 export const handleStrikeSlash = async (interaction) => {
     await interaction.deferReply();
     const member = await interaction.guild.members.fetch(interaction.user.id);
+    
     if (!isManagerOrOwner(member)) {
         return interaction.editReply({ content: 'Strike management is handled by managers and owners! If there\'s an issue, please reach out to them~ ♪' });
     }
-    const result = await coreStrike(interaction.guild, interaction.user, interaction.options.getUser('user'), interaction.options.getSubcommand(), interaction.options.getString('reason'));
+
+    const subcommand = interaction.options.getSubcommand();
+    
+    if (subcommand === 'list') {
+        const result = await coreStrikeList(interaction.guild, interaction.user);
+        return interaction.editReply(result);
+    }
+
+    const result = await coreStrike(interaction.guild, interaction.user, interaction.options.getUser('user'), subcommand, interaction.options.getString('reason'));
     return interaction.editReply(result);
 };
 
@@ -948,9 +978,15 @@ export const handlePrefixCommand = async (message) => {
 
     if (command === 'strike') {
         const action = args[0];
+        
+        if (action === 'list') {
+             const res = await coreStrikeList(guild, author);
+             return message.reply(res);
+        }
+
         const target = resolveTarget(message);
         
-        if (!target || !['add', 'remove'].includes(action)) return message.reply("Usage: `!strike add @User <reason>` or `!strike remove @User`");
+        if (!target || !['add', 'remove'].includes(action)) return message.reply("Usage: `!strike add @User <reason>` or `!strike remove @User` or `!strike list`");
         
         const reason = args.slice(2).join(' ');
         

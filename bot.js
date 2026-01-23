@@ -210,6 +210,7 @@ const commands = [
     new SlashCommandBuilder().setName('profile').setDescription('View profile')
         .addUserOption(o => o.setName('user').setDescription('User').setRequired(false)),
     new SlashCommandBuilder().setName('strike').setDescription('Manage strikes')
+        .addSubcommand(s => s.setName('list').setDescription('List all users with strikes'))
         .addSubcommand(s => s.setName('add').setDescription('Add Strike').addUserOption(o=>o.setName('user').setDescription('User').setRequired(true)).addStringOption(o=>o.setName('reason').setDescription('Reason').setRequired(true)))
         .addSubcommand(s => s.setName('remove').setDescription('Remove Strike').addUserOption(o=>o.setName('user').setDescription('User').setRequired(true))),
     new SlashCommandBuilder().setName('onboard').setDescription('Onboard a new user')
