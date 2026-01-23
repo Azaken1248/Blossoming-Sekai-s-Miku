@@ -125,6 +125,7 @@ pm2 start bot.js --name miku
 |---------|-------------|------------|-------|
 | `/onboard` | Onboard a new user | Owners only | `/onboard user:@user` |
 | `/profile` | View user profile | Everyone | `/profile user:@user` |
+| `/strike list` | View list of users with strikes | Managers & Owners | `/strike list` |
 | `/strike add` | Add a strike to a user | Managers & Owners | `/strike add user:@user reason:"Reason"` |
 | `/strike remove` | Remove a strike from a user | Managers & Owners | `/strike remove user:@user` |
 

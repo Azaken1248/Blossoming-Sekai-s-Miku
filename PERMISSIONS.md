@@ -15,6 +15,7 @@ This document outlines the permission requirements for all bot commands and inte
 |---------|-------------|-------------------|-------|
 | `/assign` | Owners only | ✅ Yes | Assign tasks to users |
 | `/onboard` | Owners only | ✅ Yes | Onboard new users to the system |
+| `/strike list` | Managers & Owners | N/A | View list of users with strikes |
 | `/strike add` | Managers & Owners | ✅ Yes | Add strikes to users |
 | `/strike remove` | Managers & Owners | ✅ Yes | Remove strikes from users |
 | `/submit` | Onboarded Users | ❌ Self only (Owners: ✅) | Submit completed tasks |
