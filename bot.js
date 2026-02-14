@@ -167,35 +167,37 @@ async function runScheduler(isStartup = false) {
     console.log('========================================\n');
 }
 
+const formatChoice = (str) => {
+    return str.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
+const getRoleChoices = () => {
+    return Object.values(config.RULES).map(rule => ({
+        name: formatChoice(rule.name === 'BOT DEV' ? 'Bot Dev' : rule.name),
+        value: rule.name
+    }));
+};
+
+const getTaskChoices = () => {
+    const allTasks = new Set();
+    Object.values(config.RULES).forEach(rule => {
+        if (rule.tasks) Object.keys(rule.tasks).forEach(task => allTasks.add(task));
+    });
+    allTasks.add('custom');
+    
+    return Array.from(allTasks).map(task => ({
+        name: formatChoice(task),
+        value: task
+    }));
+};
+
 const commands = [
     new SlashCommandBuilder().setName('assign').setDescription('Assign task')
         .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
         .addStringOption(o => o.setName('role').setDescription('Role').setRequired(true)
-            .addChoices(
-                { name: 'VA', value: 'VA' },
-                { name: 'SVA', value: 'SVA' },
-                { name: 'Translyricist', value: 'translyricist' },
-                { name: 'Lyricist', value: 'lyricist' },
-                { name: 'Composer', value: 'composer' },
-                { name: 'Editor', value: 'editor' },
-                { name: 'Mixer', value: 'mixer' },
-                { name: 'Bot Dev', value: 'BOT DEV' }
-            ))
+            .addChoices(...getRoleChoices()))
         .addStringOption(o => o.setName('task').setDescription('Task type').setRequired(true)
-            .addChoices(
-                { name: 'Skit', value: 'skit' },
-                { name: 'Story (Editing)', value: 'story' },
-                { name: 'Joke Cover', value: 'joke_cover' },
-                { name: 'Short Cover', value: 'short_cover' },
-                { name: 'Full Cover', value: 'full_cover' },
-                { name: 'Short Song', value: 'short_song' },
-                { name: 'Long Song', value: 'long_song' },
-                { name: 'Color MV', value: 'color_mv' },
-                { name: '2D MV', value: '2d_mv' },
-                { name: 'Bot Feature', value: 'bot_feature' },
-                { name: 'Bug Fix', value: 'bug_fix' },
-                { name: 'Custom', value: 'custom' }
-            ))
+            .addChoices(...getTaskChoices()))
         .addStringOption(o => o.setName('name').setDescription('Task name').setRequired(false))
         .addStringOption(o => o.setName('description').setDescription('Task description').setRequired(false))
         .addIntegerOption(o => o.setName('duration_days').setDescription('Duration in days (ONLY for Custom tasks)').setRequired(false).setMinValue(1))
