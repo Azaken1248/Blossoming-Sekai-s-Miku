@@ -151,3 +151,48 @@ export const markReminderSent = async (taskId, reminderType) => {
     const updateField = reminderType === 'first' ? { firstReminderSent: true } : { finalReminderSent: true };
     return await Assignment.findByIdAndUpdate(taskId, updateField);
 };
+
+
+export const fetchFreeUsersWithStatus = async () => {
+    const busyUserIds = await Assignment.distinct('userId', {
+        status: { $in: ['PENDING', 'LATE'] }
+    });
+    
+    const users = await User.find({
+        _id: { $nin: busyUserIds }
+    }).populate({
+        path: 'assignments',
+        match: { status: 'COMPLETED' },
+        options: { sort: { deadline: -1 }, limit: 1 } 
+    });
+
+    return users.map(user => ({
+        discordId: user.discordId,
+        username: user.username,
+        isOnHiatus: user.isOnHiatus,
+        lastTask: user.assignments[0] || null
+    }));
+};
+
+export const checkUserAvailability = async (discordId) => {
+    const user = await User.findOne({ discordId })
+        .populate({
+            path: 'assignments',
+            options: { sort: { deadline: -1 } }
+        });
+    
+    if (!user) return null;
+
+    const activeTask = user.assignments.find(a => ['PENDING', 'LATE'].includes(a.status));
+    const lastCompleted = user.assignments.find(a => a.status === 'COMPLETED');
+
+    return {
+        discordId: user.discordId,
+        username: user.username,
+        isOnHiatus: user.isOnHiatus,
+        isFree: !activeTask,
+        activeTask: activeTask || null,
+        lastTask: lastCompleted || null
+    };
+};
+

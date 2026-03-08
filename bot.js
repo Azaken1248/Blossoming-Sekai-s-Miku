@@ -236,6 +236,8 @@ const commands = [
             )
             .setRequired(false))
         .addStringOption(o => o.setName('role').setDescription('Filter by role name').setRequired(false)),
+    new SlashCommandBuilder().setName('checkfree').setDescription('Check who has no active tasks or check a specific user')
+        .addUserOption(o => o.setName('user').setDescription('Check a specific user').setRequired(false)),
     new SlashCommandBuilder().setName('help').setDescription('Show all available commands'),
     new SlashCommandBuilder().setName('ping').setDescription('Check bot response time'),
     new SlashCommandBuilder().setName('uptime').setDescription('Check how long the bot has been running')
@@ -289,6 +291,7 @@ client.on('interactionCreate', async interaction => {
             if (commandName === 'hiatus') await Commands.handleHiatusSlash(interaction);
             if (commandName === 'endhiatus') await Commands.handleEndHiatusSlash(interaction);
             if (commandName === 'history') await Commands.handleHistorySlash(interaction);
+            if (commandName === 'checkfree') await Commands.handleCheckFreeSlash(interaction);
             if (commandName === 'help') await Commands.handleHelpSlash(interaction);
             if (commandName === 'ping') await Commands.handlePingSlash(interaction);
             if (commandName === 'uptime') await Commands.handleUptimeSlash(interaction);

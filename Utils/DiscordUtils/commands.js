@@ -527,7 +527,7 @@ const coreHelp = async () => {
 
     embed.addFields({
         name: '✨ Task Management',
-        value: '`/assign` - Assign tasks (supports Custom tasks with duration_days & extension_days!)\n`/submit` - Submit your amazing work! (needs approval~)\n`/extension` - Need more time? Request with a reason (requires approval)\n`/tasks` - See all your current assignments',
+        value: '`/assign` - Assign tasks (supports Custom tasks with duration_days & extension_days!)\n`/submit` - Submit your amazing work! (needs approval~)\n`/extension` - Need more time? Request with a reason (requires approval)\n`/tasks` - See all your current assignments\n`/checkfree` - See who is available or check a specific user! ♪',
         inline: false
     });
 
@@ -876,6 +876,159 @@ export const handleHistorySlash = async (interaction) => {
     }
 };
 
+const coreCheckFree = async (_guild, targetUser = null) => {
+    try {
+        if (targetUser) {
+            const userStatus = await TaskUtils.checkUserAvailability(targetUser.id);
+            
+            if (!userStatus) {
+                return { content: `I couldn't find any profile for <@${targetUser.id}>. Maybe they haven't joined the team yet?` };
+            }
+            
+            const embed = new EmbedBuilder()
+                .setTitle(`🎵 Availability Check: ${targetUser.username}`)
+                .setColor(userStatus.isFree ? 0x39c5bb : 0xff5555) 
+                .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
+                .setTimestamp();
+            
+            const statusEmoji = userStatus.isFree ? '✨' : '🔥';
+            const statusText = userStatus.isFree ? "**FREE**" : "**BUSY**";
+            
+            let description = `${statusEmoji} Current Status: ${statusText}`;
+            if (userStatus.isOnHiatus) description += ` (On Hiatus 🏝️)`;
+            
+            embed.setDescription(description);
+            
+            if (!userStatus.isFree && userStatus.activeTask) {
+                embed.addFields({
+                    name: 'Current Task',
+                    value: `**${userStatus.activeTask.taskName || userStatus.activeTask.taskType}**\nRole: ${userStatus.activeTask.roleName}\nDeadline: <t:${Math.floor(new Date(userStatus.activeTask.deadline).getTime() / 1000)}:R>`,
+                    inline: false
+                });
+            } else if (userStatus.isFree) {
+                embed.addFields({
+                    name: 'Ready for work?',
+                    value: userStatus.isOnHiatus ? "Checking in on hiatus! Take your time~" : "Ready to take on a new challenge! ♪",
+                    inline: false
+                });
+            }
+            
+            if (userStatus.lastTask) {
+                embed.addFields({
+                    name: 'Last Completed Task',
+                    value: `**${userStatus.lastTask.taskName || userStatus.lastTask.taskType}**\nCompleted: <t:${Math.floor(new Date(userStatus.lastTask.deadline).getTime() / 1000)}:d>`, // Using deadline as proxy for completion time if completedAt isn't tracked, or we can assume it was recent. schema doesn't have completedAt, using deadline or maybe assignedAt? Schema has status only. Wait, completeAssignment updates status. Let's use deadline as approximation or nothing. 
+                    inline: false
+                });
+            } else {
+                embed.addFields({ name: 'History', value: "No completed tasks yet. A fresh start!", inline: false });
+            }
+            
+            embed.setFooter({ text: userStatus.isFree ? "Let's assign something fun! 💫" : "Gambare! You can do it! ♪" });
+            return { embeds: [embed] };
+            
+        } else {
+            // List all free users
+            const freeUsers = await TaskUtils.fetchFreeUsersWithStatus();
+            
+            if (!freeUsers || freeUsers.length === 0) {
+                return { content: "Everyone seems to be busy with their tasks right now! Just like hard-working idols! ♪" };
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle('🎵 Available Users')
+                .setColor(0x39c5bb)
+                .setDescription("Here are the users with no active tasks~ Time to make some music! 🎤")
+                .setTimestamp();
+            
+            
+            // Function to chunk array into smaller pieces
+            const chunkArray = (arr, size) => {
+                const chunks = [];
+                for (let i = 0; i < arr.length; i += size) {
+                    chunks.push(arr.slice(i, i + size));
+                }
+                return chunks;
+            };
+
+            const activeFree = freeUsers.filter(u => !u.isOnHiatus);
+            const hiatusFree = freeUsers.filter(u => u.isOnHiatus);
+            
+            if (activeFree.length > 0) {
+                const activeList = activeFree.map(u => {
+                    const lastTaskInfo = u.lastTask 
+                        ? `Last: *${u.lastTask.taskName || u.lastTask.taskType}*`
+                        : "No prior tasks";
+                    return `• <@${u.discordId}> - ${lastTaskInfo}`;
+                });
+                
+                // Embed field value limit is 1024 characters.
+                // We'll create multiple fields if the list is too long.
+                const chunks = [];
+                let currentChunk = "";
+                
+                for (const line of activeList) {
+                    if ((currentChunk + line + "\n").length > 1024) {
+                        chunks.push(currentChunk);
+                        currentChunk = line + "\n";
+                    } else {
+                        currentChunk += line + "\n";
+                    }
+                }
+                if (currentChunk) chunks.push(currentChunk);
+
+                chunks.forEach((chunk, index) => {
+                    embed.addFields({ 
+                        name: index === 0 ? '✨ Ready for Assignment' : '✨ Ready for Assignment (Cont.)', 
+                        value: chunk, 
+                        inline: false 
+                    });
+                });
+            }
+            
+            if (hiatusFree.length > 0) {
+                const hiatusList = hiatusFree.map(u => {
+                    const lastTaskInfo = u.lastTask 
+                        ? `Last: *${u.lastTask.taskName || u.lastTask.taskType}*`
+                        : "No prior tasks";
+                    return `• <@${u.discordId}> - ${lastTaskInfo}`;
+                });
+
+                const chunks = [];
+                let currentChunk = "";
+                
+                for (const line of hiatusList) {
+                    if ((currentChunk + line + "\n").length > 1024) {
+                        chunks.push(currentChunk);
+                        currentChunk = line + "\n";
+                    } else {
+                        currentChunk += line + "\n";
+                    }
+                }
+                if (currentChunk) chunks.push(currentChunk);
+
+                chunks.forEach((chunk, index) => {
+                    embed.addFields({ 
+                        name: index === 0 ? '🏝️ On Hiatus (Free)' : '🏝️ On Hiatus (Free) (Cont.)', 
+                        value: chunk, 
+                        inline: false 
+                    });
+                });
+            }
+            
+            if (activeFree.length === 0 && hiatusFree.length === 0) {
+                 embed.setDescription("Everyone is busy! Ganbatte~!");
+            }
+
+            embed.setFooter({ text: "Let's create something amazing together! 💫" });
+
+            return { embeds: [embed] };
+        }
+    } catch (error) {
+        console.error("Error in coreCheckFree:", error);
+        return { content: "O-Oh no! Something went wrong while checking for available users... 😢" };
+    }
+};
+
 const corePing = async (interaction) => {
     const sent = await interaction.editReply('Checking connection... ♪');
     const latency = sent.createdTimestamp - interaction.createdTimestamp;
@@ -912,6 +1065,13 @@ const coreUptime = (client) => {
         .setTimestamp();
     
     return { embeds: [embed] };
+};
+
+export const handleCheckFreeSlash = async (interaction) => {
+    await interaction.deferReply();
+    const targetUser = interaction.options.getUser('user');
+    const result = await coreCheckFree(interaction.guild, targetUser);
+    return interaction.editReply(result);
 };
 
 export const handlePingSlash = async (interaction) => {
@@ -1116,6 +1276,12 @@ export const handlePrefixCommand = async (message) => {
         const m = Math.floor(totalSeconds / 60) % 60;
         message.reply(`⏳ **System Uptime:** ${days}d ${h}h ${m}m`);
         await logAction(guild, `Checked Uptime`, author);
+    }
+
+    if (command === 'checkfree' || command === 'available') {
+        const target = resolveTarget(message);
+        const res = await coreCheckFree(guild, target);
+        return message.reply(res);
     }
 
     if (command === 'help') {
