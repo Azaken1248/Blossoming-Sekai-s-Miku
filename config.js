@@ -49,9 +49,9 @@ export default {
         '1449411540351713503': {
             name: "VA",
             tasks: {
-                'skit': 1 * WEEK,
-                'story': 2 * WEEK,
-                'joke_cover': 2 * WEEK
+                'skit': 3 * WEEK,
+                'story': 3 * WEEK,
+                'joke_cover': 3 * WEEK
             },
             extension: 1 * WEEK
         },
@@ -96,9 +96,9 @@ export default {
         '1449416050457186425': {
             name: "editor",
             tasks: {
-                'skit': 1 * WEEK,
-                'story': 1 * WEEK,
-                'color_mv': 2 * WEEK,
+                'skit': 3 * WEEK,
+                'story': 3 * WEEK,
+                'color_mv': 3 * WEEK,
                 '2d_mv': 4 * WEEK
             },
             // Special split extensions logic is handled in commands.js
