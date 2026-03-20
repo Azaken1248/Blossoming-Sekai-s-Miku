@@ -72,3 +72,21 @@ export const setHiatus = async (discordId, isOnHiatus) => {
 export const getUsersWithStrikes = async () => {
     return await User.find({ strikes: { $gt: 0 } }).sort({ strikes: -1 }).lean();
 };
+
+export const listUsers = async ({ limit = 100, search = '' } = {}) => {
+    const trimmedSearch = (search || '').trim();
+    const query = trimmedSearch
+        ? {
+            $or: [
+                { username: { $regex: trimmedSearch, $options: 'i' } },
+                { discordId: { $regex: trimmedSearch, $options: 'i' } }
+            ]
+        }
+        : {};
+
+    return await User.find(query)
+        .sort('-joinedAt')
+        .limit(Math.max(1, Math.min(Number(limit) || 100, 500)))
+        .select('discordId username strikes isOnHiatus roles joinedAt')
+        .lean();
+};
