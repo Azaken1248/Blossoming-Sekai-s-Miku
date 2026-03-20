@@ -1,6 +1,4 @@
-/* Catppuccin Mocha Theme with Miku Accents */
 :root {
-    /* Catppuccin Mocha Palette */
     --ctp-rosewater: #f5e0dc;
     --ctp-flamingo: #f2cdcd;
     --ctp-pink: #f5c2e7;
@@ -28,15 +26,14 @@
     --ctp-mantle: #181825;
     --ctp-crust: #11111b;
 
-    /* Miku Theme Mappings */
-    --miku-primary: var(--ctp-teal);       /* Main Miku Color */
-    --miku-secondary: var(--ctp-pink);     /* Accent Pink */
-    --miku-accent: var(--ctp-sky);         /* Secondary Cyan */
+    --miku-primary: var(--ctp-teal);       
+    --miku-secondary: var(--ctp-pink);     
+    --miku-accent: var(--ctp-sky);        
     
     --bg-body: var(--ctp-base);
     --bg-card: var(--ctp-surface0);
     --bg-card-hover: var(--ctp-surface1);
-    --bg-nav: rgba(30, 30, 46, 0.8);       /* Base with opacity */
+    --bg-nav: rgba(30, 30, 46, 0.8);       
     
     --text-main: var(--ctp-text);
     --text-muted: var(--ctp-subtext0);
@@ -44,7 +41,7 @@
     
     --border-color: var(--ctp-surface1);
     --shadow-color: rgba(0, 0, 0, 0.3);
-    --glow-color: rgba(148, 226, 213, 0.3); /* Teal glow */
+    --glow-color: rgba(148, 226, 213, 0.3); 
 }
 
 * {
@@ -66,9 +63,8 @@ body {
     max-width: 100vw;
 }
 
-/* Background Stars */
 .stars, .stars2, .stars3 {
-    display: none; /* Removed to fix dotted grey background issue */
+    display: none; 
     position: fixed;
     top: 0;
     left: 0;
@@ -101,7 +97,6 @@ body {
     to { transform: translateY(-100vh); }
 }
 
-/* Navbar */
 .navbar {
     background: var(--bg-nav);
     backdrop-filter: blur(12px);
@@ -187,7 +182,6 @@ body {
     width: 100%;
 }
 
-/* Hero Section */
 .hero {
     min-height: 100vh;
     display: flex;
@@ -269,7 +263,6 @@ body {
     margin-right: auto;
 }
 
-/* Floating Elements */
 .floating-miku {
     position: absolute;
     pointer-events: none;
@@ -283,7 +276,6 @@ body {
     height: auto;
     filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));    will-change: auto;}
 
-/* Features section - scattered diagonal */
 .miku-features-top {
     top: 50px;
     right: 2%;
@@ -308,7 +300,6 @@ body {
     animation: float 7s ease-in-out infinite 1.5s;
 }
 
-/* Commands section - both corners */
 .miku-commands-left {
     top: 50px;
     left: 2%;
@@ -333,7 +324,6 @@ body {
     animation: float 7.5s ease-in-out infinite 2s;
 }
 
-/* Setup section - right side */
 .miku-setup-right {
     top: 50px;
     right: 2%;
@@ -346,7 +336,6 @@ body {
     animation: float 6s ease-in-out infinite 1s;
 }
 
-/* Setup section - left side */
 .miku-setup-left {
     bottom: 20px;
     left: 1%;
@@ -359,7 +348,6 @@ body {
     animation: float 7s ease-in-out infinite 1.5s;
 }
 
-/* Footer - left miku */
 .miku-footer-left {
     position: absolute;
     left: 0;
@@ -415,7 +403,6 @@ section {
     border-radius: 2px;
 }
 
-/* Features Grid */
 .features {
     background: var(--ctp-mantle);
 }
@@ -485,7 +472,6 @@ section {
     line-height: 1.7;
 }
 
-/* Commands Section */
 .commands {
     background: var(--bg-body);
 }
@@ -558,9 +544,6 @@ section {
     border: 1px solid var(--ctp-surface2);
 }
 
-
-
-/* Setup Section */
 .setup {
     background: var(--ctp-mantle);
 }
@@ -697,7 +680,6 @@ section {
     overflow: hidden;
 }
 
-/* Footer Layout */
 .footer-main-layout {
     display: flex;
     align-items: center;
@@ -707,7 +689,7 @@ section {
 
 .footer-miku-container {
     flex-shrink: 0;
-    width: 180px; /* Matches other small assets */
+    width: 180px; 
 }
 
 .footer-miku-container img {
@@ -771,7 +753,34 @@ section {
     font-size: 0.85rem;
 }
 
-/* Animations */
+.nav-logo { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.8rem; 
+}
+
+.nav-miku { 
+    height: clamp(30px, 4vw, 40px); 
+    filter: drop-shadow(0 0 5px rgba(148, 226, 213, 0.5)); 
+}
+
+.hamburger {
+    display: none;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 1001; 
+}
+
+.hamburger .bar {
+    width: 25px;
+    height: 3px;
+    background-color: var(--ctp-text);
+    transition: all 0.3s ease;
+    border-radius: 3px;
+}
+
+
 @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-15px); }
@@ -782,8 +791,73 @@ section {
     50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.05); }
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
+    .logo-text {
+        font-size: 0 !important; 
+    }
+
+    .logo-text::after {
+        content: "Sekai";
+        font-size: 1.3rem; 
+        
+        background: linear-gradient(135deg, var(--miku-primary), var(--miku-accent));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .nav-miku {
+        height: 35px;
+    }
+    
+    .hamburger {
+        display: flex;
+    }
+
+    .nav-menu {
+        position: absolute;
+        top: 100%; 
+        left: 0;
+        width: 100%;
+        background: var(--bg-nav);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 0;
+        gap: 1.5rem;
+        border-bottom: 1px solid var(--ctp-surface1);
+        
+        transform: translateY(-150%); 
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 999;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .nav-menu.active {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .nav-menu a {
+        font-size: 1.1rem;
+        padding: 0.5rem;
+    }
+
+    .hamburger.active .bar:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+        background-color: var(--miku-primary);
+    }
+    .hamburger.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger.active .bar:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+        background-color: var(--miku-secondary);
+    }
+
     .footer-main-layout {
         flex-direction: column;
         text-align: center;
@@ -795,14 +869,27 @@ section {
     }
 
     .nav-menu {
-        display: none; /* Simple hide for mobile for now */
+        display: flex;
+        gap: 0.8rem; 
+    }
+
+    .nav-menu li a[href^="#"] {
+        display: none;
+    }
+
+    .nav-menu a {
+        font-size: 0.8rem;
+        padding: 0;
+    }
+
+    .logo-text {
+        font-size: 1.1rem;
     }
     
     .title-main {
         font-size: 2.5rem;
     }
     
-    /* Adjust floating assets for mobile */
     .floating-miku {
         display: block;
         opacity: 0.5;
@@ -810,7 +897,6 @@ section {
         pointer-events: none;
     }
 
-    /* Asset Positioning: Flanking the title */
     .miku-features-bottom, 
     .miku-commands-left, 
     .miku-setup-left {
@@ -831,7 +917,6 @@ section {
         max-width: 80px;
     }
     
-    /* Ensure title has room between images */
     .section-title {
         font-size: 2rem;
         max-width: 60%;
@@ -840,11 +925,10 @@ section {
         z-index: 2;
     }
     
-    /* Fix table responsiveness */
     .commands .container {
         padding: 0;
         width: 100%;
-        overflow: hidden; /* Prevent container from causing scroll */
+        overflow: hidden; 
     }
 
     .commands-table-container {
@@ -859,14 +943,14 @@ section {
     }
 
     .commands-table {
-        min-width: 600px; /* Allow it to be smaller if possible, but scroll if needed */
+        min-width: 600px;
     }
 
     .commands-table th, 
     .commands-table td {
         padding: 0.8rem 0.5rem;
         font-size: 0.85rem;
-        white-space: normal; /* Allow text wrap */
+        white-space: normal; 
     }
     
     .step {
@@ -878,10 +962,6 @@ section {
         width: 100%;
         max-width: 100vw;
         box-sizing: border-box;
-    }
-    
-    .floating-miku {
-        display: none;
     }
     
     .nav-icon {

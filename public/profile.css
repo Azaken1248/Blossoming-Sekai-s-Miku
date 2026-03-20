@@ -1,0 +1,153 @@
+.profile-page-layout {
+    align-items: flex-start;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.action-btn-group, .export-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem; 
+}
+.export-actions .btn-secondary, .action-btn-group .btn-secondary, .action-btn-group .btn-primary {
+    margin: 0; 
+}
+.link-btn {
+    display: block; text-align: center; text-decoration: none; box-sizing: border-box;
+}
+
+.status-msg {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--miku-accent);
+    text-align: center;
+    font-weight: 600;
+}
+
+.card-container-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card-header-flex {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--ctp-surface1);
+    padding-bottom: 1rem;
+}
+.card-header-flex h3 { margin-bottom: 0; }
+
+.capture-wrapper {
+    padding: 20px;
+    background-color: var(--ctp-base);
+    border-radius: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.sekai-id-card {
+    background: var(--ctp-surface0);
+    border: 1px solid var(--ctp-surface1);
+    border-radius: 15px;
+    width: 100%;
+    max-width: 450px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 15px rgba(148, 226, 213, 0.05);
+    transition: all 0.3s ease;
+}
+
+.sekai-id-card::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(148, 226, 213, 0.1) 0%, transparent 70%);
+    border-radius: 50%; transform: translate(30%, -30%); pointer-events: none;
+}
+
+.id-header {
+    display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.2rem; position: relative; z-index: 2;
+}
+
+.id-avatar {
+    width: 75px; height: 75px; border-radius: 12px;
+    border: 2px solid var(--miku-primary); object-fit: cover; background: var(--ctp-mantle);
+}
+
+.id-user-info { flex: 1; }
+.id-user-info h2 { margin: 0 0 0.2rem 0; font-size: 1.4rem; color: var(--ctp-text); font-weight: 800; }
+.id-discord-id { font-family: 'JetBrains Mono', monospace; color: var(--ctp-subtext0); font-size: 0.85rem; margin-bottom: 0.5rem; }
+.id-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.id-decor {
+    position: absolute; width: 60px; opacity: 0.8; right: 0; top: -10px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.id-insight {
+    background: var(--ctp-mantle); border: 1px dashed var(--miku-secondary); border-radius: 8px;
+    padding: 0.8rem; font-size: 0.9rem; color: var(--ctp-text); margin-bottom: 1.2rem; display: flex; gap: 0.8rem; align-items: flex-start;
+}
+.id-insight i { color: var(--miku-secondary); font-size: 1.2rem; margin-top: 0.1rem; }
+
+.id-roles-section { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem; }
+.role-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.role-title { font-size: 0.75rem; color: var(--ctp-subtext0); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.role-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.role-tags .badge { background: var(--ctp-surface1); color: var(--ctp-text); border: 1px solid var(--ctp-surface2); font-size: 0.75rem; padding: 0.25rem 0.6rem; }
+
+.id-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; }
+.id-stat-box { background: var(--ctp-mantle); border-radius: 8px; padding: 0.8rem; display: flex; flex-direction: column; align-items: flex-start; border: 1px solid var(--ctp-surface1); }
+.stat-label { font-size: 0.75rem; color: var(--ctp-subtext0); text-transform: uppercase; font-weight: 700; margin-bottom: 0.3rem; }
+.stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 800; }
+.text-miku { color: var(--miku-primary); }
+.text-accent { color: var(--miku-accent); }
+
+.id-footer {
+    display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--ctp-surface1);
+    padding-top: 0.8rem; margin-top: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--ctp-surface2); text-transform: uppercase; font-weight: 700;
+}
+
+.sekai-id-card.compact-mode {
+    padding: 1rem;
+}
+.sekai-id-card.compact-mode .id-header {
+    gap: 0.8rem; margin-bottom: 0.8rem;
+}
+.sekai-id-card.compact-mode .id-avatar {
+    width: 55px; height: 55px; border-width: 1px;
+}
+.sekai-id-card.compact-mode .id-user-info h2 {
+    font-size: 1.15rem; margin-bottom: 0;
+}
+.sekai-id-card.compact-mode .id-discord-id {
+    font-size: 0.75rem; margin-bottom: 0.3rem;
+}
+.sekai-id-card.compact-mode .id-insight {
+    display: none; 
+}
+.sekai-id-card.compact-mode .id-decor {
+    width: 40px; top: -5px; right: -5px;
+}
+.sekai-id-card.compact-mode .id-roles-section {
+    margin-bottom: 1rem; gap: 0.6rem;
+}
+.sekai-id-card.compact-mode .id-stats-grid {
+    grid-template-columns: 1fr; gap: 0.5rem;
+}
+.sekai-id-card.compact-mode .id-stat-box {
+    flex-direction: row; justify-content: space-between; align-items: center; padding: 0.6rem;
+}
+.sekai-id-card.compact-mode .stat-label { margin-bottom: 0; }
+.sekai-id-card.compact-mode .id-footer { font-size: 0.55rem; }
+
+@media (max-width: 600px) {
+    .nav-links { gap: 0.8rem; }
+    .nav-links span { display: none; }
+    .capture-wrapper { padding: 10px; }
+}

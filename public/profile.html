@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Sekai Analytics</title>
+    <link rel="icon" type="image/png" href="assets/PNG%201.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="assets/PNG 1.png" alt="Miku" class="nav-miku" onerror="this.style.display='none'">
+                <span class="logo-text">Sekai Analytics</span>
+            </div>
+            <div class="nav-links">
+                <a href="./index.html" class="back-link"><i class="fa-solid fa-house"></i> <span>Home</span></a>
+                <a href="./dashboard.html" class="back-link"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout profile-page-layout">
+        <aside class="control-panel">
+            <div class="panel-header">
+                <h3><i class="fa-solid fa-address-card"></i> Profile Viewer</h3>
+            </div>
+            
+            <div class="form-group">
+                <label>Select Member</label>
+                <select id="user-select">
+                    <option value="">Loading users...</option>
+                </select>
+            </div>
+            
+            <div class="action-btn-group">
+                <button id="load-profile" type="button" class="btn-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> Load Profile</button>
+                <a id="share-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-secondary link-btn"><i class="fa-solid fa-share-nodes"></i> View Raw Embed</a>
+            </div>
+
+            <div class="panel-header" style="margin-top: 2rem;">
+                <h3><i class="fa-solid fa-camera"></i> Export Card</h3>
+            </div>
+            
+            <div class="export-actions">
+                <button id="copy-image" type="button" class="btn-secondary"><i class="fa-solid fa-copy"></i> Copy to Clipboard</button>
+                <button id="download-image" type="button" class="btn-secondary"><i class="fa-solid fa-download"></i> Save as PNG</button>
+                <button id="copy-link" type="button" class="btn-secondary"><i class="fa-solid fa-link"></i> Copy Share Link</button>
+            </div>
+            
+            <p id="status-text" class="status-msg"></p>
+        </aside>
+
+        <main class="dashboard-content">
+            <div class="card card-container-wrapper">
+                <div class="card-header-flex">
+                    <h3><i class="fa-solid fa-id-badge"></i> ID Card Preview</h3>
+                </div>
+
+                <div id="capture-area" class="capture-wrapper">
+                    <div class="sekai-id-card" id="main-id-card">
+                        
+                        <div class="id-header">
+                            <img id="profile-avatar" src="assets/PNG 1.png" alt="Avatar" class="id-avatar" crossorigin="anonymous">
+                            <div class="id-user-info">
+                                <h2 id="profile-name">Username</h2>
+                                <p id="profile-id" class="id-discord-id">@discord_id</p>
+                                <div class="id-badges">
+                                    <span id="profile-hiatus" class="badge badge-hiatus">Active</span>
+                                    <span id="profile-strikes" class="badge badge-strike">0 Strikes</span>
+                                </div>
+                            </div>
+                            <img src="assets/PNG 2.png" alt="Miku Decor" class="id-decor id-decor-top">
+                        </div>
+
+                        <div class="id-insight">
+                            <i class="fa-solid fa-quote-left"></i>
+                            <span id="profile-miku-description">Fetching Miku's insight...</span>
+                        </div>
+
+                        <div class="id-roles-section">
+                            <div class="role-group">
+                                <span class="role-title">🎭 Server Roles</span>
+                                <div id="profile-server-roles" class="role-tags">
+                                    <span class="badge badge-EXCUSED">Member</span>
+                                </div>
+                            </div>
+                            <div class="role-group">
+                                <span class="role-title">💼 Work Tags</span>
+                                <div id="profile-work-roles" class="role-tags">
+                                    <span class="badge">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="id-stats-grid">
+                            <div class="id-stat-box">
+                                <span class="stat-label">Tasks Done</span>
+                                <span id="profile-completed" class="stat-value text-miku">0</span>
+                            </div>
+                            <div class="id-stat-box">
+                                <span class="stat-label">Joined Date</span>
+                                <span id="profile-joined" class="stat-value text-accent">--</span>
+                            </div>
+                        </div>
+
+                        <div class="id-footer">
+                            <span>Sekai Analytics Center</span>
+                            <span>Blossoming Sekai's Miku</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="profile.js"></script>
+</body>
+</html>
