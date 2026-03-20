@@ -49,7 +49,7 @@ export default {
         '1449411540351713503': {
             name: "VA",
             tasks: {
-                'skit': 3 * WEEK,
+                'skit': 2 * WEEK,
                 'story': 3 * WEEK,
                 'joke_cover': 3 * WEEK
             },
@@ -59,9 +59,9 @@ export default {
         '1449413545224704071': {
             name: "SVA",
             tasks: {
-                'short_cover': 2 * WEEK,
-                'full_cover': 3 * WEEK,
-                'joke_cover': 2 * WEEK
+                'short_cover': 3 * WEEK,
+                'full_cover': 4 * WEEK,
+                'joke_cover': 3 * WEEK
             },
             extension: 2 * WEEK
         },
@@ -69,8 +69,8 @@ export default {
         '1449415623388958720': {
             name: "translyricist",
             tasks: {
-                'short_cover': 1 * WEEK,
-                'full_cover': 2 * WEEK
+                'short_cover': 2 * WEEK,
+                'full_cover': 3 * WEEK
             },
             extension: 2 * WEEK
         },
@@ -78,8 +78,8 @@ export default {
         '1449416633910038679': {
             name: "lyricist",
             tasks: {
-                'short_song': 3 * WEEK,
-                'long_song': 4 * WEEK
+                'short_song': 4 * WEEK,
+                'long_song': 5 * WEEK
             },
             extension: 2 * WEEK
         },
@@ -87,8 +87,8 @@ export default {
         '1449415914624909333': {
             name: "composer",
             tasks: {
-                'short_song': 1 * MONTH,
-                'long_song': 6 * WEEK
+                'short_song': 5 * WEEK,
+                'long_song': 7 * WEEK
             },
             extension: 3 * WEEK
         },
@@ -96,10 +96,10 @@ export default {
         '1449416050457186425': {
             name: "editor",
             tasks: {
-                'skit': 3 * WEEK,
+                'skit': 2 * WEEK,
                 'story': 3 * WEEK,
                 'color_mv': 3 * WEEK,
-                '2d_mv': 4 * WEEK
+                '2d_mv': 5 * WEEK
             },
             // Special split extensions logic is handled in commands.js
             extension_mv: 2 * WEEK,
@@ -110,8 +110,8 @@ export default {
         '1449416803452194929': {
             name: "mixer",
             tasks: {
-                'short_cover': 2 * WEEK,
-                'full_cover': 3 * WEEK
+                'short_cover': 3 * WEEK,
+                'full_cover': 4 * WEEK
             },
             extension: 2 * WEEK
         },
