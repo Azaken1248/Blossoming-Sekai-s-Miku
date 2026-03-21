@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filtersUsers.classList.add('hidden');
             theadAssign.classList.remove('hidden');
             theadUsers.classList.add('hidden');
-            tableTitle.innerHTML = `<i class="fa-solid fa-database"></i> Assignment Data Matrix`;
+            tableTitle.innerHTML = `<i class="fa-solid fa-database"></i> Assignments Data`;
             
             s1Lbl.textContent = 'Total Tasks'; i1.className = 'fa-solid fa-list-check';
             s2Lbl.textContent = 'Completion Rate'; i2.className = 'fa-solid fa-check-double';
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tableTitle.innerHTML = `<i class="fa-solid fa-users-viewfinder"></i> User Roster`;
             
             s1Lbl.textContent = 'Total Users'; i1.className = 'fa-solid fa-users';
-            s2Lbl.textContent = 'Clean Records (0 Strikes)'; i2.className = 'fa-solid fa-shield-heart';
+            s2Lbl.textContent = 'Clean Records'; i2.className = 'fa-solid fa-shield-heart';
             s3Lbl.textContent = 'Users on Hiatus'; i3.className = 'fa-solid fa-bed';
             s4Lbl.textContent = 'Total Strikes Given'; i4.className = 'fa-solid fa-gavel';
             

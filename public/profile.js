@@ -60,6 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
             userSelect.value = queryDiscordId;
         }
 
+        new TomSelect('#user-select', {
+            create: false,
+            placeholder: "Search for a member...",
+            maxOptions: null, 
+            sortField: { field: "text", direction: "asc" } 
+        });
+
         loadProfileById(userSelect.value);
         statusText.textContent = '';
     }

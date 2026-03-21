@@ -200,6 +200,64 @@
 .sekai-id-card.compact-mode .stat-label { margin-bottom: 0; }
 .sekai-id-card.compact-mode .id-footer { font-size: 0.55rem; }
 
+.ts-wrapper {
+    width: 100%;
+}
+
+.ts-control {
+    background: var(--ctp-mantle) !important;
+    border: 1px solid var(--ctp-surface2) !important;
+    border-radius: 8px !important;
+    color: var(--ctp-text) !important;
+    padding: 0.8rem 1rem !important;
+    min-height: auto !important;
+    font-family: inherit !important;
+    box-shadow: none !important;
+    display: flex;
+    align-items: center;
+    transition: border-color 0.2s !important;
+}
+
+.ts-control.focus {
+    border-color: var(--miku-primary) !important;
+}
+
+.ts-control input {
+    color: var(--ctp-text) !important;
+    font-family: inherit !important;
+    font-size: 0.9rem !important;
+}
+
+.ts-control input::placeholder {
+    color: var(--ctp-subtext0) !important;
+}
+
+.ts-dropdown {
+    background: var(--ctp-surface0) !important;
+    border: 1px solid var(--ctp-surface2) !important;
+    border-radius: 8px !important;
+    color: var(--ctp-text) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4) !important;
+    margin-top: 4px !important;
+    overflow: hidden;
+}
+
+.ts-dropdown .option {
+    padding: 0.8rem 1rem !important;
+    transition: background 0.2s !important;
+    cursor: pointer;
+}
+
+.ts-dropdown .option.active, 
+.ts-dropdown .option:hover {
+    background: var(--ctp-surface1) !important;
+    color: var(--miku-primary) !important;
+}
+
+.ts-wrapper.single .ts-control::after {
+    border-color: var(--ctp-subtext0) transparent transparent transparent !important;
+}
+
 @media (max-width: 600px) {
     .nav-links { gap: 0.8rem; }
     .nav-links span { display: none; }
