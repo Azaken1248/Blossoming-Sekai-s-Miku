@@ -40,6 +40,21 @@ const fetchAsBase64 = async (url) => {
     }
 };
 
+const stripEmojis = (str) => {
+    if (!str) return '';
+    return str.replace(/\p{Emoji_Presentation}/gu, '').replace(/\p{Emoji}\uFE0F/gu, '').trim();
+};
+
+const wrapText = (text, maxLength) => {
+    if (text.length <= maxLength) return [text, ''];
+    let splitIdx = text.lastIndexOf(' ', maxLength);
+    if (splitIdx === -1) splitIdx = maxLength;
+    const line1 = text.substring(0, splitIdx);
+    let line2 = text.substring(splitIdx + 1);
+    if (line2.length > maxLength) line2 = line2.substring(0, maxLength - 3) + '...';
+    return [line1, line2];
+};
+
 const buildConfigRoleMap = () => {
     const map = new Map();
     const ruleSets = [config?.RULES, configProd?.RULES].filter(Boolean);
@@ -519,13 +534,27 @@ export const getCardImage = async (req, res) => {
         const serverRoles = actualRoles.slice(0, 2);
         const workRoles = topTaskRoles.slice(0, 2);
 
+        // --- Raw Data ---
         const discordId = user.discordId;
-        const username = getDisplayUsername(user, guildMember);
-        const rawAvatarUrl = buildAvatarFromGuildMember(guildMember) || discordData.avatarUrl || `https://api.dicebear.com/9.x/initials/png?seed=${encodeURIComponent(username)}&backgroundColor=313244&textColor=94e2d5`;
-        const hiatusLabel = user.isOnHiatus ? "💤 On Hiatus" : "✨ Active";
-        const strikesVal = user.strikes ? `${user.strikes} Strikes` : "Clean Record";
-        const joinedAt = user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US') : "Unknown";
-        const mikuDescription = buildMikuDescription({ username, strikes: user.strikes || 0, isOnHiatus: !!user.isOnHiatus, tasksCompleted, topTaskRoles });
+        const rawUsername = getDisplayUsername(user, guildMember);
+        const rawAvatarUrl = buildAvatarFromGuildMember(guildMember) || discordData.avatarUrl || `https://api.dicebear.com/9.x/initials/png?seed=${encodeURIComponent(rawUsername)}&backgroundColor=313244&textColor=94e2d5`;
+        const rawHiatusLabel = user.isOnHiatus ? "Active" : "Active"; // We handle the text manually below
+        const rawStrikesVal = user.strikes ? `${user.strikes} Strikes` : "Clean Record";
+        const rawJoinedAt = user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US') : "Unknown";
+        const rawMikuDescription = buildMikuDescription({ username: rawUsername, strikes: user.strikes || 0, isOnHiatus: !!user.isOnHiatus, tasksCompleted, topTaskRoles });
+
+        // --- Cleaned & Wrapped Data ---
+        const username = stripEmojis(rawUsername);
+        const displayUsername = username.length > 18 ? username.substring(0, 18) + '...' : username;
+        
+        // Ensure manual overrides for hiatus since original logic relied on emojis
+        const hiatusLabel = user.isOnHiatus ? "On Hiatus" : "Active";
+        const strikesVal = stripEmojis(rawStrikesVal).substring(0, 15);
+        const joinedAt = stripEmojis(rawJoinedAt);
+        
+        // Wrap the description into 2 lines!
+        const [quoteLine1, quoteLine2] = wrapText(stripEmojis(rawMikuDescription), 48);
+        const quoteY1 = quoteLine2 ? 142 : 150; // Adjusts height perfectly if it's 1 or 2 lines
 
         const avatarB64 = await fetchAsBase64(rawAvatarUrl);
         const decorB64 = await fetchAsBase64("https://sekai.azaken.com/assets/PNG%202.png");
@@ -533,9 +562,11 @@ export const getCardImage = async (req, res) => {
         const renderRole = (index, roleName, yOffset) => {
             if (!roleName || roleName === '-') return '';
             const xOffset = index === 0 ? 24 : 140;
+            // Clean emojis from roles just in case!
+            const cleanRole = stripEmojis(roleName).substring(0, 15);
             return `
             <rect x="${xOffset}" y="${yOffset}" width="106" height="22" rx="6" fill="#45475a" stroke="#585b70" stroke-width="1" />
-            <text x="${xOffset + 53}" y="${yOffset + 15.5}" class="role-tag" text-anchor="middle">${escapeXml(roleName).substring(0, 15)}</text>
+            <text x="${xOffset + 53}" y="${yOffset + 15.5}" class="role-tag" text-anchor="middle">${escapeXml(cleanRole)}</text>
             `;
         };
 
@@ -555,7 +586,7 @@ export const getCardImage = async (req, res) => {
                 .title { font-family: 'Inter', sans-serif; font-size: 22.4px; font-weight: 800; fill: #cdd6f4; }
                 .subtitle { font-family: 'JetBrains Mono', monospace; font-size: 13.6px; fill: #a6adc8; }
                 .badge-text { font-family: 'Inter', sans-serif; font-size: 11.2px; font-weight: 700; }
-                .insight-text { font-family: 'Inter', sans-serif; font-size: 14.4px; fill: #cdd6f4; }
+                .insight-text { font-family: 'Inter', sans-serif; font-size: 14px; fill: #cdd6f4; }
                 .role-title { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #a6adc8; letter-spacing: 0.5px; }
                 .role-tag { font-family: 'Inter', sans-serif; font-size: 12px; fill: #cdd6f4; }
                 .stat-label { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #a6adc8; letter-spacing: 0.5px; }
@@ -572,24 +603,25 @@ export const getCardImage = async (req, res) => {
             <image x="24" y="24" width="75" height="75" href="${escapeXml(avatarB64)}" clip-path="url(#avatarClip)"/>
             <rect x="24" y="24" width="75" height="75" rx="12" fill="none" stroke="#94e2d5" stroke-width="2" />
             
-            <text x="115" y="44" class="title">${escapeXml(username).substring(0, 18)}</text>
+            <text x="115" y="44" class="title">${escapeXml(displayUsername)}</text>
             <text x="115" y="66" class="subtitle">@${escapeXml(discordId)}</text>
 
-            <rect x="115" y="80" width="85" height="20" rx="6" fill="#a6e3a1" fill-opacity="0.15" stroke="#a6e3a1" stroke-width="1" />
-            <text x="157.5" y="94" class="badge-text" fill="#a6e3a1" text-anchor="middle">${escapeXml(hiatusLabel)}</text>
+            <rect x="115" y="80" width="70" height="20" rx="6" fill="#a6e3a1" fill-opacity="0.15" stroke="#a6e3a1" stroke-width="1" />
+            <text x="150" y="94" class="badge-text" fill="#a6e3a1" text-anchor="middle">${escapeXml(hiatusLabel)}</text>
 
-            <rect x="210" y="80" width="105" height="20" rx="6" fill="#89dceb" fill-opacity="0.15" stroke="#89dceb" stroke-width="1" />
-            <text x="262.5" y="94" class="badge-text" fill="#89dceb" text-anchor="middle">${escapeXml(strikesVal)}</text>
+            <rect x="195" y="80" width="85" height="20" rx="6" fill="#89dceb" fill-opacity="0.15" stroke="#89dceb" stroke-width="1" />
+            <text x="237.5" y="94" class="badge-text" fill="#89dceb" text-anchor="middle">${escapeXml(strikesVal)}</text>
 
             <rect x="24" y="125" width="402" height="45" rx="8" fill="#181825" stroke="#f5c2e7" stroke-dasharray="4 4" stroke-width="1" />
-            <text x="36" y="152" fill="#f5c2e7" font-size="16" font-family="serif" font-weight="900">"</text>
-            <text x="50" y="152" class="insight-text">${escapeXml(mikuDescription)}</text>
+            <text x="34" y="148" fill="#f5c2e7" font-size="16" font-family="serif" font-weight="900">"</text>
+            <text x="48" y="${quoteY1}" class="insight-text">${escapeXml(quoteLine1)}</text>
+            ${quoteLine2 ? `<text x="48" y="${quoteY1 + 18}" class="insight-text">${escapeXml(quoteLine2)}</text>` : ''}
 
-            <text x="24" y="200" class="role-title">🎭 SERVER ROLES</text>
+            <text x="24" y="200" class="role-title">SERVER ROLES</text>
             ${renderRole(0, serverRoles[0] || 'Member', 210)}
             ${renderRole(1, serverRoles[1] || '', 210)}
 
-            <text x="24" y="260" class="role-title">💼 WORK TAGS</text>
+            <text x="24" y="260" class="role-title">WORK TAGS</text>
             ${renderRole(0, workRoles[0] || 'No tasks yet', 270)}
             ${renderRole(1, workRoles[1] || '', 270)}
 
