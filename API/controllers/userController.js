@@ -3,6 +3,7 @@ import User from '../../DB/Schemas/user.js';
 import Assignment from '../../DB/Schemas/assignment.js';
 import config from '../../config.js';
 import configProd from '../../configProd.js';
+import sharp from 'sharp';
 
 const DISCORD_API = 'https://discord.com/api/v10';
 const roleCache = {
@@ -15,6 +16,28 @@ const memberCache = {
     guildId: null,
     expiresAt: 0,
     memberMap: new Map()
+};
+
+const escapeXml = (unsafe) => {
+    if (!unsafe) return '';
+    return String(unsafe).replace(/[<>&'"]/g, (c) => {
+        switch (c) {
+            case '<': return '&lt;'; case '>': return '&gt;';
+            case '&': return '&amp;'; case '\'': return '&apos;';
+            case '"': return '&quot;'; default: return c;
+        }
+    });
+};
+
+const fetchAsBase64 = async (url) => {
+    try {
+        const response = await fetch(url);
+        const buffer = Buffer.from(await response.arrayBuffer());
+        const mimeType = response.headers.get('content-type') || 'image/png';
+        return `data:${mimeType};base64,${buffer.toString('base64')}`;
+    } catch (e) {
+        return '';
+    }
 };
 
 const buildConfigRoleMap = () => {
@@ -457,42 +480,139 @@ export const generateCardImage = async (req, res) => {
     }
 };
 
-export const uploadCardImage = async (req, res) => {
-    try {
-        const { image } = req.body;
-        if (!image) return res.status(400).send('No image provided');
-        
-        await User.findOneAndUpdate(
-            { discordId: req.params.discordId }, 
-            { cardImage: image }
-        );
-        res.status(200).send({ success: true });
-    } catch (error) {
-        console.error("Upload error:", error);
-        res.status(500).send('Error saving image');
-    }
-};
-
 
 export const getCardImage = async (req, res) => {
     try {
-        const user = await User.findOne({ discordId: req.params.discordId });
+        const user = await User.findOne({ discordId: req.params.discordId }).lean();
+        if (!user) return res.redirect('https://sekai.azaken.com/assets/PNG%201.png');
+
+        const assignments = await Assignment.find({ discordUserId: req.params.discordId }).select('status roleName').lean();
+        const tasksCompleted = assignments.filter(a => a.status === 'COMPLETED').length;
+        const taskRoleCounts = assignments.reduce((acc, assignment) => {
+            const role = assignment.roleName || 'Unknown';
+            acc[role] = (acc[role] || 0) + 1;
+            return acc;
+        }, {});
+        const topTaskRoles = Object.entries(taskRoleCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 2)
+            .map(([role]) => role);
+
+        const discordData = await getDiscordProfileAndRoles(req.params.discordId);
+        const mappedStoredRoles = mapStoredRolesToNames(Array.isArray(user.roles) ? user.roles : []);
+        const { botToken, guildId } = getDiscordAuth();
         
-        if (!user || !user.cardImage) {
-            return res.redirect('https://sekai.azaken.com/assets/PNG%201.png');
+        let guildMember = null;
+        let guildRoleMap = new Map();
+        if (botToken && guildId) {
+            const [membersMap, rolesMap] = await Promise.all([
+                getGuildMembersMap(guildId, botToken),
+                getGuildRoleMap(guildId, botToken)
+            ]);
+            guildMember = membersMap.get(req.params.discordId) || null;
+            guildRoleMap = rolesMap;
         }
 
-        const base64Data = user.cardImage.replace(/^data:image\/\w+;base64,/, "");
-        const imgBuffer = Buffer.from(base64Data, 'base64');
+        const guildRoles = getMemberRoleNames(guildMember, guildRoleMap);
+        const actualRoles = guildRoles.length > 0 ? guildRoles : (mappedStoredRoles.length > 0 ? mappedStoredRoles : topTaskRoles);
 
-        const isJpeg = user.cardImage.includes('jpeg');
+        const serverRoles = actualRoles.slice(0, 2);
+        const workRoles = topTaskRoles.slice(0, 2);
 
-        res.writeHead(200, {
-            'Content-Type': isJpeg ? 'image/jpeg' : 'image/png',
-            'Content-Length': imgBuffer.length
-        });
-        res.end(imgBuffer);
+        const username = getDisplayUsername(user, guildMember);
+        const rawAvatarUrl = buildAvatarFromGuildMember(guildMember) || discordData.avatarUrl || `https://api.dicebear.com/9.x/initials/png?seed=${encodeURIComponent(username)}&backgroundColor=313244&textColor=94e2d5`;
+        const hiatusLabel = user.isOnHiatus ? "💤 On Hiatus" : "✨ Active";
+        const strikesVal = user.strikes ? `${user.strikes} Strikes` : "Clean Record";
+        const joinedAt = user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US') : "Unknown";
+        const mikuDescription = buildMikuDescription({ username, strikes: user.strikes || 0, isOnHiatus: !!user.isOnHiatus, tasksCompleted, topTaskRoles });
+
+        const avatarB64 = await fetchAsBase64(rawAvatarUrl);
+        const decorB64 = await fetchAsBase64("https://sekai.azaken.com/assets/PNG%202.png");
+
+        const renderRole = (index, roleName, yOffset) => {
+            if (!roleName || roleName === '-') return '';
+            const xOffset = index === 0 ? 24 : 140;
+            return `
+            <rect x="${xOffset}" y="${yOffset}" width="106" height="22" rx="6" fill="#45475a" stroke="#585b70" stroke-width="1" />
+            <text x="${xOffset + 53}" y="${yOffset + 15.5}" class="role-tag" text-anchor="middle">${escapeXml(roleName).substring(0, 15)}</text>
+            `;
+        };
+
+        const svg = `<?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="900" height="870" viewBox="0 0 450 435" role="img">
+            <defs>
+                <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+                    <stop offset="0%" stop-color="#94e2d5" stop-opacity="0.15"/>
+                    <stop offset="100%" stop-color="#94e2d5" stop-opacity="0"/>
+                </radialGradient>
+                <clipPath id="avatarClip">
+                    <rect x="24" y="24" width="75" height="75" rx="12" />
+                </clipPath>
+            </defs>
+
+            <style>
+                .title { font-family: 'Inter', sans-serif; font-size: 22.4px; font-weight: 800; fill: #cdd6f4; }
+                .subtitle { font-family: 'JetBrains Mono', monospace; font-size: 13.6px; fill: #a6adc8; }
+                .badge-text { font-family: 'Inter', sans-serif; font-size: 11.2px; font-weight: 700; }
+                .insight-text { font-family: 'Inter', sans-serif; font-size: 14.4px; fill: #cdd6f4; }
+                .role-title { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #a6adc8; letter-spacing: 0.5px; }
+                .role-tag { font-family: 'Inter', sans-serif; font-size: 12px; fill: #cdd6f4; }
+                .stat-label { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #a6adc8; letter-spacing: 0.5px; }
+                .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 19.2px; font-weight: 800; }
+                .footer-text { font-family: 'JetBrains Mono', monospace; font-size: 10.4px; font-weight: 700; fill: #585b70; letter-spacing: 0.5px;}
+            </style>
+
+            <rect x="1" y="1" width="448" height="433" fill="#313244" rx="15" />
+            <rect x="1" y="1" width="448" height="433" fill="none" stroke="#45475a" stroke-width="2" rx="15" />
+
+            <circle cx="400" cy="20" r="100" fill="url(#glow)" />
+            <image x="366" y="14" width="60" height="60" href="${escapeXml(decorB64)}" opacity="0.8" />
+
+            <image x="24" y="24" width="75" height="75" href="${escapeXml(avatarB64)}" clip-path="url(#avatarClip)"/>
+            <rect x="24" y="24" width="75" height="75" rx="12" fill="none" stroke="#94e2d5" stroke-width="2" />
+            
+            <text x="115" y="44" class="title">${escapeXml(username).substring(0, 18)}</text>
+            <text x="115" y="66" class="subtitle">@${escapeXml(discordId)}</text>
+
+            <rect x="115" y="80" width="85" height="20" rx="6" fill="#a6e3a1" fill-opacity="0.15" stroke="#a6e3a1" stroke-width="1" />
+            <text x="157.5" y="94" class="badge-text" fill="#a6e3a1" text-anchor="middle">${escapeXml(hiatusLabel)}</text>
+
+            <rect x="210" y="80" width="105" height="20" rx="6" fill="#89dceb" fill-opacity="0.15" stroke="#89dceb" stroke-width="1" />
+            <text x="262.5" y="94" class="badge-text" fill="#89dceb" text-anchor="middle">${escapeXml(strikesVal)}</text>
+
+            <rect x="24" y="125" width="402" height="45" rx="8" fill="#181825" stroke="#f5c2e7" stroke-dasharray="4 4" stroke-width="1" />
+            <text x="36" y="152" fill="#f5c2e7" font-size="16" font-family="serif" font-weight="900">"</text>
+            <text x="50" y="152" class="insight-text">${escapeXml(mikuDescription)}</text>
+
+            <text x="24" y="200" class="role-title">🎭 SERVER ROLES</text>
+            ${renderRole(0, serverRoles[0] || 'Member', 210)}
+            ${renderRole(1, serverRoles[1] || '', 210)}
+
+            <text x="24" y="260" class="role-title">💼 WORK TAGS</text>
+            ${renderRole(0, workRoles[0] || 'No tasks yet', 270)}
+            ${renderRole(1, workRoles[1] || '', 270)}
+
+            <rect x="24" y="310" width="195" height="65" rx="8" fill="#181825" stroke="#45475a" stroke-width="1" />
+            <text x="40" y="335" class="stat-label">TASKS DONE</text>
+            <text x="40" y="362" class="stat-val" fill="#94e2d5">${tasksCompleted}</text>
+
+            <rect x="231" y="310" width="195" height="65" rx="8" fill="#181825" stroke="#45475a" stroke-width="1" />
+            <text x="247" y="335" class="stat-label">JOINED DATE</text>
+            <text x="247" y="362" class="stat-val" fill="#89dceb">${escapeXml(joinedAt)}</text>
+
+            <line x1="24" y1="400" x2="426" y2="400" stroke="#45475a" stroke-width="1" />
+            <text x="24" y="420" class="footer-text">SEKAI ANALYTICS CENTER</text>
+            <text x="426" y="420" class="footer-text" text-anchor="end">BLOSSOMING SEKAI'S MIKU</text>
+        </svg>`;
+
+        const pngBuffer = await sharp(Buffer.from(svg)).png({ force: true, quality: 100 }).toBuffer();
+        
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=300'); 
+        res.send(pngBuffer);
+
     } catch (error) {
-        res.status(500).send('Error fetching image');
+        console.error('Error generating DB sharp card:', error);
+        res.redirect('https://sekai.azaken.com/assets/PNG%201.png');
     }
 };
