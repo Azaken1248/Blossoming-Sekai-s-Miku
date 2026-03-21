@@ -1,16 +1,15 @@
-//PRODUCTION CONFIGURATION - READY FOR DEPLOYMENT
+//ALL ROLE IDS USED HERE ARE PLACEHOLDERS AND SHOULD BE REPLACED WITH ACTUAL IDS
 
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
-
+const MONTH = 4 * WEEK;
 
 export default {
-    LOG_CHANNEL_ID: '1449120546208878622',
-    REMINDER_CHANNEL_ID: '1449299300000468993',
-    APPROVAL_CHANNEL_ID: '1394372730757058590',
-    
+    LOG_CHANNEL_ID: '1449396640044810531',
+    REMINDER_CHANNEL_ID: '1450543772009107596',
+    APPROVAL_CHANNEL_ID: '1450576609127043284',
     OWNER_ROLE_ID: '1393977289540239410',
-    MANAGER_ROLE_IDS: ['1447982241006489772', '1447982308878717141', '1447982164498186471'], // SVA, Crew, VA Deadline Managers
+    MANAGER_ROLE_IDS: ['1451202870455173151', '1447982308878717141'],
     ADMIN_USER_IDS: ['1213817849693478972', '867113282929557514'],
     
     SCHEDULER_INTERVAL_MINUTES: 60,
@@ -32,23 +31,22 @@ export default {
         }
     },
     
-    // List of Role IDs to REMOVE when someone gets 3 strikes
+    // 2. List of Role IDs to REMOVE when someone gets 3 strikes
+    
     CREW_ROLE_IDS: [
-        '1394241724007710823', // SVA
-        '1394241631280042074', // VA
-        '1394372465068867694', // Mixer
-        '1394242208219140178', // Composer
-        '1394242001297346662', // Artist
-        '1394242091558895750', // Translyricist
-        '1394242150794788964', // Lyricist
-        '1394242291451039887', // Editor
-        '1394242340914200616'  // Skit writer
+        '1449411540351713503',
+        '1449413545224704071',
+        '1449415623388958720',
+        '1449415914624909333',
+        '1449416050457186425',
+        '1449416633910038679',
+        '1449416803452194929'
     ],
 
-    // The Rules for each Role
+    // 3. The Rules for each Role
     RULES: {
-        // VA
-        '1394241631280042074': {
+        // VA Group 1
+        '1449411540351713503': {
             name: "VA",
             tasks: {
                 'skit': 2 * WEEK,
@@ -57,8 +55,8 @@ export default {
             },
             extension: 1 * WEEK
         },
-        // SVA
-        '1394241724007710823': {
+        // VA Group 2
+        '1449413545224704071': {
             name: "SVA",
             tasks: {
                 'short_cover': 3 * WEEK,
@@ -67,8 +65,8 @@ export default {
             },
             extension: 2 * WEEK
         },
-        // Translyricist
-        '1394242091558895750': {
+        // VA Group 3
+        '1449415623388958720': {
             name: "translyricist",
             tasks: {
                 'short_cover': 2 * WEEK,
@@ -76,8 +74,8 @@ export default {
             },
             extension: 2 * WEEK
         },
-        // Lyricist
-        '1394242150794788964': {
+        // Singer Group 1
+        '1449416633910038679': {
             name: "lyricist",
             tasks: {
                 'short_song': 4 * WEEK,
@@ -85,8 +83,8 @@ export default {
             },
             extension: 2 * WEEK
         },
-        // Composer
-        '1394242208219140178': {
+        // Singer Group 2
+        '1449415914624909333': {
             name: "composer",
             tasks: {
                 'short_song': 5 * WEEK,
@@ -94,8 +92,8 @@ export default {
             },
             extension: 3 * WEEK
         },
-        // Editor
-        '1394242291451039887': {
+        // Visuals/MV
+        '1449416050457186425': {
             name: "editor",
             tasks: {
                 'skit': 2 * WEEK,
@@ -108,30 +106,14 @@ export default {
             extension_skit: 1 * WEEK,
             extension_story: 1 * WEEK
         },
-        // Mixer
-        '1394372465068867694': {
+        // VA Group 4
+        '1449416803452194929': {
             name: "mixer",
             tasks: {
                 'short_cover': 3 * WEEK,
                 'full_cover': 4 * WEEK
             },
             extension: 2 * WEEK
-        },
-        // Artist
-        '1394242001297346662': {
-            name: "artist",
-            tasks: {
-                'custom_task': 1 * WEEK // Placeholder, uses custom if needed
-            },
-            extension: 2 * WEEK
-        },
-        // Skit writer
-        '1394242340914200616': {
-            name: "skit_writer",
-            tasks: {
-                'custom_task': 1 * WEEK // Placeholder, uses custom if needed
-            },
-            extension: 1 * WEEK
         },
         // Bot Dev
         '1462373658344423515': {
