@@ -142,3 +142,23 @@ tr:hover td { background: var(--ctp-mantle); color: var(--ctp-text); }
     .tab-btn { flex-grow: 1; text-align: center; }
     th, td { padding: 0.6rem 0.4rem; }
 }
+
+/* Custom Scrollbars for Dashboard & Profile */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--ctp-base);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--ctp-surface2);
+    border-radius: 5px;
+    border: 2px solid var(--ctp-base); 
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--miku-primary);
+}

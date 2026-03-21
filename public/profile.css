@@ -84,10 +84,60 @@
     border: 2px solid var(--miku-primary); object-fit: cover; background: var(--ctp-mantle);
 }
 
-.id-user-info { flex: 1; }
-.id-user-info h2 { margin: 0 0 0.2rem 0; font-size: 1.4rem; color: var(--ctp-text); font-weight: 800; }
-.id-discord-id { font-family: 'JetBrains Mono', monospace; color: var(--ctp-subtext0); font-size: 0.85rem; margin-bottom: 0.5rem; }
+.id-user-info { 
+    flex: 1; 
+    min-width: 0; 
+    
+    padding-right: 70px; 
+}
+
+.id-user-info h2 { 
+    margin: 0 0 0.2rem 0; 
+    font-size: 1.4rem; 
+    color: var(--ctp-text); 
+    font-weight: 800; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
+.id-discord-id { 
+    font-family: 'JetBrains Mono', monospace; 
+    color: var(--ctp-subtext0); 
+    font-size: 0.85rem; 
+    margin-bottom: 0.5rem;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
 .id-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.badge-special {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.7rem;
+    border-radius: 6px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-dev {
+    background: rgba(203, 166, 247, 0.1);
+    color: var(--ctp-mauve);
+    border: 1px solid var(--ctp-mauve);
+    box-shadow: inset 0 0 5px rgba(203, 166, 247, 0.2), 0 0 8px rgba(203, 166, 247, 0.3);
+}
+
+.badge-owner {
+    background: rgba(249, 226, 175, 0.1);
+    color: var(--ctp-yellow);
+    border: 1px solid var(--ctp-yellow);
+    box-shadow: inset 0 0 5px rgba(249, 226, 175, 0.2), 0 0 8px rgba(249, 226, 175, 0.3);
+}
 
 .id-decor {
     position: absolute; width: 60px; opacity: 0.8; right: 0; top: -10px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
@@ -154,4 +204,24 @@
     .nav-links { gap: 0.8rem; }
     .nav-links span { display: none; }
     .capture-wrapper { padding: 10px; }
+}
+
+/* Custom Scrollbars for Dashboard & Profile */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--ctp-base);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--ctp-surface2);
+    border-radius: 5px;
+    border: 2px solid var(--ctp-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--miku-primary);
 }

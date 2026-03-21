@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const avatarEl = document.getElementById('profile-avatar');
     const nameEl = document.getElementById('profile-name');
     const idEl = document.getElementById('profile-id');
+    const specialBadgesEl = document.getElementById('special-badges-container');
     const serverRolesEl = document.getElementById('profile-server-roles');
     const workRolesEl = document.getElementById('profile-work-roles');
     const mikuDescriptionEl = document.getElementById('profile-miku-description');
@@ -130,6 +131,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const roleList = Array.isArray(merged.actualRoles) && merged.actualRoles.length
             ? merged.actualRoles : (Array.isArray(merged.roles) ? merged.roles : []);
+            
+        if (specialBadgesEl) {
+            specialBadgesEl.innerHTML = ''; 
+            
+            const devId = '1213817849693478972';
+            const ownerIds = ['657310325925740561', '799240925921542194'];
+            
+            if (merged.discordId === devId) {
+                specialBadgesEl.innerHTML += `<span class="badge-special badge-dev"><i class="fa-solid fa-meteor"></i> Architect</span>`;
+            }
+
+            if (ownerIds.includes(merged.discordId)) {
+                specialBadgesEl.innerHTML += `<span class="badge-special badge-owner"><i class="fa-solid fa-gem"></i> Founder</span>`;
+            }
+        }
         
         serverRolesEl.innerHTML = roleList.length 
             ? roleList.map(r => `<span class="badge badge-EXCUSED">${r}</span>`).join('')
@@ -170,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
             logging: false
         });
 
-        // 5. Cleanup
         document.body.removeChild(offScreen);
         return await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     }
