@@ -439,21 +439,55 @@ export const generateCardImage = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        // Return the image URL pointing to the profile page screenshot
-        // Using microlink service to generate screenshot of the card
-        const profileUrl = `https://sekai.azaken.com/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
-        
-        // Generate screenshot URL using Microlink API
-        // This captures the profile card and returns it as an image
-        const imageUrl = `https://api.microlink.io/?url=${encodeURIComponent(profileUrl)}&screenshot=true&width=1000&height=1200&viewport=true`;
-        
-        // Return JSON with image URL for Discord embed
-        res.json({ 
-            success: true, 
-            imageUrl: imageUrl,
-            discordId: user.discordId,
-            username: user.username
+        const puppeteer = (await import('puppeteer')).default;
+
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
+
+        try {
+            const page = await browser.newPage();
+
+            // Set viewport to match card dimensions
+            await page.setViewport({
+                width: 600,
+                height: 1200,
+                deviceScaleFactor: 1
+            });
+
+            // Navigate to profile page
+            const profileUrl = `https://sekai.azaken.com/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
+            await page.goto(profileUrl, { 
+                waitUntil: 'networkidle2',
+                timeout: 30000 
+            });
+
+            // Wait for card to load
+            await page.waitForSelector('.sekai-id-card', { timeout: 10000 });
+
+            // Get the card element and take screenshot
+            const cardElement = await page.$('.capture-wrapper');
+            
+            if (!cardElement) {
+                return res.status(500).json({ error: 'Card element not found' });
+            }
+
+            // Take screenshot of just the card
+            const screenshot = await cardElement.screenshot({
+                type: 'png',
+                encoding: 'binary'
+            });
+
+            // Send as image
+            res.setHeader('Content-Type', 'image/png');
+            res.setHeader('Content-Disposition', `attachment; filename="sekai-card-${user.username}.png"`);
+            res.send(screenshot);
+
+        } finally {
+            await browser.close();
+        }
+
     } catch (error) {
         console.error("Error generating card image:", error);
         res.status(500).json({ error: error.message });
