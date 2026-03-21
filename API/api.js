@@ -6,7 +6,6 @@ import Assignment from '../DB/Schemas/assignment.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import sharp from 'sharp';
 
 import userRoutes from './routes/users.js';
 import assignmentRoutes from './routes/assignments.js';
@@ -198,27 +197,6 @@ app.get('/share/user/:discordId/card.svg', async (req, res) => {
         }
 });
 
-app.get('/share/user/:discordId/card.png', async (req, res) => {
-    try {
-        const summaryUser = await fetchUserSummaryForShare(req, req.params.discordId);
-        const user = summaryUser || await User.findOne({ discordId: req.params.discordId }).lean();
-        if (!user) {
-            return res.status(404).send('User not found');
-        }
-
-        const metrics = {
-            tasksCompleted: user.tasksCompleted,
-            topTaskRoles: user.topTaskRoles
-        };
-        const svg = createProfileCardSvg(user, metrics, pickRandomStickers(2));
-        const pngBuffer = await sharp(Buffer.from(svg)).png({ quality: 92 }).toBuffer();
-        res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Cache-Control', 'public, max-age=300');
-        return res.send(pngBuffer);
-    } catch (error) {
-        return res.status(500).send('Unable to render PNG card');
-    }
-});
 
 app.get('/share/user/:discordId', async (req, res) => {
         try {
