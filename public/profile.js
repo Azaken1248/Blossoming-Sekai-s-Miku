@@ -136,6 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         mikuDescriptionEl.textContent = merged.mikuDescription || `✨ Exploring the Sekai with ${merged.username || 'this member'}!`;
 
+        if(merged.discordId === '383329758697750528') {
+            mikuDescriptionEl.textContent = "My confusion has expanded from the size of Miyamasuzaka Girls' Academy to the size of Shibuya, Tokyo.";
+        }
+
         const roleList = Array.isArray(merged.actualRoles) && merged.actualRoles.length
             ? merged.actualRoles : (Array.isArray(merged.roles) ? merged.roles : []);
             

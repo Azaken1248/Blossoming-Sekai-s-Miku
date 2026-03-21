@@ -386,6 +386,115 @@ const coreProfile = async (targetUser, guild = null) => {
     return { embeds: [embed] };
 };
 
+const coreCard = async (targetUser, _guild = null) => {
+    if (targetUser.id === '1449394728863924354') {
+        const embed = new EmbedBuilder()
+            .setTitle('🎤 Hatsune Miku\'s ID Card')
+            .setColor(0x39c5bb)
+            .setDescription('Oh! You want to know about me? Alright then!')
+            .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
+            .addFields(
+                { name: '👤 Member ID', value: `@${targetUser.id}`, inline: false },
+                { name: '✨ Status', value: 'Active & Ready', inline: true },
+                { name: '⚡ Strikes', value: '0/3', inline: true },
+                { name: '🎵 About Me', value: 'I\'m Hatsune Miku! I\'m here to help everyone in this SEKAI work together and create something wonderful.', inline: false },
+                { name: '🎯 My Goal', value: 'I want everyone here to reach their full potential! When people work together and support each other, they can accomplish so much more.', inline: false }
+            )
+            .setFooter({ text: 'Sekai Analytics Center ✨', iconURL: targetUser.displayAvatarURL({ dynamic: true, size: 256 }) })
+            .setTimestamp();
+        
+        return { embeds: [embed] };
+    }
+
+    try {
+        const summaryUrl = `https://api.sekai.azaken.com/api/users/${encodeURIComponent(targetUser.id)}/summary`;
+        const summaryResponse = await fetch(summaryUrl);
+        
+        if (!summaryResponse.ok) {
+            return { content: "User not found in the Sekai Database. Have they joined yet?" };
+        }
+
+        const summaryData = await summaryResponse.json();
+        const profile = summaryData.data || summaryData;
+
+        const avatarUrl = profile.avatarUrl || targetUser.displayAvatarURL({ dynamic: true, size: 256 });
+
+        const statusBadge = profile.isOnHiatus ? 'ON HIATUS' : 'ACTIVE';
+        const strikesBadge = profile.strikes > 0 ? `${profile.strikes}/3 STRIKES` : 'CLEAN RECORD';
+
+        const serverRoles = Array.isArray(profile.actualRoles) ? profile.actualRoles : [];
+        const workTags = Array.isArray(profile.topTaskRoles) ? profile.topTaskRoles : [];
+
+        let mikuDescription = profile.mikuDescription || `Exploring the Sekai with ${profile.username || 'this member'}!`;
+
+        if(targetUser.id === '383329758697750528') {
+            mikuDescription = "My confusion has expanded from the size of Miyamasuzaka Girls' Academy to the size of Shibuya, Tokyo."
+        }
+
+        const tasksCompleted = profile.tasksCompleted || 0;
+        const pending = profile.totalAssignments ? Math.max(0, profile.totalAssignments - tasksCompleted) : 0;
+        const joinedDate = profile.joinedAt ? new Date(profile.joinedAt).toLocaleDateString() : 'Unknown';
+
+        const devId = '1213817849693478972';
+        const ownerIds = ['657310325925740561', '799240925921542194'];
+        let specialBadges = [];
+        
+        if (targetUser.id === devId) specialBadges.push('ARCHITECT');
+        if (ownerIds.includes(targetUser.id)) specialBadges.push('FOUNDER');
+
+        let embedColor = 0x94e2d5; 
+        if (profile.isOnHiatus) embedColor = 0xf9e2af; 
+        else if (profile.strikes >= 3) embedColor = 0xf38ba8; 
+        else if (profile.strikes >= 2) embedColor = 0xfab387; 
+
+        const embed = new EmbedBuilder()
+            .setColor(embedColor)
+            .setAuthor({ 
+                name: `${profile.username || targetUser.username} | SEKAI ID`, 
+                iconURL: avatarUrl 
+            })
+            .setThumbnail(avatarUrl)
+            .setDescription(`> *"${mikuDescription}"*`);
+
+        const fields = [
+            { name: '✦ STATUS', value: `\`\`\`yaml\n${statusBadge}\n\`\`\``, inline: true },
+            { name: '✦ RECORD', value: `\`\`\`yaml\n${strikesBadge}\n\`\`\``, inline: true }
+        ];
+
+        if (specialBadges.length > 0) {
+            fields.push({ name: '✦ SPECIAL', value: `\`\`\`yaml\n${specialBadges.join('\n')}\n\`\`\``, inline: true });
+        } else {
+            fields.push({ name: '\u200B', value: '\u200B', inline: true });
+        }
+
+        fields.push(
+            { 
+                name: '◈ SERVER ROLES', 
+                value: serverRoles.length > 0 ? serverRoles.map(r => `\`${r}\``).join(' ') : '`Member`', 
+                inline: false 
+            },
+            { 
+                name: '◈ WORK TAGS', 
+                value: workTags.length > 0 ? workTags.map(t => `\`${t}\``).join(' ') : '`No tasks yet`', 
+                inline: false 
+            },
+            {
+                name: '📊 ANALYTICS',
+                value: `\`\`\`diff\n+ Completed Tasks : ${tasksCompleted}\n- Pending Tasks   : ${pending}\n\`\`\``,
+                inline: false
+            }
+        );
+
+        embed.addFields(fields);
+        embed.setFooter({ text: `ID: ${targetUser.id} • Joined: ${joinedDate}` });
+
+        return { embeds: [embed] };
+    } catch (error) {
+        console.error('Error fetching card data:', error);
+        return { content: "Failed to load card. Please try again." };
+    }
+};
+
 const coreStrike = async (guild, author, targetUser, action, reason) => {
     await UserUtils.findOrCreateUser(targetUser.id, targetUser.username);
     
@@ -403,7 +512,7 @@ const coreStrike = async (guild, author, targetUser, action, reason) => {
     }
 };
 
-const coreStrikeList = async (guild, author) => {
+const coreStrikeList = async (_guild, _author) => {
     const usersWithStrikes = await UserUtils.getUsersWithStrikes();
     
     if (!usersWithStrikes || usersWithStrikes.length === 0) {
@@ -533,7 +642,7 @@ const coreHelp = async () => {
 
     embed.addFields({
         name: '🌟 User Management',
-        value: '`/onboard` - Welcome new crew members!\n`/profile` - Check your stats and achievements~\n`/strike add/remove` - Manage strikes (add requires reason)\n`/hiatus` - Request a break with reason (needs approval)\n`/endhiatus` - Come back from hiatus (leave blank for yourself!)',
+        value: '`/onboard` - Welcome new crew members!\n`/profile` - Check your stats and achievements~\n`/card` - View your ID card (like the website card!) or `/card @user` for someone else\n`/strike add/remove` - Manage strikes (add requires reason)\n`/hiatus` - Request a break with reason (needs approval)\n`/endhiatus` - Come back from hiatus (leave blank for yourself!)',
         inline: false
     });
 
@@ -712,6 +821,13 @@ export const handleProfileSlash = async (interaction) => {
     await interaction.deferReply();
     const user = interaction.options.getUser('user') || interaction.user;
     const result = await coreProfile(user, interaction.guild);
+    return interaction.editReply(result);
+};
+
+export const handleCardSlash = async (interaction) => {
+    await interaction.deferReply();
+    const user = interaction.options.getUser('user') || interaction.user;
+    const result = await coreCard(user, interaction.guild);
     return interaction.editReply(result);
 };
 
@@ -1133,6 +1249,12 @@ export const handlePrefixCommand = async (message) => {
     if (command === 'profile') {
         const target = resolveTarget(message) || author;
         const res = await coreProfile(target, guild);
+        return message.reply(res);
+    }
+
+    if (command === 'card') {
+        const target = resolveTarget(message) || author;
+        const res = await coreCard(target, guild);
         return message.reply(res);
     }
 

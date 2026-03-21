@@ -25,7 +25,11 @@ const userSchema = new mongoose.Schema({
     assignments: [{ 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Assignment' 
-    }]
+    },],
+    cardImage: { 
+        type: String, 
+        default: null 
+    },
 });
 
 export default mongoose.model('User', userSchema);

@@ -534,27 +534,22 @@ export const getCardImage = async (req, res) => {
         const serverRoles = actualRoles.slice(0, 2);
         const workRoles = topTaskRoles.slice(0, 2);
 
-        // --- Raw Data ---
         const discordId = user.discordId;
         const rawUsername = getDisplayUsername(user, guildMember);
         const rawAvatarUrl = buildAvatarFromGuildMember(guildMember) || discordData.avatarUrl || `https://api.dicebear.com/9.x/initials/png?seed=${encodeURIComponent(rawUsername)}&backgroundColor=313244&textColor=94e2d5`;
-        const rawHiatusLabel = user.isOnHiatus ? "Active" : "Active"; // We handle the text manually below
         const rawStrikesVal = user.strikes ? `${user.strikes} Strikes` : "Clean Record";
         const rawJoinedAt = user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US') : "Unknown";
         const rawMikuDescription = buildMikuDescription({ username: rawUsername, strikes: user.strikes || 0, isOnHiatus: !!user.isOnHiatus, tasksCompleted, topTaskRoles });
 
-        // --- Cleaned & Wrapped Data ---
         const username = stripEmojis(rawUsername);
         const displayUsername = username.length > 18 ? username.substring(0, 18) + '...' : username;
         
-        // Ensure manual overrides for hiatus since original logic relied on emojis
         const hiatusLabel = user.isOnHiatus ? "On Hiatus" : "Active";
         const strikesVal = stripEmojis(rawStrikesVal).substring(0, 15);
         const joinedAt = stripEmojis(rawJoinedAt);
         
-        // Wrap the description into 2 lines!
         const [quoteLine1, quoteLine2] = wrapText(stripEmojis(rawMikuDescription), 48);
-        const quoteY1 = quoteLine2 ? 142 : 150; // Adjusts height perfectly if it's 1 or 2 lines
+        const quoteY1 = quoteLine2 ? 142 : 150; 
 
         const avatarB64 = await fetchAsBase64(rawAvatarUrl);
         const decorB64 = await fetchAsBase64("https://sekai.azaken.com/assets/PNG%202.png");
@@ -562,7 +557,6 @@ export const getCardImage = async (req, res) => {
         const renderRole = (index, roleName, yOffset) => {
             if (!roleName || roleName === '-') return '';
             const xOffset = index === 0 ? 24 : 140;
-            // Clean emojis from roles just in case!
             const cleanRole = stripEmojis(roleName).substring(0, 15);
             return `
             <rect x="${xOffset}" y="${yOffset}" width="106" height="22" rx="6" fill="#45475a" stroke="#585b70" stroke-width="1" />

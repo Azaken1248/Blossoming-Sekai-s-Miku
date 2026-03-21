@@ -211,6 +211,8 @@ const commands = [
         .addStringOption(o => o.setName('task').setDescription('Task name').setRequired(false)),
     new SlashCommandBuilder().setName('profile').setDescription('View profile')
         .addUserOption(o => o.setName('user').setDescription('User').setRequired(false)),
+    new SlashCommandBuilder().setName('card').setDescription('View ID card (like the website card)')
+        .addUserOption(o => o.setName('user').setDescription('User (leave blank for your own card)').setRequired(false)),
     new SlashCommandBuilder().setName('strike').setDescription('Manage strikes')
         .addSubcommand(s => s.setName('list').setDescription('List all users with strikes'))
         .addSubcommand(s => s.setName('add').setDescription('Add Strike').addUserOption(o=>o.setName('user').setDescription('User').setRequired(true)).addStringOption(o=>o.setName('reason').setDescription('Reason').setRequired(true)))
@@ -286,6 +288,7 @@ client.on('interactionCreate', async interaction => {
             if (commandName === 'submit') await Commands.handleSubmitSlash(interaction);
             if (commandName === 'extension') await Commands.handleExtensionSlash(interaction);
             if (commandName === 'profile') await Commands.handleProfileSlash(interaction);
+            if (commandName === 'card') await Commands.handleCardSlash(interaction);
             if (commandName === 'strike') await Commands.handleStrikeSlash(interaction);
             if (commandName === 'onboard') await Commands.handleOnboardSlash(interaction);
             if (commandName === 'hiatus') await Commands.handleHiatusSlash(interaction);
