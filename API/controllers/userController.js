@@ -439,12 +439,35 @@ export const generateCardImage = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const puppeteer = (await import('puppeteer')).default;
+        let puppeteer;
+        try {
+            puppeteer = (await import('puppeteer')).default;
+        } catch (importError) {
+            console.error('Puppeteer not installed:', importError.message);
+            return res.status(503).json({ 
+                error: 'Image generation service unavailable. Please install puppeteer: npm install puppeteer',
+                message: importError.message 
+            });
+        }
 
-        const browser = await puppeteer.launch({
-            headless: 'new',
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
+        let browser;
+        try {
+            browser = await puppeteer.launch({
+                headless: 'new',
+                args: [
+                    '--no-sandbox', 
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',  // Use /tmp instead of /dev/shm
+                    '--single-process'           // For limited memory environments
+                ]
+            });
+        } catch (launchError) {
+            console.error('Failed to launch browser:', launchError.message);
+            return res.status(503).json({ 
+                error: 'Failed to launch browser. Ensure chromium/google-chrome is installed on your system.',
+                message: launchError.message 
+            });
+        }
 
         try {
             const page = await browser.newPage();
@@ -456,8 +479,10 @@ export const generateCardImage = async (req, res) => {
                 deviceScaleFactor: 1
             });
 
-            // Navigate to profile page
+            // Navigate to profile page with extended timeout
             const profileUrl = `https://sekai.azaken.com/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
+            console.log(`[CARD-IMAGE] Generating card image for ${user.username} (${user.discordId})`);
+            
             await page.goto(profileUrl, { 
                 waitUntil: 'networkidle2',
                 timeout: 30000 
@@ -470,7 +495,8 @@ export const generateCardImage = async (req, res) => {
             const cardElement = await page.$('.capture-wrapper');
             
             if (!cardElement) {
-                return res.status(500).json({ error: 'Card element not found' });
+                await browser.close();
+                return res.status(500).json({ error: 'Card element not found on page' });
             }
 
             // Take screenshot of just the card
@@ -482,14 +508,24 @@ export const generateCardImage = async (req, res) => {
             // Send as image
             res.setHeader('Content-Type', 'image/png');
             res.setHeader('Content-Disposition', `attachment; filename="sekai-card-${user.username}.png"`);
+            res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
             res.send(screenshot);
 
+            console.log(`[CARD-IMAGE] ✅ Successfully generated card for ${user.username}`);
+
         } finally {
-            await browser.close();
+            try {
+                await browser.close();
+            } catch (closeError) {
+                console.warn('Error closing browser:', closeError.message);
+            }
         }
 
     } catch (error) {
         console.error("Error generating card image:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ 
+            error: error.message,
+            type: error.constructor.name 
+        });
     }
 };
