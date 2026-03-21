@@ -401,9 +401,7 @@ export const generateShareCard = async (req, res) => {
         const statusText = user.isOnHiatus ? "💤 On Hiatus" : "✨ Active Member";
         const rolesText = user.roles && user.roles.length ? user.roles.join(', ') : 'Crew Member';
 
-        const FRONTEND_URL = process.env.NODE_ENV === 'production' 
-            ? 'https://sekai.azaken.com' 
-            : 'http://127.0.0.1:5500/public';
+        const FRONTEND_URL = 'https://sekai.azaken.com'
 
         const html = `
         <!DOCTYPE html>
