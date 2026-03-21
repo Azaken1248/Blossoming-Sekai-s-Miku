@@ -473,6 +473,7 @@ export const uploadCardImage = async (req, res) => {
     }
 };
 
+
 export const getCardImage = async (req, res) => {
     try {
         const user = await User.findOne({ discordId: req.params.discordId });
@@ -481,11 +482,13 @@ export const getCardImage = async (req, res) => {
             return res.redirect('https://sekai.azaken.com/assets/PNG%201.png');
         }
 
-        const base64Data = user.cardImage.replace(/^data:image\/png;base64,/, "");
+        const base64Data = user.cardImage.replace(/^data:image\/\w+;base64,/, "");
         const imgBuffer = Buffer.from(base64Data, 'base64');
 
+        const isJpeg = user.cardImage.includes('jpeg');
+
         res.writeHead(200, {
-            'Content-Type': 'image/png',
+            'Content-Type': isJpeg ? 'image/jpeg' : 'image/png',
             'Content-Length': imgBuffer.length
         });
         res.end(imgBuffer);
