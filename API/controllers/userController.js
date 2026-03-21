@@ -519,6 +519,7 @@ export const getCardImage = async (req, res) => {
         const serverRoles = actualRoles.slice(0, 2);
         const workRoles = topTaskRoles.slice(0, 2);
 
+        const discordId = user.discordId;
         const username = getDisplayUsername(user, guildMember);
         const rawAvatarUrl = buildAvatarFromGuildMember(guildMember) || discordData.avatarUrl || `https://api.dicebear.com/9.x/initials/png?seed=${encodeURIComponent(username)}&backgroundColor=313244&textColor=94e2d5`;
         const hiatusLabel = user.isOnHiatus ? "💤 On Hiatus" : "✨ Active";
