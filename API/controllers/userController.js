@@ -431,3 +431,31 @@ export const generateShareCard = async (req, res) => {
         res.status(500).send("Error generating card");
     }
 };
+
+export const generateCardImage = async (req, res) => {
+    try {
+        const user = await userUtils.getUserProfile(req.params.discordId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Return the image URL pointing to the profile page screenshot
+        // Using microlink service to generate screenshot of the card
+        const profileUrl = `https://sekai.azaken.com/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
+        
+        // Generate screenshot URL using Microlink API
+        // This captures the profile card and returns it as an image
+        const imageUrl = `https://api.microlink.io/?url=${encodeURIComponent(profileUrl)}&screenshot=true&width=1000&height=1200&viewport=true`;
+        
+        // Return JSON with image URL for Discord embed
+        res.json({ 
+            success: true, 
+            imageUrl: imageUrl,
+            discordId: user.discordId,
+            username: user.username
+        });
+    } catch (error) {
+        console.error("Error generating card image:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
