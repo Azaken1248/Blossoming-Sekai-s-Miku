@@ -439,93 +439,57 @@ export const generateCardImage = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        let puppeteer;
-        try {
-            puppeteer = (await import('puppeteer')).default;
-        } catch (importError) {
-            console.error('Puppeteer not installed:', importError.message);
-            return res.status(503).json({ 
-                error: 'Image generation service unavailable. Please install puppeteer: npm install puppeteer',
-                message: importError.message 
-            });
-        }
 
-        let browser;
-        try {
-            browser = await puppeteer.launch({
-                headless: 'new',
-                args: [
-                    '--no-sandbox', 
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',  // Use /tmp instead of /dev/shm
-                    '--single-process'           // For limited memory environments
-                ]
-            });
-        } catch (launchError) {
-            console.error('Failed to launch browser:', launchError.message);
-            return res.status(503).json({ 
-                error: 'Failed to launch browser. Ensure chromium/google-chrome is installed on your system.',
-                message: launchError.message 
-            });
-        }
+        const profileUrl = `https://sekai.azaken.com/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
+        
 
-        try {
-            const page = await browser.newPage();
-
-            // Set viewport to match card dimensions
-            await page.setViewport({
-                width: 600,
-                height: 1200,
-                deviceScaleFactor: 1
-            });
-
-            // Navigate to profile page with extended timeout
-            const profileUrl = `https://sekai.azaken.com/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
-            console.log(`[CARD-IMAGE] Generating card image for ${user.username} (${user.discordId})`);
-            
-            await page.goto(profileUrl, { 
-                waitUntil: 'networkidle2',
-                timeout: 30000 
-            });
-
-            // Wait for card to load
-            await page.waitForSelector('.sekai-id-card', { timeout: 10000 });
-
-            // Get the card element and take screenshot
-            const cardElement = await page.$('.capture-wrapper');
-            
-            if (!cardElement) {
-                await browser.close();
-                return res.status(500).json({ error: 'Card element not found on page' });
-            }
-
-            // Take screenshot of just the card
-            const screenshot = await cardElement.screenshot({
-                type: 'png',
-                encoding: 'binary'
-            });
-
-            // Send as image
-            res.setHeader('Content-Type', 'image/png');
-            res.setHeader('Content-Disposition', `attachment; filename="sekai-card-${user.username}.png"`);
-            res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-            res.send(screenshot);
-
-            console.log(`[CARD-IMAGE] ✅ Successfully generated card for ${user.username}`);
-
-        } finally {
-            try {
-                await browser.close();
-            } catch (closeError) {
-                console.warn('Error closing browser:', closeError.message);
-            }
-        }
-
+        const imageUrl = `https://api.microlink.io/?url=${encodeURIComponent(profileUrl)}&screenshot=true&width=1000&height=1200&viewport=true`;
+        
+        res.json({ 
+            success: true, 
+            imageUrl: imageUrl,
+            discordId: user.discordId,
+            username: user.username
+        });
     } catch (error) {
         console.error("Error generating card image:", error);
-        res.status(500).json({ 
-            error: error.message,
-            type: error.constructor.name 
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const uploadCardImage = async (req, res) => {
+    try {
+        const { image } = req.body;
+        if (!image) return res.status(400).send('No image provided');
+        
+        await User.findOneAndUpdate(
+            { discordId: req.params.discordId }, 
+            { cardImage: image }
+        );
+        res.status(200).send({ success: true });
+    } catch (error) {
+        console.error("Upload error:", error);
+        res.status(500).send('Error saving image');
+    }
+};
+
+export const getCardImage = async (req, res) => {
+    try {
+        const user = await User.findOne({ discordId: req.params.discordId });
+        
+        if (!user || !user.cardImage) {
+            return res.redirect('https://sekai.azaken.com/assets/PNG%201.png');
+        }
+
+        const base64Data = user.cardImage.replace(/^data:image\/png;base64,/, "");
+        const imgBuffer = Buffer.from(base64Data, 'base64');
+
+        res.writeHead(200, {
+            'Content-Type': 'image/png',
+            'Content-Length': imgBuffer.length
         });
+        res.end(imgBuffer);
+    } catch (error) {
+        res.status(500).send('Error fetching image');
     }
 };
