@@ -17,10 +17,22 @@ const userSchema = new mongoose.Schema({
         type: Boolean, 
         default: false 
     },
+    isDeboarded: {
+        type: Boolean,
+        default: false
+    },
+    deboarded_statusMessage: {
+        type: String,
+        default: '✨ ~Scouted in a different SEKAI~ ✨'
+    },
     roles: [String], 
     joinedAt: { 
         type: Date, 
         default: Date.now 
+    },
+    deboarded_at: {
+        type: Date,
+        default: null
     },
     assignments: [{ 
         type: mongoose.Schema.Types.ObjectId, 

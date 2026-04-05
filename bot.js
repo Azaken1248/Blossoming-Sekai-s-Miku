@@ -219,6 +219,12 @@ const commands = [
         .addSubcommand(s => s.setName('remove').setDescription('Remove Strike').addUserOption(o=>o.setName('user').setDescription('User').setRequired(true))),
     new SlashCommandBuilder().setName('onboard').setDescription('Onboard a new user')
         .addUserOption(o => o.setName('user').setDescription('User').setRequired(true)),
+    new SlashCommandBuilder().setName('deboard').setDescription('Safely deboard a user')
+        .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
+        .addStringOption(o => o.setName('message').setDescription('Custom deboard message (optional)').setRequired(false)),
+    new SlashCommandBuilder().setName('removetask').setDescription('Remove a task from a user (admins/owners only)')
+        .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
+        .addStringOption(o => o.setName('task').setDescription('Task name or type').setRequired(true)),
     new SlashCommandBuilder().setName('hiatus').setDescription('Request or grant hiatus')
         .addStringOption(o => o.setName('reason').setDescription('Reason for hiatus').setRequired(true))
         .addUserOption(o => o.setName('user').setDescription('User (owners only - grants directly)').setRequired(false)),
@@ -291,6 +297,8 @@ client.on('interactionCreate', async interaction => {
             if (commandName === 'card') await Commands.handleCardSlash(interaction);
             if (commandName === 'strike') await Commands.handleStrikeSlash(interaction);
             if (commandName === 'onboard') await Commands.handleOnboardSlash(interaction);
+            if (commandName === 'deboard') await Commands.handleDeboardSlash(interaction);
+            if (commandName === 'removetask') await Commands.handleRemoveTaskSlash(interaction);
             if (commandName === 'hiatus') await Commands.handleHiatusSlash(interaction);
             if (commandName === 'endhiatus') await Commands.handleEndHiatusSlash(interaction);
             if (commandName === 'history') await Commands.handleHistorySlash(interaction);

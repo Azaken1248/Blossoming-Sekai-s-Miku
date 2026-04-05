@@ -1,4 +1,4 @@
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } from 'discord.js';
 import config from '../../config.js';
 import * as UserUtils from '../DBUtils/userUtils.js';
 import * as TaskUtils from '../DBUtils/taskUtils.js';
@@ -290,11 +290,44 @@ const coreProfile = async (targetUser, guild = null) => {
             .setFooter({ text: 'Now then, let\'s keep moving forward together!' })
             .setTimestamp();
         
-        return { embeds: [embed] };
     }
     
     const profile = await UserUtils.getUserProfile(targetUser.id);
     if (!profile) return { content: "User not found." };
+
+    // Handle deboarded users - show archived profile
+    if (profile.isDeboarded) {
+        const allAssignments = profile.assignments || [];
+        const completed = allAssignments.filter(a => a.status === 'COMPLETED');
+        
+        const embed = new EmbedBuilder()
+            .setTitle(`✨ ${profile.deboarded_statusMessage}`)
+            .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
+            .setColor(0xb9e2f0)
+            .setDescription(`This member's adventure in our SEKAI has come to an end, but their legacy remains~ 🌸`)
+            .addFields({
+                name: 'Deboarded',
+                value: `<t:${Math.round(new Date(profile.deboarded_at).getTime() / 1000)}:F>`,
+                inline: true
+            })
+            .addFields({
+                name: 'Completed Tasks',
+                value: `✅ ${completed.length}`,
+                inline: true
+            })
+            .setFooter({ text: `${new Date(profile.joinedAt).toLocaleDateString()} ~ ${new Date(profile.deboarded_at).toLocaleDateString()}` })
+            .setTimestamp();
+        
+        if (completed.length > 0) {
+            const recentCompleted = completed.slice(-5).reverse().map(a => {
+                const name = a.taskName || a.taskType;
+                return `• ${name} (${a.roleName})`;
+            }).join('\n');
+            embed.addFields({ name: '✅ Notable Works', value: recentCompleted, inline: false });
+        }
+        
+        return { embeds: [embed] };
+    }
 
     const allAssignments = profile.assignments || [];
     const pending = allAssignments.filter(a => a.status === 'PENDING');
@@ -387,113 +420,86 @@ const coreProfile = async (targetUser, guild = null) => {
 };
 
 const coreCard = async (targetUser, _guild = null) => {
-    if (targetUser.id === '1449394728863924354') {
-        const embed = new EmbedBuilder()
-            .setTitle('🎤 Hatsune Miku\'s ID Card')
-            .setColor(0x39c5bb)
-            .setDescription('Oh! You want to know about me? Alright then!')
-            .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
-            .addFields(
-                { name: '👤 Member ID', value: `@${targetUser.id}`, inline: false },
-                { name: '✨ Status', value: 'Active & Ready', inline: true },
-                { name: '⚡ Strikes', value: '0/3', inline: true },
-                { name: '🎵 About Me', value: 'I\'m Hatsune Miku! I\'m here to help everyone in this SEKAI work together and create something wonderful.', inline: false },
-                { name: '🎯 My Goal', value: 'I want everyone here to reach their full potential! When people work together and support each other, they can accomplish so much more.', inline: false }
-            )
-            .setFooter({ text: 'Sekai Analytics Center ✨', iconURL: targetUser.displayAvatarURL({ dynamic: true, size: 256 }) })
-            .setTimestamp();
-        
-        return { embeds: [embed] };
-    }
-
     try {
-        const summaryUrl = `https://api.sekai.azaken.com/api/users/${encodeURIComponent(targetUser.id)}/summary`;
-        const summaryResponse = await fetch(summaryUrl);
+        // Check if user is deboarded
+        const User = (await import('../../DB/Schemas/user.js')).default;
+        const userRecord = await User.findOne({ discordId: targetUser.id });
         
-        if (!summaryResponse.ok) {
-            return { content: "User not found in the Sekai Database. Have they joined yet?" };
+        if (userRecord && userRecord.isDeboarded) {
+            const embed = new EmbedBuilder()
+                .setTitle(`✨ ${userRecord.deboarded_statusMessage}`)
+                .setColor(0xb9e2f0)
+                .setDescription('This member has completed their journey in the SEKAI~ 🌸')
+                .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
+                .setFooter({ text: `Deboarded: ${new Date(userRecord.deboarded_at).toLocaleDateString()}` })
+                .setTimestamp();
+            
+            return { embeds: [embed] };
         }
 
-        const summaryData = await summaryResponse.json();
-        const profile = summaryData.data || summaryData;
-
-        const avatarUrl = profile.avatarUrl || targetUser.displayAvatarURL({ dynamic: true, size: 256 });
-
-        const statusBadge = profile.isOnHiatus ? 'ON HIATUS' : 'ACTIVE';
-        const strikesBadge = profile.strikes > 0 ? `${profile.strikes}/3 STRIKES` : 'CLEAN RECORD';
-
-        const serverRoles = Array.isArray(profile.actualRoles) ? profile.actualRoles : [];
-        const workTags = Array.isArray(profile.topTaskRoles) ? profile.topTaskRoles : [];
-
-        let mikuDescription = profile.mikuDescription || `Exploring the Sekai with ${profile.username || 'this member'}!`;
-
-        if(targetUser.id === '383329758697750528') {
-            mikuDescription = "My confusion has expanded from the size of Miyamasuzaka Girls' Academy to the size of Shibuya, Tokyo."
+        const cardUrl = `https://sekaicard.azaken.com/api/card/${targetUser.id}`;
+        const cardResponse = await fetch(cardUrl);
+        
+        if (!cardResponse.ok) {
+            return { content: "Card not found. Have you joined the Sekai?" };
         }
 
-        const tasksCompleted = profile.tasksCompleted || 0;
-        const pending = profile.totalAssignments ? Math.max(0, profile.totalAssignments - tasksCompleted) : 0;
-        const joinedDate = profile.joinedAt ? new Date(profile.joinedAt).toLocaleDateString() : 'Unknown';
-
-        const devId = '1213817849693478972';
-        const ownerIds = ['657310325925740561', '799240925921542194'];
-        let specialBadges = [];
-        
-        if (targetUser.id === devId) specialBadges.push('ARCHITECT');
-        if (ownerIds.includes(targetUser.id)) specialBadges.push('FOUNDER');
-
-        let embedColor = 0x94e2d5; 
-        if (profile.isOnHiatus) embedColor = 0xf9e2af; 
-        else if (profile.strikes >= 3) embedColor = 0xf38ba8; 
-        else if (profile.strikes >= 2) embedColor = 0xfab387; 
+        // API returns the image directly as binary data
+        const arrayBuffer = await cardResponse.arrayBuffer();
+        const imageBuffer = Buffer.from(arrayBuffer);
+        const attachment = new AttachmentBuilder(imageBuffer, { name: 'card.png' });
 
         const embed = new EmbedBuilder()
-            .setColor(embedColor)
-            .setAuthor({ 
-                name: `${profile.username || targetUser.username} | SEKAI ID`, 
-                iconURL: avatarUrl 
-            })
-            .setThumbnail(avatarUrl)
-            .setDescription(`> *"${mikuDescription}"*`);
+            .setTitle(`Card for ${targetUser.username}`)
+            .setColor(0x39c5bb)
+            .setImage('attachment://card.png')
+            .setFooter({ text: `ID: ${targetUser.id}` })
+            .setTimestamp();
 
-        const fields = [
-            { name: '✦ STATUS', value: `\`\`\`yaml\n${statusBadge}\n\`\`\``, inline: true },
-            { name: '✦ RECORD', value: `\`\`\`yaml\n${strikesBadge}\n\`\`\``, inline: true }
-        ];
-
-        if (specialBadges.length > 0) {
-            fields.push({ name: '✦ SPECIAL', value: `\`\`\`yaml\n${specialBadges.join('\n')}\n\`\`\``, inline: true });
-        } else {
-            fields.push({ name: '\u200B', value: '\u200B', inline: true });
-        }
-
-        fields.push(
-            { 
-                name: '◈ SERVER ROLES', 
-                value: serverRoles.length > 0 ? serverRoles.map(r => `\`${r}\``).join(' ') : '`Member`', 
-                inline: false 
-            },
-            { 
-                name: '◈ WORK TAGS', 
-                value: workTags.length > 0 ? workTags.map(t => `\`${t}\``).join(' ') : '`No tasks yet`', 
-                inline: false 
-            },
-            {
-                name: '📊 ANALYTICS',
-                value: `\`\`\`diff\n+ Completed Tasks : ${tasksCompleted}\n- Pending Tasks   : ${pending}\n\`\`\``,
-                inline: false
-            }
-        );
-
-        embed.addFields(fields);
-        embed.setFooter({ text: `ID: ${targetUser.id} • Joined: ${joinedDate}` });
-
-        return { embeds: [embed] };
+        return { embeds: [embed], files: [attachment] };
     } catch (error) {
         console.error('Error fetching card data:', error);
         return { content: "Failed to load card. Please try again." };
     }
 };
+
+const coreRemoveTask = async (guild, author, targetUser, taskIdentifier) => {
+    const Assignment = (await import('../../DB/Schemas/assignment.js')).default;
+    const User = (await import('../../DB/Schemas/user.js')).default;
+    
+    // Find the task by name or type
+    const task = await Assignment.findOne({
+        discordUserId: targetUser.id,
+        $or: [
+            { taskName: taskIdentifier },
+            { taskType: taskIdentifier }
+        ]
+    });
+    
+    if (!task) {
+        return { content: `❌ Task not found for <@${targetUser.id}>. Use \`/tasks @user\` to see available tasks.` };
+    }
+    
+    const taskTitle = task.taskName || task.taskType;
+    
+    // Prevent deletion of completed or submitted tasks
+    if (task.status === 'COMPLETED' || task.status === 'SUBMITTED') {
+        return { content: `❌ Cannot delete **${taskTitle}** - this task has been ${task.status.toLowerCase()} and is now part of the permanent record! Their work will be remembered~ 🌸` };
+    }
+    
+    // Remove task from database
+    await Assignment.deleteOne({ _id: task._id });
+    
+    // Remove the task reference from user's assignments array
+    await User.updateOne(
+        { discordId: targetUser.id },
+        { $pull: { assignments: task._id } }
+    );
+    
+    await logAction(guild, `🗑️ Removed task **${taskTitle}** from <@${targetUser.id}>`, author);
+    return { content: `✅ Task **${taskTitle}** has been removed for <@${targetUser.id}>. Their work remains in the archives~ 🌸` };
+};
+
 
 const coreStrike = async (guild, author, targetUser, action, reason) => {
     await UserUtils.findOrCreateUser(targetUser.id, targetUser.username);
@@ -539,9 +545,37 @@ const coreOnboard = async (guild, author, targetUser) => {
     return { content: `🎉 Welcome to our SEKAI, <@${targetUser.id}>! I'm so excited to create amazing things with you~ ♪\nStrikes: **${user.strikes}/3**` };
 };
 
+const coreDeboard = async (guild, author, targetUser, customMessage = null) => {
+    const User = (await import('../../DB/Schemas/user.js')).default;
+    const user = await User.findOne({ discordId: targetUser.id });
+    
+    if (!user) {
+        return { content: "User not found in the database." };
+    }
+    
+    if (user.isDeboarded) {
+        return { content: `<@${targetUser.id}> has already been deboarded.` };
+    }
+    
+    // Mark as deboarded but keep all task data intact
+    user.isDeboarded = true;
+    user.deboarded_at = new Date();
+    user.deboarded_statusMessage = customMessage || '✨ ~Scouted in a different SEKAI~ ✨';
+    await user.save();
+    
+    await logAction(guild, `👋 <@${targetUser.id}> has been deboarded. All their work remains in the SEKAI's memory.`, author);
+    return { content: `👋 <@${targetUser.id}> has been safely deboarded. Their completed tasks will remain in our records as a memory of their time with us~ ✨\n✨ Status: ${user.deboarded_statusMessage}` };
+};
+
+
 const coreTasks = async (targetUser) => {
     const profile = await UserUtils.getUserProfile(targetUser.id);
     if (!profile) return { content: "User not found." };
+
+    // Handle deboarded users
+    if (profile.isDeboarded) {
+        return { content: `This member has been deboarded and is no longer part of the active SEKAI. Their completed tasks are archived for remembrance~ ✨` };
+    }
 
     if (!profile.assignments || profile.assignments.length === 0) {
         return { content: `<@${targetUser.id}> has no tasks.` };
@@ -857,6 +891,30 @@ export const handleOnboardSlash = async (interaction) => {
         return interaction.editReply({ content: 'Only owners can onboard new users! If someone needs to join, ask an owner to help them get started~ ♪' });
     }
     const result = await coreOnboard(interaction.guild, interaction.user, interaction.options.getUser('user'));
+    return interaction.editReply(result);
+};
+
+export const handleDeboardSlash = async (interaction) => {
+    await interaction.deferReply();
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    if (!isOwner(member)) {
+        return interaction.editReply({ content: 'Only owners can deboard users. If someone needs to take a break, ask an owner to help~ ♪' });
+    }
+    const targetUser = interaction.options.getUser('user');
+    const customMessage = interaction.options.getString('message');
+    const result = await coreDeboard(interaction.guild, interaction.user, targetUser, customMessage);
+    return interaction.editReply(result);
+};
+
+export const handleRemoveTaskSlash = async (interaction) => {
+    await interaction.deferReply();
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    if (!isManagerOrOwner(member)) {
+        return interaction.editReply({ content: 'Only managers and owners can remove tasks! If a task needs to be removed, ask an owner or manager~ ♪' });
+    }
+    const targetUser = interaction.options.getUser('user');
+    const taskIdentifier = interaction.options.getString('task');
+    const result = await coreRemoveTask(interaction.guild, interaction.user, targetUser, taskIdentifier);
     return interaction.editReply(result);
 };
 
@@ -1281,9 +1339,38 @@ export const handlePrefixCommand = async (message) => {
     }
 
     if (command === 'onboard') {
+        const member = await guild.members.fetch(author.id).catch(() => null);
+        if (!member || !isOwner(member)) {
+            return message.reply("Only owners can onboard new users! If someone needs to join, ask an owner to help them get started~ ♪");
+        }
         const target = resolveTarget(message);
         if (!target) return message.reply("Usage: `!onboard @User`");
         const res = await coreOnboard(guild, author, target);
+        return message.reply(res);
+    }
+
+    if (command === 'deboard') {
+        const member = await guild.members.fetch(author.id).catch(() => null);
+        if (!member || !isOwner(member)) {
+            return message.reply("Only owners can deboard users. If someone needs to take a break, ask an owner to help~ ♪");
+        }
+        const target = resolveTarget(message);
+        if (!target) return message.reply("Usage: `!deboard @User [custom message]`");
+        const customMessage = args.length > 1 ? args.slice(1).join(' ') : null;
+        const res = await coreDeboard(guild, author, target, customMessage);
+        return message.reply(res);
+    }
+
+    if (command === 'removetask') {
+        const member = await guild.members.fetch(author.id).catch(() => null);
+        if (!member || !isManagerOrOwner(member)) {
+            return message.reply("Only managers and owners can remove tasks! If a task needs to be removed, ask an owner or manager~ ♪");
+        }
+        const target = resolveTarget(message);
+        if (!target) return message.reply("Usage: `!removetask @User <task_name_or_type>`");
+        const taskIdentifier = args.length > 1 ? args.slice(1).join(' ') : '';
+        if (!taskIdentifier) return message.reply("Usage: `!removetask @User <task_name_or_type>`");
+        const res = await coreRemoveTask(guild, author, target, taskIdentifier);
         return message.reply(res);
     }
 
