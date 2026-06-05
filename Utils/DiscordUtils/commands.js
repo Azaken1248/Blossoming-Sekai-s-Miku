@@ -145,7 +145,9 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
         } else {
             const select = new StringSelectMenuBuilder()
                 .setCustomId(`submit_select_${targetUser.id}`)
-                .setPlaceholder('Select a task to submit...')
+                .setPlaceholder('Select task(s) to submit...')
+                .setMinValues(1)
+                .setMaxValues(Math.min(pendingTasks.length, 25))
                 .addOptions(
                     pendingTasks.map(t => {
                         const name = (t.taskName || t.taskType).substring(0, 90);
@@ -159,7 +161,7 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
                     })
                 );
             const row = new ActionRowBuilder().addComponents(select);
-            return { content: `✨ Please select the task you want to submit:`, components: [row] };
+            return { content: `✨ Please select the task(s) you want to submit:`, components: [row] };
         }
     }
     
@@ -1582,10 +1584,14 @@ export const handleSelectSubmit = async (interaction) => {
     }
 
     await interaction.deferUpdate();
-    const taskId = interaction.values[0];
     
-    const result = await coreSubmit(interaction.guild, interaction.user, { id: targetUserId }, null, interaction.channelId, taskId);
-    return interaction.editReply({ content: result.content, embeds: result.embeds || [], components: result.components || [] });
+    let successCount = 0;
+    for (const taskId of interaction.values) {
+        const result = await coreSubmit(interaction.guild, interaction.user, { id: targetUserId }, null, interaction.channelId, taskId);
+        if (result.content.includes('✅')) successCount++;
+    }
+    
+    return interaction.editReply({ content: `✅ Successfully sent ${successCount} task(s) for review! Keep up the amazing work~ ♪`, embeds: [], components: [] });
 };
 
 export const bulkAssignCache = new Map();
