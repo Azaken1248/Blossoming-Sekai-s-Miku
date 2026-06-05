@@ -1,4 +1,4 @@
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder, StringSelectMenuBuilder, UserSelectMenuBuilder } from 'discord.js';
 import config from '../../config.js';
 import * as UserUtils from '../DBUtils/userUtils.js';
 import * as TaskUtils from '../DBUtils/taskUtils.js';
@@ -51,7 +51,7 @@ const resolveTarget = (message) => {
     return message.mentions.users.first() || null;
 };
 
-const coreAssign = async (guild, author, targetUser, taskType, roleName, taskName = '', description = '', customDurationDays = null, customExtensionDays = null) => {
+const coreAssign = async (guild, author, targetUser, taskType, roleName, taskName = '', description = '', customDurationDays = null, customExtensionDays = null, suppressLog = false) => {
     const member = await guild.members.fetch(targetUser.id).catch(() => null);
     if (!member) return { content: "\u274c User not found in server." };
 
@@ -112,7 +112,9 @@ const coreAssign = async (guild, author, targetUser, taskType, roleName, taskNam
         customExtension: taskType === 'custom' && customExtensionDays ? customExtensionDays * 24 * 60 * 60 * 1000 : null
     });
 
-    await logAction(guild, `✨ Assigned **${taskType}** to <@${targetUser.id}> - Let's create something wonderful!`, author);
+    if (!suppressLog) {
+        await logAction(guild, `✨ Assigned **${taskType}** to <@${targetUser.id}> - Let's create something wonderful!`, author);
+    }
     const ts = Math.round(deadline.getTime() / 1000);
     return { content: `✨ Assigned **${taskType}** to <@${targetUser.id}>! Let's create something wonderful together!\n📅 Deadline: <t:${ts}:F> (<t:${ts}:R>)` };
 };
@@ -1303,6 +1305,58 @@ export const handlePrefixCommand = async (message) => {
         return message.reply(res);
     }
 
+    if (command === 'bulkassign') {
+        const member = await guild.members.fetch(author.id).catch(() => null);
+        if (!member || !isOwner(member)) {
+            return message.reply("Only owners can assign tasks! ♪");
+        }
+        
+        const mentions = message.mentions.users;
+        if (mentions.size === 0) {
+            return message.reply("Usage: `!bulkassign @User1 @User2 ... <task_type> <role_name> [name] [description]`");
+        }
+        
+        let contentWithoutMentions = message.content;
+        for (const [id, user] of mentions) {
+            contentWithoutMentions = contentWithoutMentions.replace(new RegExp(`<@!?${id}>`, 'g'), '');
+        }
+        
+        const cleanArgs = contentWithoutMentions.slice(1).trim().split(/ +/).slice(1);
+        
+        if (cleanArgs.length < 2 || cleanArgs[0] === '') {
+            return message.reply("Usage: `!bulkassign @User1 @User2 ... <task_type> <role_name> [name] [description]`");
+        }
+        
+        const taskType = cleanArgs[0];
+        const roleName = cleanArgs[1];
+        const taskName = cleanArgs[2] || '';
+        const description = cleanArgs.slice(3).join(' ') || '';
+        
+        const successUsers = [];
+        const failedUsers = [];
+        
+        for (const [id, user] of mentions) {
+             const res = await coreAssign(guild, author, user, taskType, roleName, taskName, description, null, null, true);
+             if (res.content.includes('\u274c') || res.content.includes('⚠️')) {
+                 failedUsers.push({ user, reason: res.content });
+             } else {
+                 successUsers.push(user);
+                 user.send(`✨ **You've been assigned a new task!**\n**Type:** ${taskType}\n**Role:** ${roleName}${taskName ? `\n**Name:** ${taskName}` : ''}${description ? `\n**Description:** ${description}` : ''}\nLet's do our best! ♪`).catch(() => {});
+             }
+        }
+        
+        let replyContent = `✅ **Bulk Assign Complete!**\nSuccessfully assigned to ${successUsers.length} user(s).`;
+        if (successUsers.length > 0) {
+            const mentionsStr = successUsers.map(u => `<@${u.id}>`).join(', ');
+            await logAction(guild, `✨ **Bulk Assigned ${taskType} (${roleName})** to: ${mentionsStr}`, author);
+        }
+        if (failedUsers.length > 0) {
+            replyContent += `\n\n⚠️ **Failed for ${failedUsers.length} user(s):**\n` + failedUsers.map(f => `• <@${f.user.id}>: ${f.reason}`).join('\n');
+        }
+        
+        return message.reply(replyContent);
+    }
+
     if (command === 'submit') {
         const target = resolveTarget(message) || author;
         const taskName = args[1] ? args.slice(1).join(' ') : '';
@@ -1532,4 +1586,109 @@ export const handleSelectSubmit = async (interaction) => {
     
     const result = await coreSubmit(interaction.guild, interaction.user, { id: targetUserId }, null, interaction.channelId, taskId);
     return interaction.editReply({ content: result.content, embeds: result.embeds || [], components: result.components || [] });
+};
+
+export const bulkAssignCache = new Map();
+
+export const handleBulkAssignSlash = async (interaction) => {
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    if (!isOwner(member)) {
+        return interaction.reply({ content: 'Only owners can assign tasks! ♪', flags: 64 });
+    }
+    
+    const roleName = interaction.options.getString('role');
+    const taskType = interaction.options.getString('task');
+    const taskName = interaction.options.getString('name') || '';
+    const description = interaction.options.getString('description') || '';
+    const durationDays = interaction.options.getInteger('duration_days') || null;
+    const extensionDays = interaction.options.getInteger('extension_days') || null;
+    
+    const operationId = Date.now().toString() + Math.floor(Math.random() * 1000).toString();
+    
+    bulkAssignCache.set(operationId, {
+        authorId: interaction.user.id,
+        roleName,
+        taskType,
+        taskName,
+        description,
+        durationDays,
+        extensionDays
+    });
+    
+    setTimeout(() => {
+        bulkAssignCache.delete(operationId);
+    }, 15 * 60 * 1000);
+    
+    const select = new UserSelectMenuBuilder()
+        .setCustomId(`bulkassign_select_${operationId}`)
+        .setPlaceholder('Select users to assign this task to...')
+        .setMinValues(1)
+        .setMaxValues(25);
+        
+    const row = new ActionRowBuilder().addComponents(select);
+    
+    await interaction.reply({ 
+        content: `✨ **Bulk Assigning: ${taskType} (${roleName})**\nPlease select up to 25 users to assign this task to:`, 
+        components: [row],
+        flags: 64
+    });
+};
+
+export const handleBulkAssignSelect = async (interaction) => {
+    await interaction.deferUpdate();
+    
+    const operationId = interaction.customId.replace('bulkassign_select_', '');
+    const data = bulkAssignCache.get(operationId);
+    
+    if (!data) {
+        return interaction.editReply({ content: '⚠️ This bulk assign session has expired. Please try again.', components: [] });
+    }
+    
+    if (interaction.user.id !== data.authorId) {
+        return interaction.editReply({ content: 'You cannot use this menu.', components: [] });
+    }
+    
+    const selectedUsers = interaction.users;
+    if (selectedUsers.size === 0) {
+        return interaction.editReply({ content: 'No users selected.', components: [] });
+    }
+    
+    const successUsers = [];
+    const failedUsers = [];
+    
+    for (const [userId, user] of selectedUsers) {
+        const result = await coreAssign(
+            interaction.guild,
+            interaction.user,
+            user,
+            data.taskType,
+            data.roleName,
+            data.taskName,
+            data.description,
+            data.durationDays,
+            data.extensionDays,
+            true
+        );
+        
+        if (result.content.includes('\u274c') || result.content.includes('⚠️')) {
+            failedUsers.push({ user, reason: result.content });
+        } else {
+            successUsers.push(user);
+            user.send(`✨ **You've been assigned a new task!**\n**Type:** ${data.taskType}\n**Role:** ${data.roleName}${data.taskName ? `\n**Name:** ${data.taskName}` : ''}${data.description ? `\n**Description:** ${data.description}` : ''}\nLet's do our best! ♪`).catch(() => {});
+        }
+    }
+    
+    bulkAssignCache.delete(operationId);
+    
+    let replyContent = `✅ **Bulk Assign Complete!**\n\nSuccessfully assigned to ${successUsers.length} user(s).`;
+    if (successUsers.length > 0) {
+        const mentions = successUsers.map(u => `<@${u.id}>`).join(', ');
+        await logAction(interaction.guild, `✨ **Bulk Assigned ${data.taskType} (${data.roleName})** to: ${mentions}`, interaction.user);
+    }
+    
+    if (failedUsers.length > 0) {
+        replyContent += `\n\n⚠️ **Failed for ${failedUsers.length} user(s):**\n` + failedUsers.map(f => `• <@${f.user.id}>: ${f.reason}`).join('\n');
+    }
+    
+    await interaction.editReply({ content: replyContent, components: [] });
 };

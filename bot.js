@@ -202,6 +202,15 @@ const commands = [
         .addStringOption(o => o.setName('description').setDescription('Task description').setRequired(false))
         .addIntegerOption(o => o.setName('duration_days').setDescription('Duration in days (ONLY for Custom tasks)').setRequired(false).setMinValue(1))
         .addIntegerOption(o => o.setName('extension_days').setDescription('Extension days (ONLY for Custom tasks)').setRequired(false).setMinValue(1)),
+    new SlashCommandBuilder().setName('bulkassign').setDescription('Assign task to multiple users')
+        .addStringOption(o => o.setName('role').setDescription('Role').setRequired(true)
+            .addChoices(...getRoleChoices()))
+        .addStringOption(o => o.setName('task').setDescription('Task type').setRequired(true)
+            .addChoices(...getTaskChoices()))
+        .addStringOption(o => o.setName('name').setDescription('Task name').setRequired(false))
+        .addStringOption(o => o.setName('description').setDescription('Task description').setRequired(false))
+        .addIntegerOption(o => o.setName('duration_days').setDescription('Duration in days (ONLY for Custom tasks)').setRequired(false).setMinValue(1))
+        .addIntegerOption(o => o.setName('extension_days').setDescription('Extension days (ONLY for Custom tasks)').setRequired(false).setMinValue(1)),
     new SlashCommandBuilder().setName('submit').setDescription('Complete task')
         .addUserOption(o => o.setName('user').setDescription('User').setRequired(false))
         .addStringOption(o => o.setName('task').setDescription('Task name (use /tasks to see list)').setRequired(false)),
@@ -290,6 +299,7 @@ client.on('interactionCreate', async interaction => {
         console.log(`[COMMAND] /${commandName} by ${interaction.user.tag} (${interaction.user.id})`);
         try {
             if (commandName === 'assign') await Commands.handleAssignSlash(interaction);
+            if (commandName === 'bulkassign') await Commands.handleBulkAssignSlash(interaction);
             if (commandName === 'tasks') await Commands.handleTasksSlash(interaction);
             if (commandName === 'submit') await Commands.handleSubmitSlash(interaction);
             if (commandName === 'extension') await Commands.handleExtensionSlash(interaction);
@@ -505,6 +515,22 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) {
             console.error(`[SELECT] ❌ Error processing ${interaction.customId}:`, e);
+            if (!interaction.replied && !interaction.deferred) {
+                interaction.reply({ content: "❌ Error processing request.", flags: 64 });
+            } else if (interaction.deferred) {
+                interaction.editReply({ content: "❌ Error processing request." });
+            }
+        }
+    }
+
+    if (interaction.isUserSelectMenu()) {
+        try {
+            if (interaction.customId.startsWith('bulkassign_select_')) {
+                console.log(`[USER_SELECT] ${interaction.customId} by ${interaction.user.tag} (${interaction.user.id})`);
+                await Commands.handleBulkAssignSelect(interaction);
+            }
+        } catch (e) {
+            console.error(`[USER_SELECT] ❌ Error processing ${interaction.customId}:`, e);
             if (!interaction.replied && !interaction.deferred) {
                 interaction.reply({ content: "❌ Error processing request.", flags: 64 });
             } else if (interaction.deferred) {
