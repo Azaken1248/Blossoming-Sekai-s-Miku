@@ -496,6 +496,22 @@ client.on('interactionCreate', async interaction => {
             }
         }
     }
+
+    if (interaction.isStringSelectMenu()) {
+        try {
+            if (interaction.customId.startsWith('submit_select_')) {
+                console.log(`[SELECT] ${interaction.customId} by ${interaction.user.tag} (${interaction.user.id})`);
+                await Commands.handleSelectSubmit(interaction);
+            }
+        } catch (e) {
+            console.error(`[SELECT] ❌ Error processing ${interaction.customId}:`, e);
+            if (!interaction.replied && !interaction.deferred) {
+                interaction.reply({ content: "❌ Error processing request.", flags: 64 });
+            } else if (interaction.deferred) {
+                interaction.editReply({ content: "❌ Error processing request." });
+            }
+        }
+    }
 });
 
 

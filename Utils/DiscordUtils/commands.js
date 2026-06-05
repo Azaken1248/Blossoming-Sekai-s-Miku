@@ -1,4 +1,4 @@
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } from 'discord.js';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder, StringSelectMenuBuilder } from 'discord.js';
 import config from '../../config.js';
 import * as UserUtils from '../DBUtils/userUtils.js';
 import * as TaskUtils from '../DBUtils/taskUtils.js';
@@ -117,7 +117,7 @@ const coreAssign = async (guild, author, targetUser, taskType, roleName, taskNam
     return { content: `✨ Assigned **${taskType}** to <@${targetUser.id}>! Let's create something wonderful together!\n📅 Deadline: <t:${ts}:F> (<t:${ts}:R>)` };
 };
 
-const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = null) => {
+const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = null, taskId = null) => {
     const profile = await UserUtils.getUserProfile(targetUser.id);
     if (!profile || !profile.assignments || profile.assignments.length === 0) {
         return { content: "⚠️ No pending assignments found for this user." };
@@ -128,17 +128,37 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
         return { content: "⚠️ No pending assignments found for this user." };
     }
 
-    if (!taskName) {
-        const taskList = pendingTasks.map(t => {
-            const lateTag = t.status === 'LATE' ? ' [LATE]' : '';
-            return `• **${t.taskName || t.taskType}** (${t.roleName})${lateTag}`;
-        }).join('\n');
-        return { content: `⚠️ Please specify which task to submit:\n${taskList}\n\nUse: \`/submit task:<task_name>\`` };
-    }
-
-    const task = pendingTasks.find(t => (t.taskName && t.taskName.toLowerCase() === taskName.toLowerCase()) || t.taskType === taskName);
-    if (!task) {
-        return { content: `⚠️ Task '${taskName}' not found. Use \`/tasks\` to see available tasks.` };
+    let task;
+    if (taskId) {
+        task = pendingTasks.find(t => t._id.toString() === taskId);
+        if (!task) return { content: "⚠️ Task not found. It might have been already submitted or removed." };
+    } else if (taskName) {
+        task = pendingTasks.find(t => (t.taskName && t.taskName.toLowerCase() === taskName.toLowerCase()) || t.taskType.toLowerCase() === taskName.toLowerCase());
+        if (!task) {
+            return { content: `⚠️ Task '${taskName}' not found. Use \`/tasks\` to see available tasks.` };
+        }
+    } else {
+        if (pendingTasks.length === 1) {
+            task = pendingTasks[0];
+        } else {
+            const select = new StringSelectMenuBuilder()
+                .setCustomId(`submit_select_${targetUser.id}`)
+                .setPlaceholder('Select a task to submit...')
+                .addOptions(
+                    pendingTasks.map(t => {
+                        const name = (t.taskName || t.taskType).substring(0, 90);
+                        const deadlineStr = new Date(t.deadline).toLocaleDateString();
+                        const isLate = t.status === 'LATE' ? ' [LATE]' : '';
+                        return {
+                            label: `${name}${isLate}`,
+                            description: `Role: ${t.roleName} | Due: ${deadlineStr}`,
+                            value: t._id.toString()
+                        };
+                    })
+                );
+            const row = new ActionRowBuilder().addComponents(select);
+            return { content: `✨ Please select the task you want to submit:`, components: [row] };
+        }
     }
     
     if (channelId) {
@@ -1497,4 +1517,19 @@ export const handlePrefixCommand = async (message) => {
         const res = await coreHelp();
         return message.reply(res);
     }
+};
+
+export const handleSelectSubmit = async (interaction) => {
+    const targetUserId = interaction.customId.split('_')[2];
+    
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    if (interaction.user.id !== targetUserId && !isOwner(member)) {
+        return interaction.reply({ content: 'I appreciate the help, but you can only submit your own tasks! ♪', flags: 64 });
+    }
+
+    await interaction.deferUpdate();
+    const taskId = interaction.values[0];
+    
+    const result = await coreSubmit(interaction.guild, interaction.user, { id: targetUserId }, null, interaction.channelId, taskId);
+    return interaction.editReply({ content: result.content, embeds: result.embeds || [], components: result.components || [] });
 };
