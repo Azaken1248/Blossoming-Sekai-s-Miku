@@ -944,7 +944,7 @@ export const handleHiatusSlash = async (interaction) => {
     const reason = interaction.options.getString('reason');
     const targetUser = interaction.options.getUser('user');
 
-    if (targetUser) {
+    if (targetUser && targetUser.id !== interaction.user.id) {
         if (!isOwner(member)) {
             return interaction.editReply({ content: 'Only owners can grant hiatus directly to other users! Normal users can request their own hiatus~ ♪' });
         }
@@ -1398,7 +1398,7 @@ export const handlePrefixCommand = async (message) => {
         const reason = args.join(' ');
         if (!reason) return message.reply("Usage: `!hiatus <reason>`");
         
-        const res = await coreHiatus(guild, author, reason);
+        const res = await coreHiatus(guild, author, author, reason, message.channelId, false);
         return message.reply(res);
     }
 
