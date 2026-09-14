@@ -52,9 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        userSelect.innerHTML = users
-            .map(user => `<option value="${user.discordId}">${user.username || 'Unknown'} (${user.discordId})</option>`)
-            .join('');
+        // new Option() escapes both label and value; the old template literal
+        // interpolated Discord usernames straight into markup.
+        userSelect.replaceChildren(
+            ...users.map(user => new Option(`${user.username || 'Unknown'} (${user.discordId})`, user.discordId))
+        );
 
         if (queryDiscordId && users.some(user => user.discordId === queryDiscordId)) {
             userSelect.value = queryDiscordId;
@@ -81,6 +83,20 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error fetching users:', error);
             return [];
         }
+    }
+
+    /** Build a badge element. Text is always set via textContent, never parsed. */
+    function makeBadge(className, text, iconClass) {
+        const span = document.createElement('span');
+        span.className = className;
+        if (iconClass) {
+            const i = document.createElement('i');
+            i.className = iconClass;
+            span.appendChild(i);
+            span.appendChild(document.createTextNode(' '));
+        }
+        span.appendChild(document.createTextNode(String(text ?? '')));
+        return span;
     }
 
     function getAvatarUrl(discordId, username) {
@@ -144,27 +160,29 @@ document.addEventListener('DOMContentLoaded', () => {
             ? merged.actualRoles : (Array.isArray(merged.roles) ? merged.roles : []);
             
         if (specialBadgesEl) {
-            specialBadgesEl.innerHTML = ''; 
-            
             const devId = '1213817849693478972';
             const ownerIds = ['657310325925740561', '799240925921542194'];
-            
+
+            const badges = [];
             if (merged.discordId === devId) {
-                specialBadgesEl.innerHTML += `<span class="badge-special badge-dev"><i class="fa-solid fa-meteor"></i> Architect</span>`;
+                badges.push(makeBadge('badge-special badge-dev', 'Architect', 'fa-solid fa-meteor'));
             }
-
             if (ownerIds.includes(merged.discordId)) {
-                specialBadgesEl.innerHTML += `<span class="badge-special badge-owner"><i class="fa-solid fa-gem"></i> Founder</span>`;
+                badges.push(makeBadge('badge-special badge-owner', 'Founder', 'fa-solid fa-gem'));
             }
+            specialBadgesEl.replaceChildren(...badges);
         }
-        
-        serverRolesEl.innerHTML = roleList.length 
-            ? roleList.map(r => `<span class="badge badge-EXCUSED">${r}</span>`).join('')
-            : `<span class="badge badge-EXCUSED">Member</span>`;
 
-        workRolesEl.innerHTML = Array.isArray(merged.topTaskRoles) && merged.topTaskRoles.length
-            ? merged.topTaskRoles.map(r => `<span class="badge">${r}</span>`).join('')
-            : `<span class="badge">-</span>`;
+        // Role names come from live Discord roles and may contain markup
+        // characters, so they are set as text rather than parsed as HTML.
+        serverRolesEl.replaceChildren(
+            ...(roleList.length ? roleList : ['Member']).map(r => makeBadge('badge badge-EXCUSED', r))
+        );
+
+        const workRoles = Array.isArray(merged.topTaskRoles) && merged.topTaskRoles.length
+            ? merged.topTaskRoles
+            : ['-'];
+        workRolesEl.replaceChildren(...workRoles.map(r => makeBadge('badge', r)));
 
         completedEl.textContent = merged.tasksCompleted || 0;
         

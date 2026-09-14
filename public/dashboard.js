@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dateStr = new Date(item.deadline).toLocaleDateString();
                 searchableString = `${item.taskType||''} ${item.roleName||''} ${userName||''} ${item.status||''} ${dateStr} ${item.extensionCount||0}`.toLowerCase();
             } else {
-                const joinDate = new Date(item.createdAt || Date.now()).toLocaleDateString();
+                const joinDate = item.joinedAt ? new Date(item.joinedAt).toLocaleDateString() : 'Unknown';
                 const hiatusText = item.isOnHiatus ? 'hiatus sleeping break' : 'active working';
                 searchableString = `${item.username||''} ${item.discordId||''} ${item.strikes||0} strikes ${hiatusText} ${joinDate}`.toLowerCase();
             }
@@ -337,22 +337,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function generateInsight_Assignments(data, tabType, meta = null) {
+    /**
+     * Write the insight line. Accepts plain strings, { b: 'bold' } and
+     * { br: true }, and builds nodes rather than assigning innerHTML - the
+     * group labels interpolated here come from the database.
+     */
+    function setInsight(...parts) {
+        insightText.replaceChildren(...parts.flatMap(part => {
+            if (part === null || part === undefined) return [];
+            if (typeof part === 'string') return [document.createTextNode(part)];
+            if (part.br) return [document.createElement('br')];
+            return [el('b', { text: part.b })];
+        }));
+    }
+
+    function generateInsight_Assignments(data, tabType, meta = null, dataKey = 'totalTasks') {
         predictorStats.style.display = 'none';
         if (tabType === 'predictor') {
             predictorStats.style.display = 'flex';
-            insightText.innerHTML = `Miku analyzed <b>${meta.total} pending tasks</b>. <br><br>Tasks marked "High Risk" are due within 24 hours. Consider a reminder!`;
+            setInsight(
+                'Miku analyzed ', { b: `${meta?.total ?? 0} pending tasks` }, '.',
+                { br: true }, { br: true },
+                'Tasks marked "High Risk" are due within 24 hours. Consider a reminder!'
+            );
             return;
         }
-        if (!data || !data.length) return insightText.textContent = "Not enough data.";
-        
-        const sorted = [...data].sort((a,b) => (b.totalTasks||b.extendedTasks) - (a.totalTasks||a.extendedTasks));
+        if (!data || !data.length) { insightText.textContent = 'Not enough data.'; return; }
+
+        // Compare on one metric throughout. The previous `b.totalTasks || b.extendedTasks`
+        // silently switched metric for any group whose count was 0.
+        const sorted = [...data].sort((a, b) => (b[dataKey] ?? 0) - (a[dataKey] ?? 0));
         const top = sorted[0];
+
         if (tabType === 'distribution') {
-            const percent = Math.round(((top.totalTasks) / data.reduce((a,c)=>a+c.totalTasks,0)) * 100);
-            insightText.innerHTML = `Miku noticed <b>${top._id}</b> dominates workflow, making up <b>${percent}%</b> of tasks here.`;
+            const total = data.reduce((sum, c) => sum + (c.totalTasks ?? 0), 0);
+            if (total === 0) { insightText.textContent = 'No task data for this grouping yet.'; return; }
+            const percent = Math.round((top.totalTasks / total) * 100);
+            setInsight('Miku noticed ', { b: top._id ?? 'Unknown' }, ' dominates workflow, making up ', { b: `${percent}%` }, ' of tasks here.');
         } else {
-            insightText.innerHTML = `Watch out! <b>${top._id}</b> requests the most extensions.`;
+            setInsight('Watch out! ', { b: top._id ?? 'Unknown' }, ' requests the most extensions.');
         }
     }
 
@@ -360,59 +383,147 @@ document.addEventListener('DOMContentLoaded', () => {
         predictorStats.style.display = 'none';
         if (tabType === 'predictor') {
             predictorStats.style.display = 'flex';
-            insightText.innerHTML = meta.danger > 0 ? `<b>Warning!</b> Miku found ${meta.danger} user(s) at immediate risk of demotion/ban due to strikes.` : "Amazing! No users are currently in the danger zone.";
+            // The predictor call site passes its meta object as the third
+            // argument, so accept it from either position.
+            const info = meta ?? (groupSelect && typeof groupSelect === 'object' ? groupSelect : {});
+            const danger = info.danger ?? 0;
+            if (danger > 0) {
+                setInsight({ b: 'Warning!' }, ` Miku found ${danger} user(s) at immediate risk of demotion/ban due to strikes.`);
+            } else {
+                insightText.textContent = 'Amazing! No users are currently in the danger zone.';
+            }
             return;
         }
-        if (!data || !data.length) return insightText.textContent = "Not enough data.";
-        
-        const sorted = [...data].sort((a,b) => b.count - a.count);
+        if (!data || !data.length) { insightText.textContent = 'Not enough data.'; return; }
+
+        const sorted = [...data].sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
         if (tabType === 'distribution') {
-            if (groupSelect === 'hiatus') insightText.innerHTML = `Right now, Miku sees <b>${data.find(d=>d._id==='On Hiatus').count}</b> users taking a well-deserved break.`;
-            else insightText.innerHTML = `The vast majority of your users have <b>${sorted[0]._id}</b>. Good job maintaining accountability!`;
+            if (groupSelect === 'hiatus') {
+                const onHiatus = data.find(d => d._id === 'On Hiatus')?.count ?? 0;
+                setInsight('Right now, Miku sees ', { b: String(onHiatus) }, ' users taking a well-deserved break.');
+            } else {
+                setInsight('The vast majority of your users have ', { b: sorted[0]._id ?? 'Unknown' }, '. Good job maintaining accountability!');
+            }
         } else {
-            insightText.innerHTML = `This chart shows exactly how strikes are spread across the server. Aim to keep the numbers on the left side high!`;
+            insightText.textContent = 'This chart shows exactly how strikes are spread across the server. Aim to keep the numbers on the left side high!';
         }
     }
 
+    // ── safe DOM helpers ──────────────────────────────────────────────────
+    // Values here come from Discord (usernames, role names) and from /assign
+    // arguments, so they are never interpolated into innerHTML.
+
+    function el(tag, { className, style, title, text } = {}) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (style) node.style.cssText = style;
+        if (title) node.title = title;
+        if (text !== undefined && text !== null) node.textContent = String(text);
+        return node;
+    }
+
+    function icon(className) {
+        const i = document.createElement('i');
+        i.className = className;
+        return i;
+    }
+
+    function cell(text, style) {
+        return el('td', { text: text ?? 'N/A', style });
+    }
+
+    function badge(className, text, iconClass) {
+        const span = el('span', { className });
+        if (iconClass) {
+            span.appendChild(icon(iconClass));
+            span.appendChild(document.createTextNode(' '));
+        }
+        span.appendChild(document.createTextNode(text));
+        return span;
+    }
+
+    function emptyRow(message, colspan) {
+        const tr = document.createElement('tr');
+        const td = el('td', { className: 'text-center', text: message });
+        td.colSpan = colspan;
+        tr.appendChild(td);
+        return tr;
+    }
+
     function renderTable(data) {
-        tableBody.innerHTML = '';
-        if (data.length === 0) return tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No matching records found. Miku is sad.</td></tr>`;
+        tableBody.replaceChildren();
+        const colspan = currentAppMode === 'assignments' ? 6 : 5;
+        if (data.length === 0) {
+            tableBody.appendChild(emptyRow('No matching records found. Miku is sad.', colspan));
+            return;
+        }
 
         data.forEach(item => {
             const tr = document.createElement('tr');
-            
+
             if (currentAppMode === 'assignments') {
-                const dateStr = new Date(item.deadline).toLocaleDateString();
+                const dateStr = item.deadline ? new Date(item.deadline).toLocaleDateString() : 'N/A';
                 const uName = item.userId && item.userId.username ? item.userId.username : item.discordUserId;
                 const isHiatus = item.userId && item.userId.isOnHiatus;
-                const hBadge = isHiatus ? `<span class="badge badge-hiatus" title="On Hiatus"><i class="fa-solid fa-bed"></i> Zzz</span>` : '';
-                tr.innerHTML = `
-                    <td>${item.taskType || 'N/A'}</td>
-                    <td>${item.roleName || 'N/A'}</td>
-                    <td>${uName} ${hBadge}</td>
-                    <td><span class="badge badge-${item.status}">${item.status}</span></td>
-                    <td>${dateStr}</td>
-                    <td>${item.extensionCount || 0}</td>
-                `;
-            } else {
-                const joinDate = new Date(item.createdAt || Date.now()).toLocaleDateString();
-                const isHiatus = item.isOnHiatus;
-                const sCount = item.strikes || 0;
-                
-                let strikeStr = '';
-                for(let i=0; i<sCount; i++) strikeStr += `<span class="badge-strike"><i class="fa-solid fa-xmark"></i></span>`;
-                if(sCount === 0) strikeStr = '<span style="color:var(--ctp-subtext0)">Clean</span>';
 
-                tr.innerHTML = `
-                    <td style="font-weight:600; color:var(--ctp-text)">${item.username || 'Unknown'}</td>
-                    <td style="font-size: 0.8rem">${item.discordId || 'N/A'}</td>
-                    <td>${strikeStr}</td>
-                    <td>${isHiatus ? '<span class="badge badge-EXCUSED"><i class="fa-solid fa-bed"></i> Hiatus</span>' : '<span class="badge badge-COMPLETED">Active</span>'}</td>
-                    <td>${joinDate}</td>
-                `;
+                tr.appendChild(cell(item.taskType));
+                tr.appendChild(cell(item.roleName));
+
+                const userCell = el('td', { text: uName ?? 'N/A' });
+                if (isHiatus) {
+                    userCell.appendChild(document.createTextNode(' '));
+                    const zzz = badge('badge badge-hiatus', 'Zzz', 'fa-solid fa-bed');
+                    zzz.title = 'On Hiatus';
+                    userCell.appendChild(zzz);
+                }
+                tr.appendChild(userCell);
+
+                const statusCell = document.createElement('td');
+                // Class name is derived from status, so keep it to known values.
+                const known = ['PENDING', 'COMPLETED', 'LATE', 'EXCUSED'];
+                const statusClass = known.includes(item.status) ? `badge badge-${item.status}` : 'badge';
+                statusCell.appendChild(badge(statusClass, item.status ?? 'UNKNOWN'));
+                tr.appendChild(statusCell);
+
+                tr.appendChild(cell(dateStr));
+                tr.appendChild(cell(item.extensionCount || 0));
+            } else {
+                // The schema has no createdAt, so this always fell back to
+                // Date.now() and every member appeared to have joined today.
+                const joinDate = item.joinedAt
+                    ? new Date(item.joinedAt).toLocaleDateString()
+                    : 'Unknown';
+                const sCount = item.strikes || 0;
+
+                tr.appendChild(cell(item.username || 'Unknown', 'font-weight:600; color:var(--ctp-text)'));
+                tr.appendChild(cell(item.discordId, 'font-size: 0.8rem'));
+
+                const strikeCell = document.createElement('td');
+                if (sCount === 0) {
+                    strikeCell.appendChild(el('span', { style: 'color:var(--ctp-subtext0)', text: 'Clean' }));
+                } else {
+                    for (let i = 0; i < sCount; i++) {
+                        const s = el('span', { className: 'badge-strike' });
+                        s.appendChild(icon('fa-solid fa-xmark'));
+                        strikeCell.appendChild(s);
+                    }
+                }
+                tr.appendChild(strikeCell);
+
+                const statusCell = document.createElement('td');
+                statusCell.appendChild(isHiatusBadge(item.isOnHiatus));
+                tr.appendChild(statusCell);
+
+                tr.appendChild(cell(joinDate));
             }
             tableBody.appendChild(tr);
         });
+    }
+
+    function isHiatusBadge(onHiatus) {
+        return onHiatus
+            ? badge('badge badge-EXCUSED', 'Hiatus', 'fa-solid fa-bed')
+            : badge('badge badge-COMPLETED', 'Active');
     }
 
     function renderChart(data, chartType, dataKey, labelStr, customColors = null) {
