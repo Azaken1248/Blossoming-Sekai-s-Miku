@@ -62,10 +62,16 @@ const assignmentSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    status: { 
-        type: String, 
+    status: {
+        type: String,
         default: 'PENDING',
         enum: ['PENDING', 'COMPLETED', 'LATE', 'EXCUSED']
+    },
+    // Set when a submission is approved. Null on rows completed before this
+    // field existed - callers must treat null as "completion time unknown".
+    completedAt: {
+        type: Date,
+        default: null
     }
 });
 

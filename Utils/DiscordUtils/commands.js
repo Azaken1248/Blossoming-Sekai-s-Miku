@@ -2,26 +2,23 @@ import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentB
 import config from '../../config.js';
 import * as UserUtils from '../DBUtils/userUtils.js';
 import * as TaskUtils from '../DBUtils/taskUtils.js';
+import {
+    isAdmin,
+    isOwner,
+    isManager,
+    isManagerOrOwner,
+    checkCommandPermission,
+    NOT_ONBOARDED_MESSAGE
+} from '../permissions.js';
+import { resolveExtensionMs, countExtensionsUsed, canExtend, msToDays, ConfigError, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.js';
+import { MAX_STRIKES, shouldDemote, formatStrikes } from '../domain/strikes.js';
 
-const isAdmin = (userId) => {
-    return config.ADMIN_USER_IDS.includes(userId);
-};
+export { isAdmin, isOwner, isManager, isManagerOrOwner };
 
-const isOwner = (member) => {
-    return isAdmin(member.id) || member.roles.cache.has(config.OWNER_ROLE_ID);
-};
-
-const isManager = (member) => {
-    return isAdmin(member.id) || config.MANAGER_ROLE_IDS.some(roleId => member.roles.cache.has(roleId));
-};
-
-const isManagerOrOwner = (member) => {
-    return isAdmin(member.id) || isOwner(member) || isManager(member);
-};
-
+// A deboarded member keeps their record but is no longer active, so an
+// existence check is not enough on its own.
 const isOnboarded = async (userId) => {
-    const profile = await UserUtils.getUserProfile(userId);
-    return profile !== null;
+    return await UserUtils.isActiveMember(userId);
 };
 
 const logAction = async (guild, content, executorUser) => {
@@ -36,19 +33,32 @@ const logAction = async (guild, content, executorUser) => {
 };
 
 export const checkDemotion = async (guild, discordId, currentStrikes) => {
-    if (currentStrikes >= 3) {
-        const member = await guild.members.fetch(discordId).catch(() => null);
-        if (member) {
-            await member.roles.remove(config.CREW_ROLE_IDS).catch(() => {});
-            await member.send("� **Important Notice:** You've reached 3 strikes and your crew roles have been removed. Don't give up though - you can always make a comeback! ♪").catch(() => {});
-            const channel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
-            if(channel) channel.send(`🚨 **Demotion Notice** - <@${discordId}> has reached 3 strikes and crew roles have been removed.`);
-        }
-    }
+    if (!shouldDemote(currentStrikes)) return;
+
+    const member = await guild.members.fetch(discordId).catch(() => null);
+    if (!member) return;
+
+    // Only act if they still hold at least one crew role, so a repeat call
+    // (or a strike applied while already at the cap) is a no-op rather than a
+    // duplicate demotion DM.
+    const heldCrewRoles = config.CREW_ROLE_IDS.filter(roleId => member.roles.cache.has(roleId));
+    if (heldCrewRoles.length === 0) return;
+
+    await member.roles.remove(heldCrewRoles).catch(() => {});
+    await member.send(`🚨 **Important Notice:** You've reached ${MAX_STRIKES} strikes and your crew roles have been removed. Don't give up though - you can always make a comeback! ♪`).catch(() => {});
+    const channel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
+    if (channel) channel.send(`🚨 **Demotion Notice** - <@${discordId}> has reached ${MAX_STRIKES} strikes and crew roles have been removed.`);
 };
 
 const resolveTarget = (message) => {
-    return message.mentions.users.first() || null;
+    // message.mentions.users also contains the author of a replied-to message.
+    // Treating that as an explicit target would silently retarget commands, so
+    // only genuine @-mentions count.
+    const repliedUserId = message.mentions.repliedUser?.id;
+    const mentioned = repliedUserId
+        ? message.mentions.users.filter(user => user.id !== repliedUserId)
+        : message.mentions.users;
+    return mentioned.first() || null;
 };
 
 const coreAssign = async (guild, author, targetUser, taskType, roleName, taskName = '', description = '', customDurationDays = null, customExtensionDays = null, suppressLog = false) => {
@@ -242,29 +252,27 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
         task = pendingTasks[0];
     }
 
-    const currentExtCount = task.extensionCount || (task.hasExtended ? 1 : 0);
-    if (currentExtCount >= 2) {
-        return { content: "⚠️ This task has already been extended the maximum number of times (2)." };
+    if (!canExtend(task)) {
+        return { content: `⚠️ This task has already been extended the maximum number of times (${MAX_EXTENSIONS_PER_TASK}).` };
     }
-    
+
+    let extTime;
+    try {
+        extTime = resolveExtensionMs(task, config);
+    } catch (error) {
+        if (error instanceof ConfigError) {
+            console.error('[EXTENSION] Configuration problem:', error.message);
+            return { content: `⚠️ Configuration error: ${error.message}. Please contact an admin.` };
+        }
+        throw error;
+    }
+
     if (channelId) {
         const Assignment = (await import('../../DB/Schemas/assignment.js')).default;
         await Assignment.updateOne({ _id: task._id }, { submissionChannelId: channelId });
     }
 
-    let extTime;
-    if (task.customExtension) {
-        extTime = task.customExtension;
-    } else {
-        const rule = config.RULES[task.roleCategoryId];
-        if (!rule) {
-            return { content: `⚠️ Configuration error: Role ID ${task.roleCategoryId} not found in config rules. Please contact an admin.` };
-        }
-        extTime = rule.extension;
-        if (!extTime) extTime = (task.taskType.includes('skit')) ? rule.extension_skit : rule.extension_mv;
-    }
-
-    const extDays = Math.floor(extTime / (24 * 60 * 60 * 1000));
+    const extDays = msToDays(extTime);
 
     const embed = new EmbedBuilder()
         .setTitle('🌸 Extension Request ♪')
@@ -313,7 +321,8 @@ const coreProfile = async (targetUser, guild = null) => {
             )
             .setFooter({ text: 'Now then, let\'s keep moving forward together!' })
             .setTimestamp();
-        
+
+        return { embeds: [embed] };
     }
     
     const profile = await UserUtils.getUserProfile(targetUser.id);
@@ -361,7 +370,7 @@ const coreProfile = async (targetUser, guild = null) => {
 
     let color = 0x89b4fa;
     if (profile.isOnHiatus) color = 0xf9e2af;
-    else if (profile.strikes >= 3) color = 0xf38ba8;
+    else if (profile.strikes >= MAX_STRIKES) color = 0xf38ba8;
     else if (profile.strikes >= 2) color = 0xfab387;
     else if (pending.length === 0 && completed.length > 0) color = 0xa6e3a1;
 
@@ -380,7 +389,7 @@ const coreProfile = async (targetUser, guild = null) => {
 
     embed.addFields({
         name: 'Strikes',
-        value: `⚡ **${profile.strikes}/3**`,
+        value: `⚡ **${formatStrikes(profile.strikes)}**`,
         inline: true
     });
 
@@ -527,19 +536,29 @@ const coreRemoveTask = async (guild, author, targetUser, taskIdentifier) => {
 
 const coreStrike = async (guild, author, targetUser, action, reason) => {
     await UserUtils.findOrCreateUser(targetUser.id, targetUser.username);
-    
+
     if (action === 'add') {
         const newCount = await UserUtils.addStrikeByDiscordId(targetUser.id);
+        if (newCount === null) return { content: `❌ Could not find a record for <@${targetUser.id}>.` };
+
         await logAction(guild, `⚡ Added strike to <@${targetUser.id}>. Reason: ${reason}`, author);
         await checkDemotion(guild, targetUser.id, newCount);
-        return { content: `⛔ Strike added to <@${targetUser.id}>.\nReason: **${reason}**\nTotal: **${newCount}/3**` };
+
+        const capped = newCount >= MAX_STRIKES
+            ? `\n*(already at the maximum of ${MAX_STRIKES})*`
+            : '';
+        return { content: `⛔ Strike added to <@${targetUser.id}>.\nReason: **${reason}**\nTotal: **${formatStrikes(newCount)}**${capped}` };
     }
-    
+
     if (action === 'remove') {
         const newCount = await UserUtils.removeStrikeByDiscordId(targetUser.id);
+        if (newCount === null) return { content: `❌ Could not find a record for <@${targetUser.id}>.` };
+
         await logAction(guild, `✨ Removed strike from <@${targetUser.id}> - Great improvement!`, author);
-        return { content: `✅ Strike removed for <@${targetUser.id}>.\nTotal: **${newCount}/3**` };
+        return { content: `✅ Strike removed for <@${targetUser.id}>.\nTotal: **${formatStrikes(newCount)}**` };
     }
+
+    return { content: '⚠️ Unknown strike action. Use `add`, `remove` or `list`.' };
 };
 
 const coreStrikeList = async (_guild, _author) => {
@@ -564,9 +583,22 @@ const coreStrikeList = async (_guild, _author) => {
 };
 
 const coreOnboard = async (guild, author, targetUser) => {
-    const user = await UserUtils.findOrCreateUser(targetUser.id, targetUser.username);
+    const { user, created } = await UserUtils.findOrCreateUserWithStatus(targetUser.id, targetUser.username);
+
+    // Onboarding a previously deboarded member brings them back rather than
+    // leaving them archived while telling them they are welcome.
+    if (!created && user.isDeboarded) {
+        const restored = await UserUtils.reactivateUser(targetUser.id, targetUser.username);
+        await logAction(guild, `🌸 Re-onboarded <@${targetUser.id}> - welcome back!`, author);
+        return { content: `🌸 Welcome back to our SEKAI, <@${targetUser.id}>! Your record has been restored~ ♪\nStrikes: **${formatStrikes(restored?.strikes ?? user.strikes)}**` };
+    }
+
+    if (!created) {
+        return { content: `✨ <@${targetUser.id}> is already part of our SEKAI!\nStrikes: **${formatStrikes(user.strikes)}**` };
+    }
+
     await logAction(guild, `🎉 Welcomed <@${targetUser.id}> to our SEKAI!`, author);
-    return { content: `🎉 Welcome to our SEKAI, <@${targetUser.id}>! I'm so excited to create amazing things with you~ ♪\nStrikes: **${user.strikes}/3**` };
+    return { content: `🎉 Welcome to our SEKAI, <@${targetUser.id}>! I'm so excited to create amazing things with you~ ♪\nStrikes: **${formatStrikes(user.strikes)}**` };
 };
 
 const coreDeboard = async (guild, author, targetUser, customMessage = null) => {
@@ -767,8 +799,14 @@ const coreHiatus = async (guild, author, targetUser, reason, channelId = null, i
             { name: 'Username', value: targetUser.tag, inline: true },
             { name: 'Reason', value: reason, inline: false }
         )
-        .setFooter({ text: channelId ? `Channel: ${channelId}` : null })
         .setTimestamp();
+
+    // The approval handler reads the channel id back out of this footer to know
+    // where to notify the requester. Only set it when there is one - discord.js
+    // rejects a null footer text.
+    if (channelId) {
+        embed.setFooter({ text: `Channel: ${channelId}` });
+    }
 
     const row = new ActionRowBuilder()
         .addComponents(
@@ -791,35 +829,64 @@ const coreHiatus = async (guild, author, targetUser, reason, channelId = null, i
 };
 
 const coreHiatusEnd = async (guild, author, targetUser) => {
-    const user = await UserUtils.setHiatus(targetUser.id, false);
-    
-    if (!user) return { content: '❌ User not found.' };
+    const existing = await UserUtils.getUserState(targetUser.id);
+    if (!existing) return { content: '❌ User not found.' };
+
+    // Ending a hiatus grants every pending task a fresh full-length deadline.
+    // Without this check the command did that for anyone at all, so it worked
+    // as an unlimited deadline reset rather than a return from leave.
+    if (!existing.isOnHiatus) {
+        return { content: `⚠️ <@${targetUser.id}> is not currently on hiatus, so there are no paused deadlines to restore.` };
+    }
+
+    await UserUtils.setHiatus(targetUser.id, false);
 
     const Assignment = (await import('../../DB/Schemas/assignment.js')).default;
     const pendingTasks = await Assignment.find({
         discordUserId: targetUser.id,
         status: 'PENDING'
     });
-    
+
+    const restored = [];
+    const skipped = [];
+
     for (const task of pendingTasks) {
         const rule = config.RULES[task.roleCategoryId];
-        if (rule && rule.tasks[task.taskType]) {
-            const newDeadline = new Date(Date.now() + rule.tasks[task.taskType]);
-            task.deadline = newDeadline;
-            task.hasExtended = false;
-            task.firstReminderSent = false;
-            task.finalReminderSent = false;
-            await task.save();
+        const duration = rule?.tasks?.[task.taskType];
+
+        // Custom tasks take their duration from the assign command, not config,
+        // so no rule exists to restore them from. They stay paused rather than
+        // being silently counted as restored.
+        if (!duration) {
+            skipped.push(task.taskName || task.taskType);
+            continue;
         }
-    }
-    
-    if (pendingTasks.length > 0) {
-        await logAction(guild, `🌸 Welcome back! Ended hiatus for <@${targetUser.id}> - Set new deadlines for ${pendingTasks.length} task(s)`, author);
-        return { content: `✅ Hiatus ended for <@${targetUser.id}>.\n⏰ Set new deadlines for ${pendingTasks.length} task(s) based on their task types. Welcome back! ♪` };
+
+        task.deadline = new Date(Date.now() + duration);
+        task.hasExtended = false;
+        task.firstReminderSent = false;
+        task.finalReminderSent = false;
+        await task.save();
+        restored.push(task.taskName || task.taskType);
     }
 
-    await logAction(guild, `🌸 Welcome back! Ended hiatus for <@${targetUser.id}>`, author);
-    return { content: `✅ Hiatus ended for <@${targetUser.id}>.` };
+    if (pendingTasks.length === 0) {
+        await logAction(guild, `🌸 Welcome back! Ended hiatus for <@${targetUser.id}>`, author);
+        return { content: `✅ Hiatus ended for <@${targetUser.id}>.` };
+    }
+
+    await logAction(
+        guild,
+        `🌸 Welcome back! Ended hiatus for <@${targetUser.id}> - restored ${restored.length} task(s)` +
+        (skipped.length ? `, ${skipped.length} need a manual deadline` : ''),
+        author
+    );
+
+    let content = `✅ Hiatus ended for <@${targetUser.id}>.\n⏰ Set new deadlines for ${restored.length} task(s) based on their task types. Welcome back! ♪`;
+    if (skipped.length) {
+        content += `\n\n⚠️ These task(s) have no configured duration and are still paused — please set their deadlines manually with a new assignment:\n${skipped.map(name => `• **${name}**`).join('\n')}`;
+    }
+    return { content };
 };
 
 export const handleAssignSlash = async (interaction) => {
@@ -1025,14 +1092,20 @@ export const handleHistorySlash = async (interaction) => {
             );
         
         const response = await interaction.editReply({ embeds: result.embeds, components: [row], fetchReply: true });
-        
-        const collector = response.createMessageComponentCollector({ time: 300000 });
+
+        // Without a filter any member could page through someone else's embed,
+        // and they would all share one page counter.
+        const collector = response.createMessageComponentCollector({
+            time: 300000,
+            filter: (i) => i.user.id === interaction.user.id
+        });
         let currentPage = 0;
         
         collector.on('collect', async i => {
             await i.deferUpdate();
             if (i.customId === 'history_prev') currentPage = Math.max(0, currentPage - 1);
             if (i.customId === 'history_next') currentPage = Math.min(result.totalPages - 1, currentPage + 1);
+            // re-read below from newResult so added/removed tasks are reflected
             
             const newResult = await coreHistory(filters, currentPage);
             
@@ -1047,7 +1120,7 @@ export const handleHistorySlash = async (interaction) => {
                         .setCustomId('history_next')
                         .setLabel('Next')
                         .setStyle(ButtonStyle.Primary)
-                        .setDisabled(currentPage === result.totalPages - 1)
+                        .setDisabled(currentPage >= newResult.totalPages - 1)
                 );
             
             await i.editReply({ embeds: newResult.embeds, components: [newRow] });
@@ -1112,9 +1185,17 @@ const coreCheckFree = async (_guild, targetUser = null) => {
             }
             
             if (userStatus.lastTask) {
+                // completedAt is null for tasks finished before the field
+                // existed - say so rather than showing the deadline and
+                // labelling it "Completed".
+                const finishedAt = userStatus.lastTask.completedAt;
+                const whenLine = finishedAt
+                    ? `Completed: <t:${Math.floor(new Date(finishedAt).getTime() / 1000)}:d>`
+                    : `Was due: <t:${Math.floor(new Date(userStatus.lastTask.deadline).getTime() / 1000)}:d>`;
+
                 embed.addFields({
                     name: 'Last Completed Task',
-                    value: `**${userStatus.lastTask.taskName || userStatus.lastTask.taskType}**\nCompleted: <t:${Math.floor(new Date(userStatus.lastTask.deadline).getTime() / 1000)}:d>`, // Using deadline as proxy for completion time if completedAt isn't tracked, or we can assume it was recent. schema doesn't have completedAt, using deadline or maybe assignedAt? Schema has status only. Wait, completeAssignment updates status. Let's use deadline as approximation or nothing. 
+                    value: `**${userStatus.lastTask.taskName || userStatus.lastTask.taskType}**\n${whenLine}`,
                     inline: false
                 });
             } else {
@@ -1296,6 +1377,32 @@ export const handlePrefixCommand = async (message) => {
     const author = message.author;
     const guild = message.guild;
 
+    if (!guild) return;
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Single permission gate for every prefix command.
+    //
+    // Previously each branch was responsible for its own check and five of
+    // them had none, so `!assign`, `!strike`, `!submit`, `!extension` and
+    // `!endhiatus` were open to any member. Authorisation now happens here,
+    // once, from the same policy table the slash commands use.
+    // ─────────────────────────────────────────────────────────────────────
+    const policy = COMMAND_POLICY[command];
+    if (!policy) return; // unknown prefix command: stay silent, as before
+
+    const member = await guild.members.fetch(author.id).catch(() => null);
+    if (!member) return message.reply('❌ I could not verify your roles. Please try again.');
+
+    const mentionedTarget = resolveTarget(message);
+    const targetId = mentionedTarget ? mentionedTarget.id : author.id;
+
+    const verdict = checkCommandPermission(command, member, { actorId: author.id, targetId });
+    if (!verdict.allowed) return message.reply(verdict.reason);
+
+    if (policy.requiresOnboarding && !(await isOnboarded(targetId))) {
+        return message.reply(NOT_ONBOARDED_MESSAGE);
+    }
+
     if (command === 'assign') {
         const target = resolveTarget(message);
         const taskType = args[1];
@@ -1308,11 +1415,6 @@ export const handlePrefixCommand = async (message) => {
     }
 
     if (command === 'bulkassign') {
-        const member = await guild.members.fetch(author.id).catch(() => null);
-        if (!member || !isOwner(member)) {
-            return message.reply("Only owners can assign tasks! ♪");
-        }
-        
         const mentions = message.mentions.users;
         if (mentions.size === 0) {
             return message.reply("Usage: `!bulkassign @User1 @User2 ... <task_type> <role_name> [name] [description]`");
@@ -1415,10 +1517,6 @@ export const handlePrefixCommand = async (message) => {
     }
 
     if (command === 'onboard') {
-        const member = await guild.members.fetch(author.id).catch(() => null);
-        if (!member || !isOwner(member)) {
-            return message.reply("Only owners can onboard new users! If someone needs to join, ask an owner to help them get started~ ♪");
-        }
         const target = resolveTarget(message);
         if (!target) return message.reply("Usage: `!onboard @User`");
         const res = await coreOnboard(guild, author, target);
@@ -1426,10 +1524,6 @@ export const handlePrefixCommand = async (message) => {
     }
 
     if (command === 'deboard') {
-        const member = await guild.members.fetch(author.id).catch(() => null);
-        if (!member || !isOwner(member)) {
-            return message.reply("Only owners can deboard users. If someone needs to take a break, ask an owner to help~ ♪");
-        }
         const target = resolveTarget(message);
         if (!target) return message.reply("Usage: `!deboard @User [custom message]`");
         const customMessage = args.length > 1 ? args.slice(1).join(' ') : null;
@@ -1438,10 +1532,6 @@ export const handlePrefixCommand = async (message) => {
     }
 
     if (command === 'removetask') {
-        const member = await guild.members.fetch(author.id).catch(() => null);
-        if (!member || !isManagerOrOwner(member)) {
-            return message.reply("Only managers and owners can remove tasks! If a task needs to be removed, ask an owner or manager~ ♪");
-        }
         const target = resolveTarget(message);
         if (!target) return message.reply("Usage: `!removetask @User <task_name_or_type>`");
         const taskIdentifier = args.length > 1 ? args.slice(1).join(' ') : '';
@@ -1498,8 +1588,11 @@ export const handlePrefixCommand = async (message) => {
                 );
             
             const response = await message.reply({ embeds: res.embeds, components: [row] });
-            
-            const collector = response.createMessageComponentCollector({ time: 300000 });
+
+            const collector = response.createMessageComponentCollector({
+                time: 300000,
+                filter: (i) => i.user.id === message.author.id
+            });
             let currentPage = 0;
             
             collector.on('collect', async i => {
@@ -1520,7 +1613,7 @@ export const handlePrefixCommand = async (message) => {
                             .setCustomId('history_next_prefix')
                             .setLabel('Next')
                             .setStyle(ButtonStyle.Primary)
-                            .setDisabled(currentPage === res.totalPages - 1)
+                            .setDisabled(currentPage >= newResult.totalPages - 1)
                     );
                 
                 await i.editReply({ embeds: newResult.embeds, components: [newRow] });

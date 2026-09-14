@@ -6,8 +6,15 @@ import config from './config.js';
 import * as Commands from './Utils/DiscordUtils/commands.js';
 import * as TaskUtils from './Utils/DBUtils/taskUtils.js';
 import * as UserUtils from './Utils/DBUtils/userUtils.js';
+import * as Permissions from './Utils/permissions.js';
+import { resolveExtensionMs, ConfigError } from './Utils/domain/extensions.js';
+import { formatStrikes } from './Utils/domain/strikes.js';
 
 dotenv.config();
+
+// Button custom ids this handler is responsible for. Anything else (history
+// pagination, for example) belongs to a collector and must not be deferred here.
+const OWNED_BUTTON_ACTIONS = new Set(['submit', 'extension', 'hiatus']);
 
 console.log('[STARTUP] Connecting to MongoDB...');
 connectDB().then(() => {
@@ -128,20 +135,34 @@ async function runScheduler(isStartup = false) {
         console.log(`[OVERDUE-CHECK]   Deadline was: ${task.deadline.toISOString()}`);
         
         const user = await UserUtils.getUserProfile(task.discordUserId);
-        
+
         if (user && user.isOnHiatus) {
             console.log(`[OVERDUE-CHECK]   ⏸️  SKIPPED - User is on hiatus\n`);
             overdueSkipped++;
             continue;
         }
-        
+
+        // populate('userId') yields null when the referenced user no longer
+        // exists. Dereferencing it here used to throw inside the interval
+        // callback, which killed the process and produced a restart loop.
+        if (!task.userId) {
+            console.warn(`[OVERDUE-CHECK]   ⚠️ SKIPPED - assignment ${task._id} references a user that no longer exists\n`);
+            overdueSkipped++;
+            continue;
+        }
+
         console.log(`[OVERDUE-CHECK]   ⚠️  Processing overdue task...`);
         task.status = 'LATE';
         await task.save();
         console.log(`[OVERDUE-CHECK]   💾 Marked task as LATE in DB`);
 
         const newStrikeCount = await UserUtils.addStrike(task.userId._id);
-        console.log(`[OVERDUE-CHECK]   ⚡ Strike added. New total: ${newStrikeCount}/3`);
+        if (newStrikeCount === null) {
+            console.warn(`[OVERDUE-CHECK]   ⚠️ Could not apply strike - user record missing\n`);
+            overdueSkipped++;
+            continue;
+        }
+        console.log(`[OVERDUE-CHECK]   ⚡ Strike added. New total: ${formatStrikes(newStrikeCount)}`);
         
         const logChannel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
         if (logChannel) {
@@ -285,7 +306,12 @@ client.once('clientReady', async () => {
     
     console.log('[STARTUP] Setting up scheduler...');
     const intervalMs = config.SCHEDULER_INTERVAL_MINUTES * 60 * 1000;
-    setInterval(runScheduler, intervalMs);
+    // runScheduler is async: handing it straight to setInterval drops the
+    // returned promise, so any rejection inside it became an unhandled
+    // rejection and terminated the process.
+    setInterval(() => {
+        runScheduler().catch(err => console.error('[SCHEDULER] ❌ Run failed:', err));
+    }, intervalMs);
     console.log(`[STARTUP] ✅ Scheduler will run every ${config.SCHEDULER_INTERVAL_MINUTES} minutes\n`);
     
     console.log('🎤 ═══════════════════════════════════════════');
@@ -319,25 +345,41 @@ client.on('interactionCreate', async interaction => {
             console.log(`[COMMAND] ✅ /${commandName} completed successfully`);
         } catch (e) {
             console.error(`[COMMAND] ❌ Error in /${commandName}:`, e);
-            if (!interaction.replied) interaction.reply({ content: "❌ Error.", flags: 64 });
+            // Every handler defers first, so `replied` is false but `deferred` is
+            // true - calling reply() here would throw and the user would see
+            // nothing at all.
+            const payload = { content: '❌ Something went wrong running that command.' };
+            try {
+                if (interaction.deferred || interaction.replied) {
+                    await interaction.editReply(payload);
+                } else {
+                    await interaction.reply({ ...payload, flags: 64 });
+                }
+            } catch (replyError) {
+                console.error(`[COMMAND] ❌ Could not report the error to the user:`, replyError);
+            }
         }
     }
 
     if (interaction.isButton()) {
+        const [action, type, taskId] = interaction.customId.split('_');
+
+        // Only acknowledge buttons this handler actually owns. Paginated embeds
+        // are driven by their own message-component collectors, and deferring
+        // them here too makes one of the two acknowledgements fail.
+        if (!OWNED_BUTTON_ACTIONS.has(action)) return;
+
         console.log(`[BUTTON] ${interaction.customId} by ${interaction.user.tag} (${interaction.user.id})`);
         try {
             await interaction.deferUpdate();
             console.log(`[BUTTON]   Interaction deferred`);
-            
+
             const member = await interaction.guild.members.fetch(interaction.user.id);
-            const isAdminUser = config.ADMIN_USER_IDS.includes(interaction.user.id);
-            const isOwner = isAdminUser || member.roles.cache.has(config.OWNER_ROLE_ID);
-            const isManager = isAdminUser || config.MANAGER_ROLE_IDS.some(roleId => member.roles.cache.has(roleId));
-            const isManagerOrOwner = isOwner || isManager;
-            
-            const [action, type, taskId] = interaction.customId.split('_');
+            const isOwner = Permissions.isOwner(member);
+            const isManagerOrOwner = Permissions.isManagerOrOwner(member);
+
             console.log(`[BUTTON]   Action: ${action} | Type: ${type} | Task ID: ${taskId}`);
-            
+
             if (action === 'submit' || action === 'extension') {
                 const task = await TaskUtils.fetchTaskById(taskId);
                 if (!task) {
@@ -354,10 +396,21 @@ client.on('interactionCreate', async interaction => {
                             return interaction.editReply({ content: 'Thanks for checking, but only owners can approve submissions! ♪' });
                         }
                         console.log(`[BUTTON]   Approving submission...`);
-                        await TaskUtils.completeAssignment(task._id, task.userId);
-                        const newCount = await UserUtils.removeStrike(task.userId);
-                        console.log(`[BUTTON]   Strike removed. New count: ${newCount}/3`);
-                        await interaction.editReply({ 
+                        // Conditional on status, so a double-click or a stale
+                        // button cannot complete the task twice and remove two
+                        // strikes for one piece of work.
+                        const completed = await TaskUtils.completeAssignment(task._id);
+                        if (!completed) {
+                            console.log(`[BUTTON]   ⚠️ Task ${task._id} was already resolved; ignoring duplicate approval`);
+                            return interaction.editReply({
+                                content: `⚠️ That task has already been resolved.`,
+                                embeds: interaction.message.embeds,
+                                components: []
+                            });
+                        }
+                        const newCount = await UserUtils.removeStrike(completed.userId);
+                        console.log(`[BUTTON]   Strike removed. New count: ${formatStrikes(newCount)}`);
+                        await interaction.editReply({
                             content: `✅ Submission approved by <@${interaction.user.id}>`,
                             embeds: interaction.message.embeds,
                             components: []
@@ -372,7 +425,7 @@ client.on('interactionCreate', async interaction => {
                         
                         const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                         if (logChannel) {
-                            logChannel.send(`✅ **${task.taskName || task.taskType}** completed by <@${task.discordUserId}>! Amazing work~ Strike removed. Current: ${newCount}/3 ♪`);
+                            logChannel.send(`✅ **${task.taskName || task.taskType}** completed by <@${task.discordUserId}>! Amazing work~ Strike removed. Current: ${formatStrikes(newCount)} ♪`);
                         }
                         console.log(`[BUTTON]   ✅ Submission approved successfully`);
                     } else if (action === 'extension') {
@@ -381,12 +434,41 @@ client.on('interactionCreate', async interaction => {
                             return interaction.editReply({ content: 'Extension approvals are handled by managers and owners! Thanks for checking though~ ♪' });
                         }
                         console.log(`[BUTTON]   Approving extension...`);
-                        const rule = config.RULES[task.roleCategoryId];
-                        let extTime = task.customExtension || rule.extension;
-                        if (!extTime) extTime = (task.taskType.includes('skit')) ? rule.extension_skit : rule.extension_mv;
+                        // Same resolver the /extension request path uses, so the
+                        // approved duration always matches the quoted one.
+                        let extTime;
+                        try {
+                            extTime = resolveExtensionMs(task, config);
+                        } catch (configError) {
+                            if (configError instanceof ConfigError) {
+                                console.error(`[BUTTON]   ❌ ${configError.message}`);
+                                return interaction.editReply({
+                                    content: `⚠️ Configuration error: ${configError.message}. Please contact an admin.`,
+                                    embeds: interaction.message.embeds,
+                                    components: []
+                                });
+                            }
+                            throw configError;
+                        }
                         console.log(`[BUTTON]   Extension duration: ${extTime / (24 * 60 * 60 * 1000)} days`);
-                        
-                        const updated = await TaskUtils.extendAssignment(task._id, extTime);
+
+                        let updated;
+                        try {
+                            updated = await TaskUtils.extendAssignment(task._id, extTime);
+                        } catch (extendError) {
+                            const reason = extendError.message === 'ALREADY_EXTENDED'
+                                ? '⚠️ That task has already used all of its extensions.'
+                                : extendError.message === 'TASK_NOT_FOUND'
+                                    ? '⚠️ That task no longer exists.'
+                                    : null;
+                            if (!reason) throw extendError;
+                            console.log(`[BUTTON]   ⚠️ Extension refused: ${extendError.message}`);
+                            return interaction.editReply({
+                                content: reason,
+                                embeds: interaction.message.embeds,
+                                components: []
+                            });
+                        }
                         const ts = Math.round(updated.deadline.getTime() / 1000);
                         console.log(`[BUTTON]   New deadline: ${updated.deadline.toISOString()}`);
                         await interaction.editReply({
