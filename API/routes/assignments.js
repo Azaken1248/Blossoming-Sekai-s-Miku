@@ -7,11 +7,13 @@ import {
     getOverdueTasks 
 } from '../controllers/assignmentController.js';
 
+import { requireApiKey } from '../middleware/requireApiKey.js';
+
 const router = express.Router();
 
-router.post('/', createAssignment);
-router.post('/:taskId/complete', completeAssignment);
-router.post('/:taskId/extend', extendAssignment);
+router.post('/', requireApiKey, createAssignment);
+router.post('/:taskId/complete', requireApiKey, completeAssignment);
+router.post('/:taskId/extend', requireApiKey, extendAssignment);
 router.get('/pending/:discordUserId', getPendingTask);
 router.get('/overdue', getOverdueTasks);
 

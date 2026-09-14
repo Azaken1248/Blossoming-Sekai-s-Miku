@@ -10,6 +10,9 @@ import fs from 'fs';
 import userRoutes from './routes/users.js';
 import assignmentRoutes from './routes/assignments.js';
 import analyticsRoutes from './routes/analytics.js';
+import { buildUserSummary } from './controllers/userController.js';
+import { buildCorsOptions, describeCorsPolicy } from './corsPolicy.js';
+import { reportApiKeyStatus } from './middleware/requireApiKey.js';
 
 const app = express();
 const PORT = 3000;
@@ -18,7 +21,7 @@ const __dirname = path.dirname(__filename);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(cors());
+app.use(cors(buildCorsOptions()));
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 
 connectDB();
@@ -78,14 +81,18 @@ const pickRandomStickers = (count = 2) => {
         .filter(Boolean);
 };
 
-const fetchUserSummaryForShare = async (req, discordId) => {
-    const baseUrl = getBaseUrl(req);
+/**
+ * Load the profile summary for a share page.
+ *
+ * This used to issue an HTTP request to this same server, with the host taken
+ * from the request's own Host header - a needless round trip and an SSRF. The
+ * summary builder lives in the same process, so it is called directly.
+ */
+const fetchUserSummaryForShare = async (discordId) => {
     try {
-        const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(discordId)}/summary`);
-        if (!response.ok) return null;
-        const payload = await response.json();
-        return payload?.data || null;
-    } catch (_error) {
+        return await buildUserSummary(discordId);
+    } catch (error) {
+        console.error('[SHARE] Failed to build user summary:', error);
         return null;
     }
 };
@@ -178,7 +185,7 @@ const createProfileCardSvg = (user, metrics = {}, stickerUris = []) => {
 
 app.get('/share/user/:discordId/card.svg', async (req, res) => {
         try {
-        const summaryUser = await fetchUserSummaryForShare(req, req.params.discordId);
+        const summaryUser = await fetchUserSummaryForShare(req.params.discordId);
         const user = summaryUser || await User.findOne({ discordId: req.params.discordId }).lean();
                 if (!user) {
                         return res.status(404).send('User not found');
@@ -200,14 +207,14 @@ app.get('/share/user/:discordId/card.svg', async (req, res) => {
 
 app.get('/share/user/:discordId', async (req, res) => {
         try {
-        const summaryUser = await fetchUserSummaryForShare(req, req.params.discordId);
+        const summaryUser = await fetchUserSummaryForShare(req.params.discordId);
         const user = summaryUser || await User.findOne({ discordId: req.params.discordId }).lean();
                 if (!user) {
                         return res.status(404).send('<h1>User not found</h1>');
                 }
 
                 const baseUrl = getBaseUrl(req);
-                const cardImageUrl = `${baseUrl}/share/user/${encodeURIComponent(user.discordId)}/card.png`;
+                const cardImageUrl = `${baseUrl}/api/users/${encodeURIComponent(user.discordId)}/card.png`;
                 const sharePageUrl = `${baseUrl}/share/user/${encodeURIComponent(user.discordId)}`;
                 const profileWebUrl = `${baseUrl}/public/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
                 const title = `${user.username || 'Sekai User'} • Blossoming Sekai Profile`;
@@ -323,4 +330,6 @@ app.get('/', (_req, res) => {
 
 app.listen(PORT, () => {
     console.log(`API Server running strictly as an API on http://localhost:${PORT}`);
+    console.log(describeCorsPolicy());
+    reportApiKeyStatus();
 });
