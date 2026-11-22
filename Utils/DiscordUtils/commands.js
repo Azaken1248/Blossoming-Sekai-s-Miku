@@ -8,6 +8,7 @@ import {
     isManager,
     isManagerOrOwner,
     checkCommandPermission,
+    COMMAND_POLICY,
     NOT_ONBOARDED_MESSAGE
 } from '../permissions.js';
 import { resolveExtensionMs, countExtensionsUsed, canExtend, msToDays, ConfigError, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.js';
