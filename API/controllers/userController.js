@@ -311,7 +311,8 @@ export const listUsers = async (req, res) => {
         if (error instanceof SearchTooLongError) {
             return res.status(400).json({ error: error.message });
         }
-        res.status(500).json({ error: error.message });
+        console.error('[API] listUsers failed:', error);
+        res.status(500).json({ error: 'Failed to list users' });
     }
 };
 
@@ -348,7 +349,8 @@ export const getUser = async (req, res) => {
         }
         res.json({ success: true, data: user });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[API] getUser failed:', error);
+        res.status(500).json({ error: 'Failed to fetch user' });
     }
 };
 
@@ -550,7 +552,7 @@ export const generateCardImage = async (req, res) => {
         });
     } catch (error) {
         console.error("Error generating card image:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to generate card image' });
     }
 };
 
