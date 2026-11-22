@@ -1,5 +1,6 @@
 import User from '../../DB/Schemas/user.js';
 import { MAX_STRIKES } from '../domain/strikes.js';
+import { containsText } from './searchPattern.js';
 
 
 export const findOrCreateUser = async (discordId, username) => {
@@ -140,11 +141,12 @@ export const getUsersWithStrikes = async () => {
 
 export const listUsers = async ({ limit = 100, search = '' } = {}) => {
     const trimmedSearch = (search || '').trim();
-    const query = trimmedSearch
+    const searchPattern = trimmedSearch ? containsText(trimmedSearch) : null;
+    const query = searchPattern
         ? {
             $or: [
-                { username: { $regex: trimmedSearch, $options: 'i' } },
-                { discordId: { $regex: trimmedSearch, $options: 'i' } }
+                { username: searchPattern },
+                { discordId: searchPattern }
             ]
         }
         : {};

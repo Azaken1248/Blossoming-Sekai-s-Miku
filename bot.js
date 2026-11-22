@@ -9,6 +9,7 @@ import * as UserUtils from './Utils/DBUtils/userUtils.js';
 import * as Permissions from './Utils/permissions.js';
 import { resolveExtensionMs, ConfigError } from './Utils/domain/extensions.js';
 import { formatStrikes } from './Utils/domain/strikes.js';
+import { MAX_SEARCH_LENGTH } from './Utils/DBUtils/searchPattern.js';
 
 dotenv.config();
 
@@ -264,7 +265,7 @@ const commands = [
         .addUserOption(o => o.setName('user').setDescription('User').setRequired(false)),
     new SlashCommandBuilder().setName('history').setDescription('View task history')
         .addUserOption(o => o.setName('user').setDescription('Filter by user').setRequired(false))
-        .addStringOption(o => o.setName('task').setDescription('Filter by task name').setRequired(false))
+        .addStringOption(o => o.setName('task').setDescription('Filter by task name').setRequired(false).setMaxLength(MAX_SEARCH_LENGTH))
         .addStringOption(o => o.setName('status').setDescription('Filter by status')
             .addChoices(
                 { name: 'Pending', value: 'PENDING' },
@@ -273,7 +274,7 @@ const commands = [
                 { name: 'Excused', value: 'EXCUSED' }
             )
             .setRequired(false))
-        .addStringOption(o => o.setName('role').setDescription('Filter by role name').setRequired(false)),
+        .addStringOption(o => o.setName('role').setDescription('Filter by role name').setRequired(false).setMaxLength(MAX_SEARCH_LENGTH)),
     new SlashCommandBuilder().setName('checkfree').setDescription('Check who has no active tasks or check a specific user')
         .addUserOption(o => o.setName('user').setDescription('Check a specific user').setRequired(false)),
     new SlashCommandBuilder().setName('help').setDescription('Show all available commands'),

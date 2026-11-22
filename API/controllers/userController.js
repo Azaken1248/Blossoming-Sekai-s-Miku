@@ -5,6 +5,7 @@ import config from '../../config.js';
 import configProd from '../../configProd.js';
 import sharp from 'sharp';
 import { MAX_STRIKES } from '../../Utils/domain/strikes.js';
+import { SearchTooLongError } from '../../Utils/DBUtils/searchPattern.js';
 
 const DISCORD_API = 'https://discord.com/api/v10';
 const roleCache = {
@@ -307,6 +308,9 @@ export const listUsers = async (req, res) => {
 
         return res.json({ success: true, count: data.length, data });
     } catch (error) {
+        if (error instanceof SearchTooLongError) {
+            return res.status(400).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 };

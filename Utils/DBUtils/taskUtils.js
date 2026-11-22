@@ -1,6 +1,7 @@
 import Assignment from '../../DB/Schemas/assignment.js';
 import User from '../../DB/Schemas/user.js';
 import { countExtensionsUsed, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.js';
+import { containsText } from './searchPattern.js';
 
 
 export const createAssignment = async (userDoc, assignmentData) => {
@@ -93,9 +94,10 @@ export const fetchTaskHistory = async (filters = {}) => {
     }
     
     if (filters.taskName) {
+        const taskNamePattern = containsText(filters.taskName);
         query.$or = [
-            { taskName: { $regex: filters.taskName, $options: 'i' } },
-            { taskType: { $regex: filters.taskName, $options: 'i' } }
+            { taskName: taskNamePattern },
+            { taskType: taskNamePattern }
         ];
     }
     
@@ -104,7 +106,7 @@ export const fetchTaskHistory = async (filters = {}) => {
     }
     
     if (filters.roleName) {
-        query.roleName = { $regex: filters.roleName, $options: 'i' };
+        query.roleName = containsText(filters.roleName);
     }
     
     const limit = filters.limit || 50;
