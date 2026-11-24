@@ -12,10 +12,10 @@
     "statements": 86
   },
   "API/controllers/userController.js": {
-    "lines": 524,
-    "branches": 11,
-    "functions": 20,
-    "statements": 524
+    "lines": 426,
+    "branches": 41,
+    "functions": 13,
+    "statements": 426
   },
   "Utils/DiscordUtils/commands.js": {
     "lines": 2,

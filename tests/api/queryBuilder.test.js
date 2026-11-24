@@ -105,9 +105,9 @@ describe('QueryBuilder', () => {
             const { page, limit } = new QueryBuilder(recorder(), queryString).paginate();
             return [page, limit];
         };
-        assert.deepEqual([DEFAULT_LIMIT, MAX_LIMIT], [50, 200]);
+        assert.deepEqual([DEFAULT_LIMIT, MAX_LIMIT], [100, 200]);
         assert.deepEqual(bounds({ page: '-2', limit: '-5' }), [1, 1]);
-        assert.deepEqual(bounds({ page: 'x', limit: 'x' }), [1, 50]);
+        assert.deepEqual(bounds({ page: 'x', limit: 'x' }), [1, 100]);
         assert.deepEqual(bounds({ limit: '200' }), [1, 200]);
         assert.deepEqual(bounds({ limit: '201' }), [1, 200]);
     });

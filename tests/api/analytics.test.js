@@ -47,14 +47,14 @@ test('lists assignments with their member and the paging used', async () => {
         deadline: new Date('2026-07-01'),
     });
     const { body } = await get('/assignments', { status: 'PENDING' }).expect(200);
-    assert.deepEqual([body.success, body.count, body.page, body.limit], [true, 1, 1, 50]);
+    assert.deepEqual([body.success, body.count, body.page, body.limit], [true, 1, 1, 100]);
     assert.equal(body.data[0].userId.username, 'member.one');
 });
 
 test('lists members newest first with a total, without their assignments', async () => {
     await insertMembers(3);
     const { body } = await get('/users').expect(200);
-    assert.deepEqual([body.count, body.page, body.limit, body.total], [3, 1, 50, 3]);
+    assert.deepEqual([body.count, body.page, body.limit, body.total], [3, 1, 200, 3]);
     assert.deepEqual(
         body.data.map((user) => user.username),
         ['member.2', 'member.1', 'member.0'],
