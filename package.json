@@ -43,14 +43,15 @@
     "start:bot": "node bot.js",
     "start:api": "node API/api.js",
     "test": "node --test --experimental-test-module-mocks \"tests/**/*.test.js\"",
-    "coverage": "c8 npm test",
+    "coverage": "c8 npm test && node tools/check-coverage.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "backup": "node scripts/backupDatabase.js",
     "restore": "node scripts/restoreDatabase.js",
-    "prepare": "node .husky/install.mjs"
+    "prepare": "node .husky/install.mjs",
+    "coverage:update": "c8 npm test && node tools/check-coverage.js --update"
   },
   "dependencies": {
     "cors": "2.8.6",

@@ -261,6 +261,21 @@ To restore, point at an empty database. Restore refuses any database that alread
 npm run restore -- <BACKUP_DIR>/sekai-20261122T030000Z "mongodb+srv://.../sekai_restored"
 ```
 
+## Development
+
+CI runs the same checks on every pull request. Run them locally with:
+
+```
+npm run typecheck
+npm run lint
+npm run format:check
+npm run coverage
+```
+
+`npm run coverage` runs the tests and then the coverage gate. Every file must be fully covered unless `coverage-floors.json` lists it with the number of lines, branches, functions and statements it may leave uncovered. The gate fails if any file goes over its cap, and also if a file improves without its cap being lowered, so the caps always match reality. After adding tests, run `npm run coverage:update` to lower the caps; it never raises them. A cap can only go up by editing the file, which shows in review.
+
+The characterisation suite in `tests/characterisation/` records everything the bot says and stores for each command, button, menu and scheduler run. Regenerate its recordings with `--test-update-snapshots` only when a change is meant to alter behaviour.
+
 ## Permission Roles
 
 ### Owner
