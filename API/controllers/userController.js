@@ -2,10 +2,12 @@ import * as userUtils from '../../Utils/DBUtils/userUtils.js';
 import User from '../../DB/Schemas/user.js';
 import Assignment from '../../DB/Schemas/assignment.js';
 import config from '../../config.js';
-import configProd from '../../configProd.js';
+import { importOptionalDefault } from '../optionalModule.js';
 import sharp from 'sharp';
 import { MAX_STRIKES } from '../../Utils/domain/strikes.js';
 import { SearchTooLongError } from '../../Utils/DBUtils/searchPattern.js';
+
+const configProd = await importOptionalDefault(new URL('../../configProd.js', import.meta.url));
 
 const DISCORD_API = 'https://discord.com/api/v10';
 const roleCache = {
