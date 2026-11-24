@@ -56,8 +56,8 @@ export const useCharacterisation = (name) => {
         state.database = await startDatabase(`sekai_char_${name}`);
         state.world = new DiscordWorld({ clock: () => Date.now() });
         state.bot = await loadBot(state.world);
-        state.User = (await import('../../DB/Schemas/user.js')).default;
-        state.Assignment = (await import('../../DB/Schemas/assignment.js')).default;
+        state.User = (await import('../../DB/Schemas/user.ts')).default;
+        state.Assignment = (await import('../../DB/Schemas/assignment.ts')).default;
     });
 
     beforeEach(async () => {
@@ -136,12 +136,17 @@ export const seedTask = async (state, user, overrides = {}) => {
 
 export const setUser = (state, user, fields) => state.User.updateOne({ discordId: user.id }, { $set: fields });
 
+const sortKeys = (_key, value) =>
+    value && typeof value === 'object' && !Array.isArray(value)
+        ? Object.fromEntries(Object.entries(value).sort(([left], [right]) => left.localeCompare(right)))
+        : value;
+
 const dumpDatabase = async (state) => {
     const users = await state.User.find({}, { __v: 0 }).sort({ discordId: 1 }).lean();
     const assignments = await state.Assignment.find({}, { __v: 0 })
         .sort({ discordUserId: 1, assignedAt: 1, taskName: 1, taskType: 1 })
         .lean();
-    return { users, assignments };
+    return JSON.parse(JSON.stringify(JSON.parse(JSON.stringify({ users, assignments })), sortKeys));
 };
 
 export const recording = async (state, extra = {}) => {

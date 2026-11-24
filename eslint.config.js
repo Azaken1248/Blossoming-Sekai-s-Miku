@@ -52,4 +52,8 @@ export default tseslint.config(
             parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
         },
     },
+    {
+        files: ['DB/Schemas/*.ts'],
+        rules: { '@typescript-eslint/no-unsafe-class-instance-assignment': 'off' },
+    },
 );

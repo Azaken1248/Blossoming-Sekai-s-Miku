@@ -1,6 +1,27 @@
-import mongoose from 'mongoose';
+import mongoose, { type Types } from 'mongoose';
 
-const assignmentSchema = new mongoose.Schema({
+export interface StoredTask {
+    _id: Types.ObjectId;
+    userId: Types.ObjectId;
+    discordUserId: string;
+    roleCategoryId: string;
+    roleName?: string | undefined;
+    taskType: string;
+    taskName?: string | undefined;
+    description?: string | undefined;
+    assignedAt?: Date | undefined;
+    deadline: Date;
+    hasExtended?: boolean | undefined;
+    extensionCount?: number | undefined;
+    customExtension?: number | null | undefined;
+    submissionChannelId?: string | null | undefined;
+    firstReminderSent?: boolean | undefined;
+    finalReminderSent?: boolean | undefined;
+    status?: 'PENDING' | 'COMPLETED' | 'LATE' | 'EXCUSED' | undefined;
+    completedAt?: Date | null | undefined;
+}
+
+const assignmentSchema = new mongoose.Schema<StoredTask>({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
@@ -67,8 +88,6 @@ const assignmentSchema = new mongoose.Schema({
         default: 'PENDING',
         enum: ['PENDING', 'COMPLETED', 'LATE', 'EXCUSED'],
     },
-    // Set when a submission is approved. Null on rows completed before this
-    // field existed - callers must treat null as "completion time unknown".
     completedAt: {
         type: Date,
         default: null,
@@ -77,4 +96,4 @@ const assignmentSchema = new mongoose.Schema({
 
 assignmentSchema.index({ status: 1, deadline: 1 });
 
-export default mongoose.model('Assignment', assignmentSchema);
+export default mongoose.model<StoredTask>('Assignment', assignmentSchema);

@@ -17,8 +17,8 @@ before(async () => {
     for (const name of DISCORD_VARIABLES) Reflect.deleteProperty(process.env, name);
     database = await startDatabase('sekai_api_contract');
     ({ default: app } = await import('../../API/app.js'));
-    ({ default: User } = await import('../../DB/Schemas/user.js'));
-    ({ default: Assignment } = await import('../../DB/Schemas/assignment.js'));
+    ({ default: User } = await import('../../DB/Schemas/user.ts'));
+    ({ default: Assignment } = await import('../../DB/Schemas/assignment.ts'));
 });
 
 beforeEach(() => database.reset());

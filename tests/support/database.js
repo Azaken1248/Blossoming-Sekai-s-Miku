@@ -1,8 +1,11 @@
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
 
 export const startDatabase = async (name = 'sekai_test') => {
-    const server = await MongoMemoryServer.create({ instance: { launchTimeout: 60_000 } });
+    const server = await MongoMemoryReplSet.create({
+        replSet: { count: 1, storageEngine: 'wiredTiger' },
+        instanceOpts: [{ launchTimeout: 60_000 }],
+    });
     const uri = server.getUri(name);
     process.env.MONGO_URI = uri;
     await mongoose.connect(uri);

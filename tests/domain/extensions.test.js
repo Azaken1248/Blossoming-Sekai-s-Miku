@@ -7,7 +7,7 @@ import {
     countExtensionsUsed,
     msToDays,
     resolveExtensionMs,
-} from '../../Utils/domain/extensions.js';
+} from '../../Utils/domain/extensions.ts';
 
 const DAY = 24 * 60 * 60 * 1000;
 const config = {
