@@ -32,7 +32,7 @@ const uriFor = (database) => {
 const freshDir = (name) => mkdtemp(path.join(workDir, `${name}-`));
 
 before(async () => {
-    mongod = await MongoMemoryServer.create();
+    mongod = await MongoMemoryServer.create({ instance: { launchTimeout: 60_000 } });
     client = await new MongoClient(mongod.getUri()).connect();
     workDir = await mkdtemp(path.join(tmpdir(), 'sekai-jobs-'));
     await client
