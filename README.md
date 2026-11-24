@@ -207,6 +207,32 @@ Required variables in `.env`:
 - `CREW_ROLE_IDS` - Roles to be removed when user reaches 3 strikes
 - `RULES` - Task types and deadlines for each role category
 
+## Backups
+
+The free MongoDB tier has no automatic backups, so `npm run backup` makes one. It needs Node only, no MongoDB tools.
+
+Add to `.env`:
+- `BACKUP_DIR` - Where backups go. Use a different disk from the server's own, or a synced folder, so one failure cannot lose both
+- `BACKUP_RETENTION_DAYS` - Days to keep (default `14`). The newest backup is never removed
+
+Each run writes `sekai-<UTC time>/`: one gzipped EJSON file per collection plus `manifest.json` with counts and indexes. It then re-reads every file to check the counts, and deletes backups past retention. A failed run leaves nothing half written and exits with code 1.
+
+Backups contain member data. Keep `BACKUP_DIR` readable only by the account that runs the bot.
+
+Run it nightly. On Windows (Task Scheduler):
+```powershell
+schtasks /Create /TN "Sekai backup" /SC DAILY /ST 03:00 /TR "cmd /c cd /d \"C:\path\to\Blossoming Sekai's Miku\" && npm run backup >> backup.log 2>&1"
+```
+On Linux (`crontab -e`):
+```
+0 3 * * * cd "/path/to/Blossoming Sekai's Miku" && npm run backup >> backup.log 2>&1
+```
+
+To restore, point at an empty database. Restore refuses any database that already has one of the backed-up collections, so it cannot overwrite live data:
+```
+npm run restore -- <BACKUP_DIR>/sekai-20261122T030000Z "mongodb+srv://.../sekai_restored"
+```
+
 ## Permission Roles
 
 ### Owner
