@@ -1,10 +1,4 @@
 {
-  "API/api.js": {
-    "lines": 15,
-    "branches": 1,
-    "functions": 1,
-    "statements": 15
-  },
   "API/app.js": {
     "lines": 232,
     "branches": 2,

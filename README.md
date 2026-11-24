@@ -97,7 +97,7 @@ BOT_TOKEN=your_discord_bot_token
 MONGO_URI=your_mongodb_connection_string
 ```
 
-The API reads `API/.env` when started from `API/`. It also takes `API_KEY` (required for write endpoints), `PORT` (default `3000`), `CORS_ORIGINS` and `NODE_ENV`.
+The API reads `API/.env` when started from `API/`. It also takes `API_KEY` (required for write endpoints), `PORT` (default `3000`), `HOST` (default `127.0.0.1`, so only the same machine, such as a Cloudflare Tunnel, can reach it; set `0.0.0.0` to listen on every interface), `CORS_ORIGINS` and `NODE_ENV`.
 
 4. Configure role IDs and channel IDs in `config.js`:
    - Update `OWNER_ROLE_ID`
