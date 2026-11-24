@@ -3,9 +3,8 @@ import config from '../config.js';
 /**
  * Single source of truth for "who is allowed to do what".
  *
- * Both the slash-command handlers and the prefix-command handler consult this
- * module, so a permission can no longer be enforced in one entry point and
- * forgotten in the other.
+ * Every command handler consults this module, so a permission is enforced in
+ * one place.
  */
 
 export const isAdmin = (userId) => config.ADMIN_USER_IDS.includes(userId);

@@ -28,9 +28,7 @@ connectDB().then(() => {
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
-        GatewayIntentBits.GuildMembers, 
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent 
+        GatewayIntentBits.GuildMembers
     ],
     partials: [Partials.GuildMember]
 });
@@ -623,21 +621,6 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-
-client.on('messageCreate', async message => {
-    if (message.author.bot) return;
-    if (!message.content.startsWith('!')) return;
-
-    const commandName = message.content.split(' ')[0].substring(1);
-    console.log(`[PREFIX] !${commandName} by ${message.author.tag} (${message.author.id})`);
-    try {
-        await Commands.handlePrefixCommand(message);
-        console.log(`[PREFIX] ✅ !${commandName} completed successfully`);
-    } catch (e) {
-        console.error(`[PREFIX] ❌ Error in !${commandName}:`, e);
-        message.reply("❌ Error executing command.");
-    }
-});
 
 console.log('[STARTUP] Logging in to Discord...');
 client.login(process.env.BOT_TOKEN).catch(err => {
