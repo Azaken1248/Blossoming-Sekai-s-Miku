@@ -3,6 +3,7 @@ import User from '../../DB/Schemas/user.js';
 import Assignment from '../../DB/Schemas/assignment.js';
 import config from '../../config.js';
 import { importOptionalDefault } from '../optionalModule.js';
+import { buildRoleNames } from '../roleNames.js';
 import sharp from 'sharp';
 import { MAX_STRIKES } from '../../Utils/domain/strikes.js';
 import { SearchTooLongError } from '../../Utils/DBUtils/searchPattern.js';
@@ -82,22 +83,7 @@ const wrapText = (text, maxLength) => {
     return [line1, line2];
 };
 
-const buildConfigRoleMap = () => {
-    const map = new Map();
-    const ruleSets = [config?.RULES, configProd?.RULES].filter(Boolean);
-
-    for (const rules of ruleSets) {
-        Object.entries(rules).forEach(([roleId, value]) => {
-            if (!map.has(roleId) && value?.name) {
-                map.set(roleId, String(value.name).replaceAll('_', ' '));
-            }
-        });
-    }
-
-    return map;
-};
-
-const fallbackRoleMap = buildConfigRoleMap();
+const fallbackRoleMap = buildRoleNames(config, configProd);
 
 const getDiscordAuth = () => {
     const botToken = process.env.BOT_TOKEN || process.env.DISCORD_TOKEN;

@@ -97,7 +97,7 @@ BOT_TOKEN=your_discord_bot_token
 MONGO_URI=your_mongodb_connection_string
 ```
 
-The API reads `API/.env` when started from `API/`. It also takes `API_KEY` (required for write endpoints), `PORT` (default `3000`), `CORS_ORIGINS` and `NODE_ENV`.
+The API reads `API/.env` when started from `API/`. It also takes `API_KEY` (required for write endpoints), `PORT` (default `3000`), `HOST` (default `127.0.0.1`, so only the same machine, such as a Cloudflare Tunnel, can reach it; set `0.0.0.0` to listen on every interface), `CORS_ORIGINS` and `NODE_ENV`.
 
 4. Configure role IDs and channel IDs in `config.js`:
    - Update `OWNER_ROLE_ID`
@@ -260,6 +260,21 @@ To restore, point at an empty database. Restore refuses any database that alread
 ```
 npm run restore -- <BACKUP_DIR>/sekai-20261122T030000Z "mongodb+srv://.../sekai_restored"
 ```
+
+## Development
+
+CI runs the same checks on every pull request. Run them locally with:
+
+```
+npm run typecheck
+npm run lint
+npm run format:check
+npm run coverage
+```
+
+`npm run coverage` runs the tests and then the coverage gate. Every file must be fully covered unless `coverage-floors.json` lists it with the number of lines, branches, functions and statements it may leave uncovered. The gate fails if any file goes over its cap, and also if a file improves without its cap being lowered, so the caps always match reality. After adding tests, run `npm run coverage:update` to lower the caps; it never raises them. A cap can only go up by editing the file, which shows in review.
+
+The characterisation suite in `tests/characterisation/` records everything the bot says and stores for each command, button, menu and scheduler run. Regenerate its recordings with `--test-update-snapshots` only when a change is meant to alter behaviour.
 
 ## Permission Roles
 

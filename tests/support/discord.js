@@ -206,6 +206,7 @@ export class DiscordWorld extends EventEmitter {
             values = [],
             users = [],
             message = null,
+            dm = false,
         },
     ) {
         const channel = this.channels.first();
@@ -213,9 +214,9 @@ export class DiscordWorld extends EventEmitter {
         const interaction = {
             kind,
             user,
-            member: this.guild.members.cache.get(user.id) ?? null,
-            guild: this.guild,
-            guildId: this.guild.id,
+            member: dm ? null : (this.guild.members.cache.get(user.id) ?? null),
+            guild: dm ? null : this.guild,
+            guildId: dm ? null : this.guild.id,
             channel,
             channelId: channel?.id ?? null,
             client: this.client,
@@ -276,8 +277,8 @@ export class DiscordWorld extends EventEmitter {
         return interaction;
     }
 
-    command(commandName, { user, subcommand = null, options = {} }) {
-        return this.interaction('command', { user, commandName, subcommand, options });
+    command(commandName, { user, subcommand = null, options = {}, dm = false }) {
+        return this.interaction('command', { user, commandName, subcommand, options, dm });
     }
 
     button(customId, { user, message = { embeds: [] } }) {

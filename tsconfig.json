@@ -24,6 +24,6 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["bot.js", "config.js", "API", "DB", "Utils", "scripts", "tests"],
+  "include": ["bot.js", "config.js", "API", "DB", "Utils", "scripts", "tools", "tests"],
   "exclude": ["node_modules", "dist", "coverage", "public"]
 }
