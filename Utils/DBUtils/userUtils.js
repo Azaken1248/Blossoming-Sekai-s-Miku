@@ -2,7 +2,6 @@ import User from '../../DB/Schemas/user.js';
 import { MAX_STRIKES } from '../domain/strikes.js';
 import { containsText } from './searchPattern.js';
 
-
 export const findOrCreateUser = async (discordId, username) => {
     let user = await User.findOne({ discordId });
 
@@ -11,7 +10,7 @@ export const findOrCreateUser = async (discordId, username) => {
             discordId,
             username,
             strikes: 0,
-            assignments: []
+            assignments: [],
         });
         console.log(`New User Created: ${username}`);
     }
@@ -38,9 +37,9 @@ export const reactivateUser = async (discordId, username) => {
         {
             isDeboarded: false,
             deboarded_at: null,
-            ...(username ? { username } : {})
+            ...(username ? { username } : {}),
         },
-        { new: true }
+        { new: true },
     );
 };
 
@@ -61,13 +60,9 @@ export const getUserState = async (discordId) => {
         .lean();
 };
 
-
 export const getUserProfile = async (discordId) => {
-    return await User.findOne({ discordId })
-        .populate('assignments') 
-        .lean(); 
+    return await User.findOne({ discordId }).populate('assignments').lean();
 };
-
 
 /**
  * Strike mutations.
@@ -89,7 +84,7 @@ export const addStrike = async (userId) => {
     const updated = await User.findOneAndUpdate(
         { _id: userId, strikes: { $lt: MAX_STRIKES } },
         { $inc: { strikes: 1 } },
-        { new: true }
+        { new: true },
     );
     if (updated) return updated.strikes;
     // Either the member is already at the cap, or they do not exist.
@@ -100,7 +95,7 @@ export const removeStrike = async (userId) => {
     const updated = await User.findOneAndUpdate(
         { _id: userId, strikes: { $gt: 0 } },
         { $inc: { strikes: -1 } },
-        { new: true }
+        { new: true },
     );
     if (updated) return updated.strikes;
     return await currentStrikes({ _id: userId });
@@ -110,7 +105,7 @@ export const addStrikeByDiscordId = async (discordId) => {
     const updated = await User.findOneAndUpdate(
         { discordId, strikes: { $lt: MAX_STRIKES } },
         { $inc: { strikes: 1 } },
-        { new: true }
+        { new: true },
     );
     if (updated) return updated.strikes;
     return await currentStrikes({ discordId });
@@ -120,23 +115,21 @@ export const removeStrikeByDiscordId = async (discordId) => {
     const updated = await User.findOneAndUpdate(
         { discordId, strikes: { $gt: 0 } },
         { $inc: { strikes: -1 } },
-        { new: true }
+        { new: true },
     );
     if (updated) return updated.strikes;
     return await currentStrikes({ discordId });
 };
 
 export const setHiatus = async (discordId, isOnHiatus) => {
-    const updatedUser = await User.findOneAndUpdate(
-        { discordId },
-        { isOnHiatus },
-        { new: true }
-    );
+    const updatedUser = await User.findOneAndUpdate({ discordId }, { isOnHiatus }, { new: true });
     return updatedUser;
 };
 
 export const getUsersWithStrikes = async () => {
-    return await User.find({ strikes: { $gt: 0 } }).sort({ strikes: -1 }).lean();
+    return await User.find({ strikes: { $gt: 0 } })
+        .sort({ strikes: -1 })
+        .lean();
 };
 
 export const listUsers = async ({ limit = 100, search = '' } = {}) => {
@@ -144,11 +137,8 @@ export const listUsers = async ({ limit = 100, search = '' } = {}) => {
     const searchPattern = trimmedSearch ? containsText(trimmedSearch) : null;
     const query = searchPattern
         ? {
-            $or: [
-                { username: searchPattern },
-                { discordId: searchPattern }
-            ]
-        }
+              $or: [{ username: searchPattern }, { discordId: searchPattern }],
+          }
         : {};
 
     return await User.find(query)

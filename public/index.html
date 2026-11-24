@@ -1,334 +1,386 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blossoming Sekai's Miku - Task Management Bot</title>
-    <link rel="icon" type="image/png" href="assets/PNG%201.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div class="stars"></div>
-    <div class="stars2"></div>
-    <div class="stars3"></div>
-    
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <img src="assets/PNG 1.png" alt="Miku" class="nav-miku" onerror="this.style.display='none'">
-                <span class="logo-text">Blossoming Sekai's Miku</span>
-            </div>
-            
-            <div class="hamburger" id="hamburger">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blossoming Sekai's Miku - Task Management Bot</title>
+        <link rel="icon" type="image/png" href="assets/PNG%201.png" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="stars"></div>
+        <div class="stars2"></div>
+        <div class="stars3"></div>
 
-            <ul class="nav-menu" id="nav-menu">
-                <li>
-                    <a href="#home">
-                        <img src="assets/PNG 1.png" alt="" class="nav-icon" loading="lazy">
-                        <span>Home</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#features">
-                        <img src="assets/PNG 2.png" alt="" class="nav-icon" loading="lazy">
-                        <span>Features</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#commands">
-                        <img src="assets/PNG 5.png" alt="" class="nav-icon" loading="lazy">
-                        <span>Commands</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#setup">
-                        <img src="assets/PNG 7.png" alt="" class="nav-icon" loading="lazy">
-                        <span>Setup</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="dashboard.html">
-                        <img src="assets/PNG 6.png" alt="" class="nav-icon" loading="lazy">
-                        <span>Analytics</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="profile.html">
-                        <img src="assets/PNG 10.png" alt="" class="nav-icon" loading="lazy">
-                        <span>Members</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <img src="assets/PNG 1.png" alt="Miku" class="nav-miku" onerror="this.style.display='none'" />
+                    <span class="logo-text">Blossoming Sekai's Miku</span>
+                </div>
 
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <div class="hero-glow"></div>
-            <div class="miku-illustration">
-                <img src="assets/PNG 1.png" alt="Hatsune Miku" class="miku-img" loading="lazy">
+                <div class="hamburger" id="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+
+                <ul class="nav-menu" id="nav-menu">
+                    <li>
+                        <a href="#home">
+                            <img src="assets/PNG 1.png" alt="" class="nav-icon" loading="lazy" />
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#features">
+                            <img src="assets/PNG 2.png" alt="" class="nav-icon" loading="lazy" />
+                            <span>Features</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#commands">
+                            <img src="assets/PNG 5.png" alt="" class="nav-icon" loading="lazy" />
+                            <span>Commands</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#setup">
+                            <img src="assets/PNG 7.png" alt="" class="nav-icon" loading="lazy" />
+                            <span>Setup</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="dashboard.html">
+                            <img src="assets/PNG 6.png" alt="" class="nav-icon" loading="lazy" />
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="profile.html">
+                            <img src="assets/PNG 10.png" alt="" class="nav-icon" loading="lazy" />
+                            <span>Members</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <h1 class="hero-title">
-                <span class="title-line">Welcome to</span>
-                <span class="title-main">Blossoming SEKAI</span>
-            </h1>
-            <p class="hero-subtitle">Your friendly task management companion powered by Hatsune Miku</p>
-        </div>
-    </section>
+        </nav>
 
-    <section id="features" class="features">
-        <div class="floating-miku miku-features-top">
-            <img src="assets/PNG 2.png" alt="Miku" loading="lazy">
-        </div>
-        <div class="floating-miku miku-features-bottom">
-            <img src="assets/PNG 9.png" alt="Miku" loading="lazy">
-        </div>
-        <div class="container">
-            <h2 class="section-title">Features</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fa-solid fa-clipboard-user"></i></div>
-                    <h3>Smart Task Assignment</h3>
-                    <p>Role-based task system with configurable deadlines and automatic deadline calculation based on task type and role.</p>
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <div class="hero-glow"></div>
+                <div class="miku-illustration">
+                    <img src="assets/PNG 1.png" alt="Hatsune Miku" class="miku-img" loading="lazy" />
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fa-solid fa-bell"></i></div>
-                    <h3>Intelligent Reminders</h3>
-                    <p>Two-tier reminder system that notifies you before deadlines with configurable thresholds based on task duration.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fa-solid fa-check-double"></i></div>
-                    <h3>Approval Workflow</h3>
-                    <p>Button-based approval system for submissions, extensions, and hiatus requests with channel notifications.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fa-solid fa-gavel"></i></div>
-                    <h3>Strike Management</h3>
-                    <p>Automatic strike system with task completion rewards and configurable three-strike demotion policy.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fa-solid fa-bed"></i></div>
-                    <h3>Hiatus System</h3>
-                    <p>Request-based hiatus that pauses all deadlines and provides fresh starts upon return with reset reminders.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-                    <h3>Custom Tasks</h3>
-                    <p>Create custom tasks with flexible durations and extension settings tailored to your project needs.</p>
-                </div>
+                <h1 class="hero-title">
+                    <span class="title-line">Welcome to</span>
+                    <span class="title-main">Blossoming SEKAI</span>
+                </h1>
+                <p class="hero-subtitle">Your friendly task management companion powered by Hatsune Miku</p>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="commands" class="commands">
-        <div class="floating-miku miku-commands-left">
-            <img src="assets/PNG 5.png" alt="Miku" loading="lazy">
-        </div>
-        <div class="floating-miku miku-commands-right">
-            <img src="assets/PNG 10.png" alt="Miku" loading="lazy">
-        </div>
-        <div class="container">
-            <h2 class="section-title">Commands</h2>
-            <div class="commands-table-container">
-                <table class="commands-table">
-                    <thead>
-                        <tr>
-                            <th>Command</th>
-                            <th>Description</th>
-                            <th>Category</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>/assign</code></td>
-                            <td>Assign tasks to team members</td>
-                            <td><span class="badge-category">Task Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/submit</code></td>
-                            <td>Submit completed work</td>
-                            <td><span class="badge-category">Task Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/extension</code></td>
-                            <td>Request deadline extension</td>
-                            <td><span class="badge-category">Task Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/tasks</code></td>
-                            <td>View active tasks</td>
-                            <td><span class="badge-category">Task Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/history</code></td>
-                            <td>View task completion history</td>
-                            <td><span class="badge-category">Task Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/onboard</code></td>
-                            <td>Add new team members</td>
-                            <td><span class="badge-category">User Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/profile</code></td>
-                            <td>View user profiles</td>
-                            <td><span class="badge-category">User Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/strike</code></td>
-                            <td>Manage accountability strikes</td>
-                            <td><span class="badge-category">User Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/strike list</code></td>
-                            <td>View list of active strikes</td>
-                            <td><span class="badge-category">User Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/hiatus</code></td>
-                            <td>Request or grant hiatus</td>
-                            <td><span class="badge-category">Status Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/endhiatus</code></td>
-                            <td>End hiatus period</td>
-                            <td><span class="badge-category">Status Management</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/help</code></td>
-                            <td>View all commands</td>
-                            <td><span class="badge-category">Utility</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/ping</code></td>
-                            <td>Check bot response time</td>
-                            <td><span class="badge-category">Utility</span></td>
-                        </tr>
-                        <tr>
-                            <td><code>/uptime</code></td>
-                            <td>Check bot uptime</td>
-                            <td><span class="badge-category">Utility</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+        <section id="features" class="features">
+            <div class="floating-miku miku-features-top">
+                <img src="assets/PNG 2.png" alt="Miku" loading="lazy" />
             </div>
-        </div>
-    </section>
-
-    <section id="setup" class="setup">
-        <div class="floating-miku miku-setup-right">
-            <img src="assets/PNG 7.png" alt="Miku" loading="lazy">
-        </div>
-        <div class="floating-miku miku-setup-left">
-            <img src="assets/PNG 8.png" alt="Miku" loading="lazy">
-        </div>
-        <div class="container">
-            <h2 class="section-title">Setup Guide</h2>
-            <div class="setup-steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Prerequisites</h3>
-                        <p>Ensure you have <a href="https://nodejs.org/" target="_blank">Node.js</a> (v16.9+) and <a href="https://www.mongodb.com/" target="_blank">MongoDB</a> installed.</p>
+            <div class="floating-miku miku-features-bottom">
+                <img src="assets/PNG 9.png" alt="Miku" loading="lazy" />
+            </div>
+            <div class="container">
+                <h2 class="section-title">Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-clipboard-user"></i></div>
+                        <h3>Smart Task Assignment</h3>
+                        <p>
+                            Role-based task system with configurable deadlines and automatic deadline calculation based
+                            on task type and role.
+                        </p>
                     </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>Clone & Install</h3>
-                        <p>Clone the repository and install the required dependencies.</p>
-                        <code class="code-block">git clone https://github.com/Azaken1248/Blossoming-Sekai-s-Miku.git
-cd Blossoming-Sekai-s-Miku
-npm install</code>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-bell"></i></div>
+                        <h3>Intelligent Reminders</h3>
+                        <p>
+                            Two-tier reminder system that notifies you before deadlines with configurable thresholds
+                            based on task duration.
+                        </p>
                     </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Environment Variables</h3>
-                        <p>Create a <code>.env</code> file in the root directory with your credentials.</p>
-                        <code class="code-block">DISCORD_TOKEN=your_bot_token
-MONGODB_URI=mongodb://localhost:27017/miku_bot
-CLIENT_ID=your_application_id
-GUILD_ID=your_server_id</code>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-check-double"></i></div>
+                        <h3>Approval Workflow</h3>
+                        <p>
+                            Button-based approval system for submissions, extensions, and hiatus requests with channel
+                            notifications.
+                        </p>
                     </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>Configuration</h3>
-                        <p>Open <code>config.js</code> and configure your server's specific IDs.</p>
-                        <ul style="list-style: disc; margin-left: 1.5rem; color: var(--text-muted); margin-bottom: 1rem;">
-                            <li><strong>Channel IDs:</strong> Set <code>LOG_CHANNEL_ID</code>, <code>REMINDER_CHANNEL_ID</code>, etc.</li>
-                            <li><strong>Role IDs:</strong> Define <code>OWNER_ROLE_ID</code>, <code>MANAGER_ROLE_IDS</code>, and <code>CREW_ROLE_IDS</code>.</li>
-                            <li><strong>Rules:</strong> Customize deadlines and reminders for each role in the <code>RULES</code> object.</li>
-                        </ul>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-gavel"></i></div>
+                        <h3>Strike Management</h3>
+                        <p>
+                            Automatic strike system with task completion rewards and configurable three-strike demotion
+                            policy.
+                        </p>
                     </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">5</div>
-                    <div class="step-content">
-                        <h3>Launch Miku</h3>
-                        <p>Start the bot application.</p>
-                        <code class="code-block">node bot.js</code>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-bed"></i></div>
+                        <h3>Hiatus System</h3>
+                        <p>
+                            Request-based hiatus that pauses all deadlines and provides fresh starts upon return with
+                            reset reminders.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                        <h3>Custom Tasks</h3>
+                        <p>
+                            Create custom tasks with flexible durations and extension settings tailored to your project
+                            needs.
+                        </p>
                     </div>
                 </div>
             </div>
-            <div class="tech-stack">
-                <h3>Tech Stack</h3>
-                <div class="tech-badges">
-                    <span class="tech-badge">Node.js</span>
-                    <span class="tech-badge">Discord.js v14</span>
-                    <span class="tech-badge">MongoDB</span>
-                    <span class="tech-badge">Mongoose</span>
-                    <span class="tech-badge">Express.js</span>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-main-layout">
-                <div class="footer-miku-container">
-                    <img src="assets/PNG 11.png" alt="Miku" loading="lazy">
-                </div>
-                <div class="footer-content">
-                <div class="footer-section">
-                    <h4>Blossoming Sekai's Miku</h4>
-                    <p>A comprehensive task management bot for creative teams</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="https://github.com/Azaken1248/Blossoming-Sekai-s-Miku" target="_blank"><i class="fa-brands fa-github"></i> GitHub Repository</a></li>
-                        <li><a href="https://discord.com/invite/D6FX2m3UJ8" target="_blank"><i class="fa-brands fa-discord"></i> Blossoming Sekai Discord</a></li>
-                        <li><a href="https://discord.js.org" target="_blank"><i class="fa-solid fa-book"></i> Discord.js Docs</a></li>
-                        <li><a href="https://mongodb.com" target="_blank"><i class="fa-solid fa-database"></i> MongoDB</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Credits</h4>
-                    <p>Character: Hatsune Miku</p>
-                    <p>Developer: Azaken</p>
-                    <p>Server Owner: Charlie</p>
+        <section id="commands" class="commands">
+            <div class="floating-miku miku-commands-left">
+                <img src="assets/PNG 5.png" alt="Miku" loading="lazy" />
+            </div>
+            <div class="floating-miku miku-commands-right">
+                <img src="assets/PNG 10.png" alt="Miku" loading="lazy" />
+            </div>
+            <div class="container">
+                <h2 class="section-title">Commands</h2>
+                <div class="commands-table-container">
+                    <table class="commands-table">
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>/assign</code></td>
+                                <td>Assign tasks to team members</td>
+                                <td><span class="badge-category">Task Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/submit</code></td>
+                                <td>Submit completed work</td>
+                                <td><span class="badge-category">Task Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/extension</code></td>
+                                <td>Request deadline extension</td>
+                                <td><span class="badge-category">Task Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/tasks</code></td>
+                                <td>View active tasks</td>
+                                <td><span class="badge-category">Task Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/history</code></td>
+                                <td>View task completion history</td>
+                                <td><span class="badge-category">Task Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/onboard</code></td>
+                                <td>Add new team members</td>
+                                <td><span class="badge-category">User Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/profile</code></td>
+                                <td>View user profiles</td>
+                                <td><span class="badge-category">User Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/strike</code></td>
+                                <td>Manage accountability strikes</td>
+                                <td><span class="badge-category">User Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/strike list</code></td>
+                                <td>View list of active strikes</td>
+                                <td><span class="badge-category">User Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/hiatus</code></td>
+                                <td>Request or grant hiatus</td>
+                                <td><span class="badge-category">Status Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/endhiatus</code></td>
+                                <td>End hiatus period</td>
+                                <td><span class="badge-category">Status Management</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/help</code></td>
+                                <td>View all commands</td>
+                                <td><span class="badge-category">Utility</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/ping</code></td>
+                                <td>Check bot response time</td>
+                                <td><span class="badge-category">Utility</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>/uptime</code></td>
+                                <td>Check bot uptime</td>
+                                <td><span class="badge-category">Utility</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Blossoming Sekai's Miku. Licensed under MIT License.</p>
-            </div>
-        </div>
-    </footer>
+        </section>
 
-    <script src="script.js"></script>
-</body>
+        <section id="setup" class="setup">
+            <div class="floating-miku miku-setup-right">
+                <img src="assets/PNG 7.png" alt="Miku" loading="lazy" />
+            </div>
+            <div class="floating-miku miku-setup-left">
+                <img src="assets/PNG 8.png" alt="Miku" loading="lazy" />
+            </div>
+            <div class="container">
+                <h2 class="section-title">Setup Guide</h2>
+                <div class="setup-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Prerequisites</h3>
+                            <p>
+                                Ensure you have <a href="https://nodejs.org/" target="_blank">Node.js</a> (v16.9+) and
+                                <a href="https://www.mongodb.com/" target="_blank">MongoDB</a> installed.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Clone & Install</h3>
+                            <p>Clone the repository and install the required dependencies.</p>
+                            <code class="code-block"
+                                >git clone https://github.com/Azaken1248/Blossoming-Sekai-s-Miku.git cd
+                                Blossoming-Sekai-s-Miku npm install</code
+                            >
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Environment Variables</h3>
+                            <p>Create a <code>.env</code> file in the root directory with your credentials.</p>
+                            <code class="code-block"
+                                >DISCORD_TOKEN=your_bot_token MONGODB_URI=mongodb://localhost:27017/miku_bot
+                                CLIENT_ID=your_application_id GUILD_ID=your_server_id</code
+                            >
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Configuration</h3>
+                            <p>Open <code>config.js</code> and configure your server's specific IDs.</p>
+                            <ul
+                                style="list-style: disc; margin-left: 1.5rem; color: var(--text-muted); margin-bottom: 1rem;"
+                            >
+                                <li>
+                                    <strong>Channel IDs:</strong> Set <code>LOG_CHANNEL_ID</code>,
+                                    <code>REMINDER_CHANNEL_ID</code>, etc.
+                                </li>
+                                <li>
+                                    <strong>Role IDs:</strong> Define <code>OWNER_ROLE_ID</code>,
+                                    <code>MANAGER_ROLE_IDS</code>, and <code>CREW_ROLE_IDS</code>.
+                                </li>
+                                <li>
+                                    <strong>Rules:</strong> Customize deadlines and reminders for each role in the
+                                    <code>RULES</code> object.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3>Launch Miku</h3>
+                            <p>Start the bot application.</p>
+                            <code class="code-block">node bot.js</code>
+                        </div>
+                    </div>
+                </div>
+                <div class="tech-stack">
+                    <h3>Tech Stack</h3>
+                    <div class="tech-badges">
+                        <span class="tech-badge">Node.js</span>
+                        <span class="tech-badge">Discord.js v14</span>
+                        <span class="tech-badge">MongoDB</span>
+                        <span class="tech-badge">Mongoose</span>
+                        <span class="tech-badge">Express.js</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-main-layout">
+                    <div class="footer-miku-container">
+                        <img src="assets/PNG 11.png" alt="Miku" loading="lazy" />
+                    </div>
+                    <div class="footer-content">
+                        <div class="footer-section">
+                            <h4>Blossoming Sekai's Miku</h4>
+                            <p>A comprehensive task management bot for creative teams</p>
+                        </div>
+                        <div class="footer-section">
+                            <h4>Resources</h4>
+                            <ul>
+                                <li>
+                                    <a href="https://github.com/Azaken1248/Blossoming-Sekai-s-Miku" target="_blank"
+                                        ><i class="fa-brands fa-github"></i> GitHub Repository</a
+                                    >
+                                </li>
+                                <li>
+                                    <a href="https://discord.com/invite/D6FX2m3UJ8" target="_blank"
+                                        ><i class="fa-brands fa-discord"></i> Blossoming Sekai Discord</a
+                                    >
+                                </li>
+                                <li>
+                                    <a href="https://discord.js.org" target="_blank"
+                                        ><i class="fa-solid fa-book"></i> Discord.js Docs</a
+                                    >
+                                </li>
+                                <li>
+                                    <a href="https://mongodb.com" target="_blank"
+                                        ><i class="fa-solid fa-database"></i> MongoDB</a
+                                    >
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="footer-section">
+                            <h4>Credits</h4>
+                            <p>Character: Hatsune Miku</p>
+                            <p>Developer: Azaken</p>
+                            <p>Server Owner: Charlie</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2025 Blossoming Sekai's Miku. Licensed under MIT License.</p>
+                </div>
+            </div>
+        </footer>
+
+        <script src="script.js"></script>
+    </body>
 </html>

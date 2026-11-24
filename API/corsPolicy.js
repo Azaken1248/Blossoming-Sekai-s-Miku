@@ -16,12 +16,12 @@
 
 export const DEFAULT_ALLOWED_ORIGINS = ['https://sekai.azaken.com'];
 
-const LOCALHOST_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d{1,5})?$/;
+const LOCALHOST_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d{1,5}|)$/;
 
 export const parseOriginList = (raw) =>
     String(raw ?? '')
         .split(',')
-        .map(entry => entry.trim().replace(/\/$/, ''))
+        .map((entry) => entry.trim().replace(/\/$/, ''))
         .filter(Boolean);
 
 /**
@@ -48,7 +48,7 @@ export const isOriginAllowed = (origin, { configured, isProduction = true } = {}
 /** Build the options object for the `cors` middleware. */
 export const buildCorsOptions = ({
     configured = process.env.CORS_ORIGINS,
-    isProduction = process.env.NODE_ENV === 'production'
+    isProduction = process.env.NODE_ENV === 'production',
 } = {}) => ({
     origin(origin, callback) {
         // Pass `false` rather than an Error: a rejected origin should simply
@@ -57,13 +57,13 @@ export const buildCorsOptions = ({
     },
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'x-api-key'],
-    maxAge: 86400
+    maxAge: 86400,
 });
 
 /** One-line summary for the startup log. */
 export const describeCorsPolicy = ({
     configured = process.env.CORS_ORIGINS,
-    isProduction = process.env.NODE_ENV === 'production'
+    isProduction = process.env.NODE_ENV === 'production',
 } = {}) => {
     const allowList = parseOriginList(configured);
     const allowed = allowList.length ? allowList : DEFAULT_ALLOWED_ORIGINS;

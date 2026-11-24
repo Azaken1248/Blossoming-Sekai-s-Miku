@@ -1,5 +1,4 @@
 import * as taskUtils from '../../Utils/DBUtils/taskUtils.js';
-import * as userUtils from '../../Utils/DBUtils/userUtils.js';
 import User from '../../DB/Schemas/user.js';
 import config from '../../config.js';
 
@@ -18,8 +17,7 @@ export const createAssignment = async (req, res) => {
     try {
         const { discordId, roleCategoryId, roleName, taskType, taskName, description, deadlineHours } = req.body ?? {};
 
-        const missing = ['discordId', 'roleCategoryId', 'taskType']
-            .filter((field) => !req.body?.[field]);
+        const missing = ['discordId', 'roleCategoryId', 'taskType'].filter((field) => !req.body?.[field]);
         if (missing.length) {
             return res.status(400).json({ error: `Missing required field(s): ${missing.join(', ')}` });
         }
@@ -31,7 +29,7 @@ export const createAssignment = async (req, res) => {
         const hours = parseHours(deadlineHours, MAX_DEADLINE_HOURS);
         if (hours === null) {
             return res.status(400).json({
-                error: `deadlineHours must be a number greater than 0 and at most ${MAX_DEADLINE_HOURS}`
+                error: `deadlineHours must be a number greater than 0 and at most ${MAX_DEADLINE_HOURS}`,
             });
         }
 
@@ -64,7 +62,7 @@ export const createAssignment = async (req, res) => {
             taskType,
             taskName: taskName ?? '',
             description: description ?? '',
-            deadline: new Date(Date.now() + hours * 60 * 60 * 1000)
+            deadline: new Date(Date.now() + hours * 60 * 60 * 1000),
         });
 
         res.status(201).json({ success: true, data: assignment });
@@ -99,7 +97,7 @@ export const extendAssignment = async (req, res) => {
         const hours = parseHours(req.body?.extensionHours, MAX_EXTENSION_HOURS);
         if (hours === null) {
             return res.status(400).json({
-                error: `extensionHours must be a number greater than 0 and at most ${MAX_EXTENSION_HOURS}`
+                error: `extensionHours must be a number greater than 0 and at most ${MAX_EXTENSION_HOURS}`,
             });
         }
 

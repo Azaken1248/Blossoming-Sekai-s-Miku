@@ -34,19 +34,15 @@ export const requireApiKey = (req, res, next) => {
     // credential that protects it was not configured. Reads are unaffected, so
     // a missing key degrades writes rather than taking the whole API down.
     if (!expected) {
-        console.error(
-            `[AUTH] Rejected ${req.method} ${req.originalUrl} - API_KEY is not configured on this server.`
-        );
+        console.error(`[AUTH] Rejected ${req.method} ${req.originalUrl} - API_KEY is not configured on this server.`);
         return res.status(503).json({
-            error: 'Write operations are disabled: the server has no API_KEY configured.'
+            error: 'Write operations are disabled: the server has no API_KEY configured.',
         });
     }
 
     const presented = req.get('x-api-key');
     if (!presented || !secretsMatch(presented, expected)) {
-        console.warn(
-            `[AUTH] Unauthorized ${req.method} ${req.originalUrl} from ${req.ip ?? 'unknown'}`
-        );
+        console.warn(`[AUTH] Unauthorized ${req.method} ${req.originalUrl} from ${req.ip ?? 'unknown'}`);
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -62,7 +58,7 @@ export const reportApiKeyStatus = () => {
         console.warn('  ⚠️  API_KEY is not set.');
         console.warn('     Read endpoints work normally. Every write endpoint will return 503.');
         console.warn('     Generate one with:');
-        console.warn('       node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+        console.warn("       node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"");
         console.warn('     then add API_KEY=<value> to your .env and restart.');
         console.warn('');
         return;
@@ -71,7 +67,7 @@ export const reportApiKeyStatus = () => {
     if (key.length < MIN_RECOMMENDED_KEY_LENGTH) {
         console.warn(
             `[AUTH] ⚠️  API_KEY is only ${key.length} characters. ` +
-            `At least ${MIN_RECOMMENDED_KEY_LENGTH} is recommended.`
+                `At least ${MIN_RECOMMENDED_KEY_LENGTH} is recommended.`,
         );
         return;
     }

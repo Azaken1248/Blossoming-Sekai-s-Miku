@@ -1,0 +1,2676 @@
+exports[`button failures > a button pressed by someone who left the server reports an error 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000007",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000007",
+      "payload": {
+        "content": "❌ Error processing request."
+      }
+    }
+  ],
+  "errors": [
+    [
+      "[BUTTON] ❌ Error processing submit_approve_<id 1>:",
+      "Error: Unknown Member"
+    ]
+  ],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 1>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 1>",
+        "userId": "<id 4>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`button failures > approval with the log channel missing still completes 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "✅ Submission approved by <@100000000000000001>",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "799999999999999999",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "COMPLETED",
+        "completedAt": "2026-06-15T12:00:00.000Z"
+      }
+    ]
+  }
+}
+`;
+
+exports[`buttons this handler does not own > are ignored 1`] = `
+{
+  "discord": [],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`extension buttons > approve a second extension using the editor story window 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "✅ Extension approved by <@100000000000000001>",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "1449396640044810531",
+      "payload": {
+        "content": "⏰ Extension granted for <@100000000000000004> - **Review skit**! New deadline: <t:1783080000:F> ♪"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 5>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 5>",
+        "userId": "<id 4>",
+        "discordUserId": "100000000000000004",
+        "roleCategoryId": "1449416050457186425",
+        "roleName": "editor",
+        "taskType": "story",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-07-03T12:00:00.000Z",
+        "hasExtended": true,
+        "extensionCount": 2,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`extension buttons > approve, move the deadline and notify both channels 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000002",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000002",
+      "payload": {
+        "content": "✅ Extension approved by <@100000000000000002>",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "700000000000000001",
+      "payload": {
+        "content": "✨ Good news <@100000000000000003>! Your extension request for **Review skit** has been approved! New deadline: <t:1783080000:F> ♪"
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "1449396640044810531",
+      "payload": {
+        "content": "⏰ Extension granted for <@100000000000000003> - **Review skit**! New deadline: <t:1783080000:F> ♪"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-07-03T12:00:00.000Z",
+        "hasExtended": true,
+        "extensionCount": 1,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`extension buttons > deny and tell the member 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000002",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000002",
+      "payload": {
+        "content": "❌ Extension denied by <@100000000000000002>",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "700000000000000001",
+      "payload": {
+        "content": "<@100000000000000003> Your extension request for **Review skit** was not approved. Please check with staff for feedback! 💖"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`extension buttons > refuse a third extension 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000002",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000002",
+      "payload": {
+        "content": "⚠️ That task has already used all of its extensions.",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": true,
+        "extensionCount": 2,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`extension buttons > refuse approval by someone who is not a manager or owner 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000004",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000004",
+      "payload": {
+        "content": "Extension approvals are handled by managers and owners! Thanks for checking though~ ♪"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`extension buttons > refuse denial by someone who is not a manager or owner 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000003",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000003",
+      "payload": {
+        "content": "Extension decisions are handled by managers and owners! Thanks for checking though~ ♪"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`extension buttons > report a task whose role is missing from the config 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000002",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000002",
+      "payload": {
+        "content": "⚠️ Configuration error: Role category 999999999999999999 is not present in config.RULES. Please contact an admin.",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    }
+  ],
+  "errors": [
+    [
+      "[BUTTON]   ❌ Role category 999999999999999999 is not present in config.RULES"
+    ]
+  ],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "999999999999999999",
+        "roleName": "Retired",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`hiatus buttons > approve a request whose embed has no channel footer 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "✅ Hiatus approved by <@100000000000000001>",
+        "embeds": [
+          {
+            "title": "Hiatus Request"
+          }
+        ],
+        "components": []
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "1449396640044810531",
+      "payload": {
+        "content": "🏖️ Hiatus approved for <@100000000000000003>. All 0 pending task(s) paused. Take the time you need!"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": true,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`hiatus buttons > approve, pause pending tasks and notify the request channel 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000002",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000002",
+      "payload": {
+        "content": "✅ Hiatus approved by <@100000000000000002>",
+        "embeds": [
+          {
+            "title": "Hiatus Request",
+            "footer": {
+              "text": "Channel: 700000000000000002"
+            }
+          }
+        ],
+        "components": []
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "700000000000000002",
+      "payload": {
+        "content": "🌸 <@100000000000000003> Your hiatus request has been approved! All your tasks are paused. Take care and come back when you're ready~ ♪"
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "1449396640044810531",
+      "payload": {
+        "content": "🏖️ Hiatus approved for <@100000000000000003>. All 1 pending task(s) paused. Take the time you need!"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": true,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>",
+          "<id 5>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 7>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 5>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Done skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "COMPLETED",
+        "completedAt": null
+      },
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Pending skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2099-12-31T00:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": true,
+        "finalReminderSent": true,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`hiatus buttons > deny and tell the member 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "❌ Hiatus denied by <@100000000000000001>",
+        "embeds": [
+          {
+            "title": "Hiatus Request",
+            "footer": {
+              "text": "Channel: 700000000000000002"
+            }
+          }
+        ],
+        "components": []
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "700000000000000002",
+      "payload": {
+        "content": "<@100000000000000003> Your hiatus request was not approved. Please reach out to staff if you have questions! 💖"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`hiatus buttons > deny without a channel footer 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "❌ Hiatus denied by <@100000000000000001>",
+        "embeds": [],
+        "components": []
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`hiatus buttons > refuse someone who is not a manager or owner 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000004",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000004",
+      "payload": {
+        "content": "Hiatus requests are handled by managers and owners! Thanks for looking out for everyone though~ ♪"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`submission buttons > approve a late task without a submission channel 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "✅ Submission approved by <@100000000000000001>",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "1449396640044810531",
+      "payload": {
+        "content": "✅ **Review skit** completed by <@100000000000000003>! Amazing work~ Strike removed. Current: 0/3 ♪"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-14T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "COMPLETED",
+        "completedAt": "2026-06-15T12:00:00.000Z"
+      }
+    ]
+  }
+}
+`;
+
+exports[`submission buttons > approve, remove a strike and notify the submission and log channels 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "✅ Submission approved by <@100000000000000001>",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "700000000000000001",
+      "payload": {
+        "content": "✨ Congratulations <@100000000000000003>! Your submission for **Review skit** has been approved! Amazing work~ ♪"
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "1449396640044810531",
+      "payload": {
+        "content": "✅ **Review skit** completed by <@100000000000000003>! Amazing work~ Strike removed. Current: 1/3 ♪"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 1,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "COMPLETED",
+        "completedAt": "2026-06-15T12:00:00.000Z"
+      }
+    ]
+  }
+}
+`;
+
+exports[`submission buttons > deny and tell the member in the submission channel 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "❌ Submission denied by <@100000000000000001>",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    },
+    {
+      "kind": "channelSend",
+      "target": "700000000000000001",
+      "payload": {
+        "content": "<@100000000000000003> Your submission for **Review skit** was not approved. Please check with staff for feedback! 💖"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`submission buttons > ignore a second approval of the same task 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "⚠️ That task has already been resolved.",
+        "embeds": [
+          {
+            "title": "Review me",
+            "description": "Original request"
+          }
+        ],
+        "components": []
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 1,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "COMPLETED",
+        "completedAt": "2026-06-15T12:00:00.000Z"
+      }
+    ]
+  }
+}
+`;
+
+exports[`submission buttons > refuse approval by a non-owner 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000002",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000002",
+      "payload": {
+        "content": "Thanks for checking, but only owners can approve submissions! ♪"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`submission buttons > refuse denial by a non-owner 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000002",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000002",
+      "payload": {
+        "content": "Thanks for checking, but only owners can deny submissions! ♪"
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Review skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": "700000000000000001",
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`submission buttons > report a task that no longer exists 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "❌ Task not found."
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;

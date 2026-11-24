@@ -42,7 +42,10 @@ test('refuses text over the maximum length', () => {
 });
 
 test('honours a custom maximum length', () => {
-    assert.throws(() => containsText('abcd', 3), (error) => error instanceof SearchTooLongError && error.maxLength === 3);
+    assert.throws(
+        () => containsText('abcd', 3),
+        (error) => error instanceof SearchTooLongError && error.maxLength === 3,
+    );
 });
 
 test('converts non-string input to text', () => {

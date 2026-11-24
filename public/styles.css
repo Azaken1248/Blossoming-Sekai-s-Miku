@@ -26,22 +26,22 @@
     --ctp-mantle: #181825;
     --ctp-crust: #11111b;
 
-    --miku-primary: var(--ctp-teal);       
-    --miku-secondary: var(--ctp-pink);     
-    --miku-accent: var(--ctp-sky);        
-    
+    --miku-primary: var(--ctp-teal);
+    --miku-secondary: var(--ctp-pink);
+    --miku-accent: var(--ctp-sky);
+
     --bg-body: var(--ctp-base);
     --bg-card: var(--ctp-surface0);
     --bg-card-hover: var(--ctp-surface1);
-    --bg-nav: rgba(30, 30, 46, 0.8);       
-    
+    --bg-nav: rgba(30, 30, 46, 0.8);
+
     --text-main: var(--ctp-text);
     --text-muted: var(--ctp-subtext0);
     --text-dim: var(--ctp-overlay1);
-    
+
     --border-color: var(--ctp-surface1);
     --shadow-color: rgba(0, 0, 0, 0.3);
-    --glow-color: rgba(148, 226, 213, 0.3); 
+    --glow-color: rgba(148, 226, 213, 0.3);
 }
 
 * {
@@ -55,7 +55,12 @@ html {
 }
 
 body {
-    font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family:
+        'Segoe UI',
+        'Inter',
+        -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
     background-color: var(--bg-body);
     color: var(--text-main);
     line-height: 1.6;
@@ -63,8 +68,10 @@ body {
     max-width: 100vw;
 }
 
-.stars, .stars2, .stars3 {
-    display: none; 
+.stars,
+.stars2,
+.stars3 {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -75,26 +82,36 @@ body {
 }
 
 .stars {
-    background: transparent url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVQIW2P8//+/AxADQ4MDAEf7AoVt8Y8tAAAAAElFTkSuQmCC') repeat;
+    background: transparent
+        url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVQIW2P8//+/AxADQ4MDAEf7AoVt8Y8tAAAAAElFTkSuQmCC')
+        repeat;
     opacity: 0.4;
     animation: animateStars 50s linear infinite;
 }
 
 .stars2 {
-    background: transparent url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVQIW2P8////AwYGBoMAAKXuAgUAxBhqAAAAAElFTkSuQmCC') repeat;
+    background: transparent
+        url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVQIW2P8////AwYGBoMAAKXuAgUAxBhqAAAAAElFTkSuQmCC')
+        repeat;
     opacity: 0.3;
     animation: animateStars 100s linear infinite;
 }
 
 .stars3 {
-    background: transparent url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4////fwAJ+wP9BUNFygAAAABJRU5ErkJggg==') repeat;
+    background: transparent
+        url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4////fwAJ+wP9BUNFygAAAABJRU5ErkJggg==')
+        repeat;
     opacity: 0.2;
     animation: animateStars 150s linear infinite;
 }
 
 @keyframes animateStars {
-    from { transform: translateY(0); }
-    to { transform: translateY(-100vh); }
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-100vh);
+    }
 }
 
 .navbar {
@@ -274,7 +291,9 @@ body {
 .floating-miku img {
     width: 100%;
     height: auto;
-    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));    will-change: auto;}
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+    will-change: auto;
+}
 
 .miku-features-top {
     top: 50px;
@@ -689,14 +708,14 @@ section {
 
 .footer-miku-container {
     flex-shrink: 0;
-    width: 180px; 
+    width: 180px;
 }
 
 .footer-miku-container img {
     width: 100%;
     height: auto;
     display: block;
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
 }
 
 .footer-content {
@@ -753,15 +772,15 @@ section {
     font-size: 0.85rem;
 }
 
-.nav-logo { 
-    display: flex; 
-    align-items: center; 
-    gap: 0.8rem; 
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
 }
 
-.nav-miku { 
-    height: clamp(30px, 4vw, 40px); 
-    filter: drop-shadow(0 0 5px rgba(148, 226, 213, 0.5)); 
+.nav-miku {
+    height: clamp(30px, 4vw, 40px);
+    filter: drop-shadow(0 0 5px rgba(148, 226, 213, 0.5));
 }
 
 .hamburger {
@@ -769,7 +788,7 @@ section {
     cursor: pointer;
     flex-direction: column;
     gap: 5px;
-    z-index: 1001; 
+    z-index: 1001;
 }
 
 .hamburger .bar {
@@ -780,27 +799,37 @@ section {
     border-radius: 3px;
 }
 
-
 @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-    50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.05); }
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
 }
-
 
 @media (max-width: 768px) {
     .logo-text {
-        font-size: 0 !important; 
+        font-size: 0 !important;
     }
 
     .logo-text::after {
-        content: "Sekai";
-        font-size: 1.3rem; 
-        
+        content: 'Sekai';
+        font-size: 1.3rem;
+
         background: linear-gradient(135deg, var(--miku-primary), var(--miku-accent));
         background-clip: text;
         -webkit-background-clip: text;
@@ -810,14 +839,14 @@ section {
     .nav-miku {
         height: 35px;
     }
-    
+
     .hamburger {
         display: flex;
     }
 
     .nav-menu {
         position: absolute;
-        top: 100%; 
+        top: 100%;
         left: 0;
         width: 100%;
         background: var(--bg-nav);
@@ -828,12 +857,12 @@ section {
         padding: 2rem 0;
         gap: 1.5rem;
         border-bottom: 1px solid var(--ctp-surface1);
-        
-        transform: translateY(-150%); 
+
+        transform: translateY(-150%);
         opacity: 0;
         transition: all 0.3s ease;
         z-index: 999;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     .nav-menu.active {
@@ -862,7 +891,7 @@ section {
         flex-direction: column;
         text-align: center;
     }
-    
+
     .footer-miku-container {
         width: 140px;
         margin-bottom: 1rem;
@@ -870,10 +899,10 @@ section {
 
     .nav-menu {
         display: flex;
-        gap: 0.8rem; 
+        gap: 0.8rem;
     }
 
-    .nav-menu li a[href^="#"] {
+    .nav-menu li a[href^='#'] {
         display: none;
     }
 
@@ -885,11 +914,11 @@ section {
     .logo-text {
         font-size: 1.1rem;
     }
-    
+
     .title-main {
         font-size: 2.5rem;
     }
-    
+
     .floating-miku {
         display: block;
         opacity: 0.5;
@@ -897,8 +926,8 @@ section {
         pointer-events: none;
     }
 
-    .miku-features-bottom, 
-    .miku-commands-left, 
+    .miku-features-bottom,
+    .miku-commands-left,
     .miku-setup-left {
         top: 5rem;
         left: 5px;
@@ -907,8 +936,8 @@ section {
         max-width: 80px;
     }
 
-    .miku-features-top, 
-    .miku-commands-right, 
+    .miku-features-top,
+    .miku-commands-right,
     .miku-setup-right {
         top: 5rem;
         right: 5px;
@@ -916,7 +945,7 @@ section {
         left: auto;
         max-width: 80px;
     }
-    
+
     .section-title {
         font-size: 2rem;
         max-width: 60%;
@@ -924,11 +953,11 @@ section {
         margin-right: auto;
         z-index: 2;
     }
-    
+
     .commands .container {
         padding: 0;
         width: 100%;
-        overflow: hidden; 
+        overflow: hidden;
     }
 
     .commands-table-container {
@@ -946,24 +975,24 @@ section {
         min-width: 600px;
     }
 
-    .commands-table th, 
+    .commands-table th,
     .commands-table td {
         padding: 0.8rem 0.5rem;
         font-size: 0.85rem;
-        white-space: normal; 
+        white-space: normal;
     }
-    
+
     .step {
         flex-direction: column;
     }
-    
+
     .container {
         padding: 0 1rem;
         width: 100%;
         max-width: 100vw;
         box-sizing: border-box;
     }
-    
+
     .nav-icon {
         width: 20px;
         height: 20px;

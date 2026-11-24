@@ -3,9 +3,7 @@ import User from '../../DB/Schemas/user.js';
 import QueryBuilder, { buildFilter, QueryError, MAX_LIMIT, DEFAULT_LIMIT } from '../utils/queryBuilder.js';
 
 /** Fields a caller may group statistics by. Anything else is rejected. */
-const GROUPABLE_FIELDS = new Set([
-    'status', 'roleName', 'roleCategoryId', 'taskType', 'discordUserId', 'hasExtended'
-]);
+const GROUPABLE_FIELDS = new Set(['status', 'roleName', 'roleCategoryId', 'taskType', 'discordUserId', 'hasExtended']);
 
 const handleQueryError = (error, res, label) => {
     if (error instanceof QueryError) {
@@ -19,7 +17,7 @@ export const getFilteredAssignments = async (req, res) => {
     try {
         const features = new QueryBuilder(
             Assignment.find().populate('userId', 'discordId username strikes isOnHiatus roles joinedAt'),
-            req.query
+            req.query,
         )
             .filter()
             .sort()
@@ -31,7 +29,7 @@ export const getFilteredAssignments = async (req, res) => {
             count: assignments.length,
             page: features.page,
             limit: features.limit,
-            data: assignments
+            data: assignments,
         });
     } catch (error) {
         return handleQueryError(error, res, 'assignments');
@@ -53,7 +51,7 @@ export const getUsersWithAssignments = async (req, res) => {
                 .limit(limit)
                 .select('discordId username strikes isOnHiatus isDeboarded roles joinedAt')
                 .lean(),
-            User.estimatedDocumentCount()
+            User.estimatedDocumentCount(),
         ]);
 
         res.status(200).json({ success: true, count: users.length, page, limit, total, data: users });
@@ -67,7 +65,7 @@ export const getAssignmentStats = async (req, res) => {
         const requestedGroupBy = req.query.groupBy || 'status';
         if (!GROUPABLE_FIELDS.has(requestedGroupBy)) {
             return res.status(400).json({
-                error: `groupBy must be one of: ${[...GROUPABLE_FIELDS].join(', ')}`
+                error: `groupBy must be one of: ${[...GROUPABLE_FIELDS].join(', ')}`,
             });
         }
 
@@ -83,14 +81,14 @@ export const getAssignmentStats = async (req, res) => {
                     totalTasks: { $sum: 1 },
                     avgExtensions: { $avg: '$extensionCount' },
                     extendedTasks: {
-                        $sum: { $cond: [{ $eq: ['$hasExtended', true] }, 1, 0] }
+                        $sum: { $cond: [{ $eq: ['$hasExtended', true] }, 1, 0] },
                     },
                     firstRemindersSent: {
-                        $sum: { $cond: [{ $eq: ['$firstReminderSent', true] }, 1, 0] }
-                    }
-                }
+                        $sum: { $cond: [{ $eq: ['$firstReminderSent', true] }, 1, 0] },
+                    },
+                },
             },
-            { $sort: { totalTasks: -1 } }
+            { $sort: { totalTasks: -1 } },
         ]);
 
         res.status(200).json({ success: true, groupBy: requestedGroupBy, data: stats });

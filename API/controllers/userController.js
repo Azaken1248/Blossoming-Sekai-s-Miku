@@ -2,31 +2,42 @@ import * as userUtils from '../../Utils/DBUtils/userUtils.js';
 import User from '../../DB/Schemas/user.js';
 import Assignment from '../../DB/Schemas/assignment.js';
 import config from '../../config.js';
-import configProd from '../../configProd.js';
+import { importOptionalDefault } from '../optionalModule.js';
 import sharp from 'sharp';
 import { MAX_STRIKES } from '../../Utils/domain/strikes.js';
 import { SearchTooLongError } from '../../Utils/DBUtils/searchPattern.js';
+
+const configProd = await importOptionalDefault(new URL('../../configProd.js', import.meta.url));
 
 const DISCORD_API = 'https://discord.com/api/v10';
 const roleCache = {
     guildId: null,
     expiresAt: 0,
-    roleMap: new Map()
+    roleMap: new Map(),
 };
 
 const memberCache = {
     guildId: null,
     expiresAt: 0,
-    memberMap: new Map()
+    memberMap: new Map(),
 };
 
 const escapeXml = (unsafe) => {
     if (!unsafe) return '';
     return String(unsafe).replace(/[<>&'"]/g, (c) => {
         switch (c) {
-            case '<': return '&lt;'; case '>': return '&gt;';
-            case '&': return '&amp;'; case '\'': return '&apos;';
-            case '"': return '&quot;'; default: return c;
+            case '<':
+                return '&lt;';
+            case '>':
+                return '&gt;';
+            case '&':
+                return '&amp;';
+            case "'":
+                return '&apos;';
+            case '"':
+                return '&quot;';
+            default:
+                return c;
         }
     });
 };
@@ -48,14 +59,17 @@ const fetchAsBase64 = async (url) => {
         const buffer = Buffer.from(await response.arrayBuffer());
         const mimeType = response.headers.get('content-type') || 'image/png';
         return `data:${mimeType};base64,${buffer.toString('base64')}`;
-    } catch (e) {
+    } catch {
         return '';
     }
 };
 
 const stripEmojis = (str) => {
     if (!str) return '';
-    return str.replace(/\p{Emoji_Presentation}/gu, '').replace(/\p{Emoji}\uFE0F/gu, '').trim();
+    return str
+        .replace(/\p{Emoji_Presentation}/gu, '')
+        .replace(/\p{Emoji}\uFE0F/gu, '')
+        .trim();
 };
 
 const wrapText = (text, maxLength) => {
@@ -100,8 +114,8 @@ const buildAvatarUrl = (discordId, avatarHash) => {
 const fetchDiscordJson = async (path, botToken) => {
     const response = await fetch(`${DISCORD_API}${path}`, {
         headers: {
-            Authorization: `Bot ${botToken}`
-        }
+            Authorization: `Bot ${botToken}`,
+        },
     });
 
     if (!response.ok) return null;
@@ -111,8 +125,8 @@ const fetchDiscordJson = async (path, botToken) => {
 const fetchDiscordWithResponse = async (path, botToken) => {
     return await fetch(`${DISCORD_API}${path}`, {
         headers: {
-            Authorization: `Bot ${botToken}`
-        }
+            Authorization: `Bot ${botToken}`,
+        },
     });
 };
 
@@ -127,9 +141,9 @@ const getGuildRoleMap = async (guildId, botToken) => {
         return roleCache.roleMap;
     }
 
-    const map = new Map(roles.map(role => [role.id, role.name]));
+    const map = new Map(roles.map((role) => [role.id, role.name]));
     roleCache.guildId = guildId;
-    roleCache.expiresAt = now + (10 * 60 * 1000);
+    roleCache.expiresAt = now + 10 * 60 * 1000;
     roleCache.roleMap = map;
     return map;
 };
@@ -166,12 +180,10 @@ const getGuildMembersMap = async (guildId, botToken) => {
         }
     }
 
-    const map = new Map(allMembers
-        .filter(member => member?.user?.id)
-        .map(member => [member.user.id, member]));
+    const map = new Map(allMembers.filter((member) => member?.user?.id).map((member) => [member.user.id, member]));
 
     memberCache.guildId = guildId;
-    memberCache.expiresAt = now + (2 * 60 * 1000);
+    memberCache.expiresAt = now + 2 * 60 * 1000;
     memberCache.memberMap = map;
     return map;
 };
@@ -185,7 +197,7 @@ const getDiscordProfileAndRoles = async (discordId) => {
     try {
         const [user, member] = await Promise.all([
             fetchDiscordJson(`/users/${discordId}`, botToken),
-            guildId ? fetchDiscordJson(`/guilds/${guildId}/members/${discordId}`, botToken) : Promise.resolve(null)
+            guildId ? fetchDiscordJson(`/guilds/${guildId}/members/${discordId}`, botToken) : Promise.resolve(null),
         ]);
 
         const avatarUrl = buildAvatarUrl(discordId, user?.avatar);
@@ -194,9 +206,9 @@ const getDiscordProfileAndRoles = async (discordId) => {
         if (guildId && member?.roles?.length) {
             const roleMap = await getGuildRoleMap(guildId, botToken);
             roles = member.roles
-                .map(roleId => roleMap.get(roleId))
+                .map((roleId) => roleMap.get(roleId))
                 .filter(Boolean)
-                .filter(roleName => roleName !== '@everyone');
+                .filter((roleName) => roleName !== '@everyone');
         }
 
         return { avatarUrl, roles };
@@ -207,7 +219,7 @@ const getDiscordProfileAndRoles = async (discordId) => {
 
 const buildMikuDescription = ({ username, strikes, isOnHiatus, tasksCompleted, topTaskRoles }) => {
     const name = username || 'This teammate';
-    
+
     // Hiatus - gentle and supportive
     if (isOnHiatus) {
         return `✨ ${name} is taking a lil' rest! Miku's saving up the spotlight for their next grand entrance~ 💙`;
@@ -240,9 +252,9 @@ const buildMikuDescription = ({ username, strikes, isOnHiatus, tasksCompleted, t
 
 const mapStoredRolesToNames = (roles = []) => {
     return roles
-        .map(roleValue => fallbackRoleMap.get(roleValue) || roleValue)
+        .map((roleValue) => fallbackRoleMap.get(roleValue) || roleValue)
         .filter(Boolean)
-        .filter(roleName => roleName !== '@everyone');
+        .filter((roleName) => roleName !== '@everyone');
 };
 
 const getDisplayUsername = (user, guildMember) => {
@@ -259,35 +271,35 @@ const buildAvatarFromGuildMember = (guildMember) => {
 const getMemberRoleNames = (guildMember, guildRoleMap) => {
     const roleIds = Array.isArray(guildMember?.roles) ? guildMember.roles : [];
     return roleIds
-        .map(roleId => guildRoleMap.get(roleId))
+        .map((roleId) => guildRoleMap.get(roleId))
         .filter(Boolean)
-        .filter(roleName => roleName !== '@everyone');
+        .filter((roleName) => roleName !== '@everyone');
 };
 
 export const listUsers = async (req, res) => {
     try {
         const users = await userUtils.listUsers({
             limit: req.query.limit,
-            search: req.query.search
+            search: req.query.search,
         });
 
         const { botToken, guildId } = getDiscordAuth();
         if (!botToken || !guildId) {
-            const data = users.map(user => ({
+            const data = users.map((user) => ({
                 ...user,
                 storedRoles: mapStoredRolesToNames(Array.isArray(user.roles) ? user.roles : []),
-                actualRoles: mapStoredRolesToNames(Array.isArray(user.roles) ? user.roles : [])
+                actualRoles: mapStoredRolesToNames(Array.isArray(user.roles) ? user.roles : []),
             }));
             return res.json({ success: true, count: data.length, data });
         }
 
         const [guildRoleMap, guildMembersMap] = await Promise.all([
             getGuildRoleMap(guildId, botToken),
-            getGuildMembersMap(guildId, botToken)
+            getGuildMembersMap(guildId, botToken),
         ]);
 
         const data = users
-            .map(user => {
+            .map((user) => {
                 const guildMember = guildMembersMap.get(user.discordId);
                 if (!guildMember) {
                     return null;
@@ -301,7 +313,7 @@ export const listUsers = async (req, res) => {
                     username: getDisplayUsername(user, guildMember),
                     avatarUrl: buildAvatarFromGuildMember(guildMember),
                     storedRoles,
-                    actualRoles: actualRoles.length ? actualRoles : storedRoles
+                    actualRoles: actualRoles.length ? actualRoles : storedRoles,
                 };
             })
             .filter(Boolean);
@@ -400,11 +412,9 @@ export const buildUserSummary = async (discordId) => {
 
     if (!user) return null;
 
-    const assignments = await Assignment.find({ discordUserId: discordId })
-        .select('status roleName')
-        .lean();
+    const assignments = await Assignment.find({ discordUserId: discordId }).select('status roleName').lean();
 
-    const tasksCompleted = assignments.filter(a => a.status === 'COMPLETED').length;
+    const tasksCompleted = assignments.filter((a) => a.status === 'COMPLETED').length;
     const taskRoleCounts = assignments.reduce((accumulator, assignment) => {
         const role = assignment.roleName || 'Unknown';
         accumulator[role] = (accumulator[role] || 0) + 1;
@@ -425,20 +435,17 @@ export const buildUserSummary = async (discordId) => {
     if (botToken && guildId) {
         const [membersMap, rolesMap] = await Promise.all([
             getGuildMembersMap(guildId, botToken),
-            getGuildRoleMap(guildId, botToken)
+            getGuildRoleMap(guildId, botToken),
         ]);
         guildMember = membersMap.get(discordId) || null;
         guildRoleMap = rolesMap;
     }
 
     const guildRoles = getMemberRoleNames(guildMember, guildRoleMap);
-    const actualRoles = guildRoles.length > 0
-        ? guildRoles
-        : (mappedStoredRoles.length > 0 ? mappedStoredRoles : topTaskRoles);
+    const actualRoles =
+        guildRoles.length > 0 ? guildRoles : mappedStoredRoles.length > 0 ? mappedStoredRoles : topTaskRoles;
 
-    const derivedWorkRoles = topTaskRoles.length > 0
-        ? topTaskRoles
-        : actualRoles.slice(0, 3);
+    const derivedWorkRoles = topTaskRoles.length > 0 ? topTaskRoles : actualRoles.slice(0, 3);
 
     const avatarUrl = buildAvatarFromGuildMember(guildMember) || discordData.avatarUrl;
     const username = getDisplayUsername(user, guildMember);
@@ -447,7 +454,7 @@ export const buildUserSummary = async (discordId) => {
         strikes: user.strikes || 0,
         isOnHiatus: !!user.isOnHiatus,
         tasksCompleted,
-        topTaskRoles: derivedWorkRoles
+        topTaskRoles: derivedWorkRoles,
     });
 
     return {
@@ -462,7 +469,7 @@ export const buildUserSummary = async (discordId) => {
         mikuDescription,
         // Membership is reported rather than being a 404, so a member who left
         // the server still has a readable profile and share card.
-        isGuildMember: Boolean(guildMember)
+        isGuildMember: Boolean(guildMember),
     };
 };
 
@@ -486,8 +493,8 @@ export const generateShareCard = async (req, res) => {
             return res.status(404).send('User not found');
         }
 
-        const embedColor = user.strikes > 0 ? "#f38ba8" : "#94e2d5";
-        const statusText = user.isOnHiatus ? "💤 On Hiatus" : "✨ Active Member";
+        const embedColor = user.strikes > 0 ? '#f38ba8' : '#94e2d5';
+        const statusText = user.isOnHiatus ? '💤 On Hiatus' : '✨ Active Member';
         const rolesText = user.roles && user.roles.length ? user.roles.join(', ') : 'Crew Member';
 
         // Every interpolation below goes through escapeHtml. Usernames and role
@@ -500,7 +507,7 @@ export const generateShareCard = async (req, res) => {
         const safeCompleted = escapeHtml(String(user.tasksCompleted || 0));
         const safeDiscordId = encodeURIComponent(user.discordId);
 
-        const FRONTEND_URL = process.env.FRONTEND_URL || 'https://sekai.azaken.com'
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'https://sekai.azaken.com';
 
         const html = `
         <!DOCTYPE html>
@@ -526,8 +533,8 @@ export const generateShareCard = async (req, res) => {
 
         res.send(html);
     } catch (error) {
-        console.error("Error generating share card:", error);
-        res.status(500).send("Error generating card");
+        console.error('Error generating share card:', error);
+        res.status(500).send('Error generating card');
     }
 };
 
@@ -538,32 +545,31 @@ export const generateCardImage = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-
         const profileUrl = `https://sekai.azaken.com/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
-        
 
         const imageUrl = `https://api.microlink.io/?url=${encodeURIComponent(profileUrl)}&screenshot=true&width=1000&height=1200&viewport=true`;
-        
-        res.json({ 
-            success: true, 
+
+        res.json({
+            success: true,
             imageUrl: imageUrl,
             discordId: user.discordId,
-            username: user.username
+            username: user.username,
         });
     } catch (error) {
-        console.error("Error generating card image:", error);
+        console.error('Error generating card image:', error);
         res.status(500).json({ error: 'Failed to generate card image' });
     }
 };
-
 
 export const getCardImage = async (req, res) => {
     try {
         const user = await User.findOne({ discordId: req.params.discordId }).lean();
         if (!user) return res.redirect('https://sekai.azaken.com/assets/PNG%201.png');
 
-        const assignments = await Assignment.find({ discordUserId: req.params.discordId }).select('status roleName').lean();
-        const tasksCompleted = assignments.filter(a => a.status === 'COMPLETED').length;
+        const assignments = await Assignment.find({ discordUserId: req.params.discordId })
+            .select('status roleName')
+            .lean();
+        const tasksCompleted = assignments.filter((a) => a.status === 'COMPLETED').length;
         const taskRoleCounts = assignments.reduce((acc, assignment) => {
             const role = assignment.roleName || 'Unknown';
             acc[role] = (acc[role] || 0) + 1;
@@ -577,43 +583,53 @@ export const getCardImage = async (req, res) => {
         const discordData = await getDiscordProfileAndRoles(req.params.discordId);
         const mappedStoredRoles = mapStoredRolesToNames(Array.isArray(user.roles) ? user.roles : []);
         const { botToken, guildId } = getDiscordAuth();
-        
+
         let guildMember = null;
         let guildRoleMap = new Map();
         if (botToken && guildId) {
             const [membersMap, rolesMap] = await Promise.all([
                 getGuildMembersMap(guildId, botToken),
-                getGuildRoleMap(guildId, botToken)
+                getGuildRoleMap(guildId, botToken),
             ]);
             guildMember = membersMap.get(req.params.discordId) || null;
             guildRoleMap = rolesMap;
         }
 
         const guildRoles = getMemberRoleNames(guildMember, guildRoleMap);
-        const actualRoles = guildRoles.length > 0 ? guildRoles : (mappedStoredRoles.length > 0 ? mappedStoredRoles : topTaskRoles);
+        const actualRoles =
+            guildRoles.length > 0 ? guildRoles : mappedStoredRoles.length > 0 ? mappedStoredRoles : topTaskRoles;
 
         const serverRoles = actualRoles.slice(0, 2);
         const workRoles = topTaskRoles.slice(0, 2);
 
         const discordId = user.discordId;
         const rawUsername = getDisplayUsername(user, guildMember);
-        const rawAvatarUrl = buildAvatarFromGuildMember(guildMember) || discordData.avatarUrl || `https://api.dicebear.com/9.x/initials/png?seed=${encodeURIComponent(rawUsername)}&backgroundColor=313244&textColor=94e2d5`;
-        const rawStrikesVal = user.strikes ? `${user.strikes} Strikes` : "Clean Record";
-        const rawJoinedAt = user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US') : "Unknown";
-        const rawMikuDescription = buildMikuDescription({ username: rawUsername, strikes: user.strikes || 0, isOnHiatus: !!user.isOnHiatus, tasksCompleted, topTaskRoles });
+        const rawAvatarUrl =
+            buildAvatarFromGuildMember(guildMember) ||
+            discordData.avatarUrl ||
+            `https://api.dicebear.com/9.x/initials/png?seed=${encodeURIComponent(rawUsername)}&backgroundColor=313244&textColor=94e2d5`;
+        const rawStrikesVal = user.strikes ? `${user.strikes} Strikes` : 'Clean Record';
+        const rawJoinedAt = user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US') : 'Unknown';
+        const rawMikuDescription = buildMikuDescription({
+            username: rawUsername,
+            strikes: user.strikes || 0,
+            isOnHiatus: !!user.isOnHiatus,
+            tasksCompleted,
+            topTaskRoles,
+        });
 
         const username = stripEmojis(rawUsername);
         const displayUsername = username.length > 18 ? username.substring(0, 18) + '...' : username;
-        
-        const hiatusLabel = user.isOnHiatus ? "On Hiatus" : "Active";
+
+        const hiatusLabel = user.isOnHiatus ? 'On Hiatus' : 'Active';
         const strikesVal = stripEmojis(rawStrikesVal).substring(0, 15);
         const joinedAt = stripEmojis(rawJoinedAt);
-        
+
         const [quoteLine1, quoteLine2] = wrapText(stripEmojis(rawMikuDescription), 48);
-        const quoteY1 = quoteLine2 ? 142 : 150; 
+        const quoteY1 = quoteLine2 ? 142 : 150;
 
         const avatarB64 = await fetchAsBase64(rawAvatarUrl);
-        const decorB64 = await fetchAsBase64("https://sekai.azaken.com/assets/PNG%202.png");
+        const decorB64 = await fetchAsBase64('https://sekai.azaken.com/assets/PNG%202.png');
 
         const renderRole = (index, roleName, yOffset) => {
             if (!roleName || roleName === '-') return '';
@@ -694,11 +710,10 @@ export const getCardImage = async (req, res) => {
         </svg>`;
 
         const pngBuffer = await sharp(Buffer.from(svg)).png({ force: true, quality: 100 }).toBuffer();
-        
-        res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Cache-Control', 'public, max-age=300'); 
-        res.send(pngBuffer);
 
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        res.send(pngBuffer);
     } catch (error) {
         console.error('Error generating DB sharp card:', error);
         res.redirect('https://sekai.azaken.com/assets/PNG%201.png');

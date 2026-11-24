@@ -1,5 +1,14 @@
 import express from 'express';
-import { listUsers, createUser, getUser, getUserSummary, addStrike, removeStrike, generateShareCard, getCardImage } from '../controllers/userController.js';
+import {
+    listUsers,
+    createUser,
+    getUser,
+    getUserSummary,
+    addStrike,
+    removeStrike,
+    generateShareCard,
+    getCardImage,
+} from '../controllers/userController.js';
 
 import { requireApiKey } from '../middleware/requireApiKey.js';
 

@@ -24,8 +24,7 @@ export const MAX_EXTENSIONS_PER_TASK = 2;
  * change have `hasExtended: true` and `extensionCount: 0`. Reading both here
  * keeps that compatibility in one place instead of two.
  */
-export const countExtensionsUsed = (task) =>
-    task.extensionCount || (task.hasExtended ? 1 : 0);
+export const countExtensionsUsed = (task) => task.extensionCount || (task.hasExtended ? 1 : 0);
 
 export const canExtend = (task) => countExtensionsUsed(task) < MAX_EXTENSIONS_PER_TASK;
 
@@ -44,9 +43,7 @@ export const resolveExtensionMs = (task, config) => {
 
     const rule = config.RULES[task.roleCategoryId];
     if (!rule) {
-        throw new ConfigError(
-            `Role category ${task.roleCategoryId} is not present in config.RULES`
-        );
+        throw new ConfigError(`Role category ${task.roleCategoryId} is not present in config.RULES`);
     }
 
     if (rule.extension) return rule.extension;
@@ -61,7 +58,7 @@ export const resolveExtensionMs = (task, config) => {
     const fallback = rule.extension_mv;
     if (!fallback) {
         throw new ConfigError(
-            `Role ${rule.name} (${task.roleCategoryId}) defines no extension window for task type "${taskType}"`
+            `Role ${rule.name} (${task.roleCategoryId}) defines no extension window for task type "${taskType}"`,
         );
     }
     return fallback;

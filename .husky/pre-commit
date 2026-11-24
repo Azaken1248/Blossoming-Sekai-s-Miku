@@ -1,0 +1,7 @@
+npx --no -- lint-staged
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "gitleaks is required to commit. Install it (winget install Gitleaks.Gitleaks, brew install gitleaks, or https://github.com/gitleaks/gitleaks/releases) and try again."
+    exit 1
+fi
+gitleaks git --pre-commit --staged --redact --no-banner --verbose

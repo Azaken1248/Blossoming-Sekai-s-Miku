@@ -30,7 +30,7 @@ let client;
 let workDir;
 
 before(async () => {
-    mongod = await MongoMemoryServer.create();
+    mongod = await MongoMemoryServer.create({ instance: { launchTimeout: 60_000 } });
     client = await new MongoClient(mongod.getUri()).connect();
     workDir = await mkdtemp(path.join(tmpdir(), 'sekai-backup-'));
 });
@@ -74,7 +74,14 @@ describe('backup and restore round trip', () => {
         const users = source().collection('users');
         await users.createIndex({ discordId: 1 }, { unique: true, name: 'discordId_unique' });
         await users.insertMany([
-            { _id: new ObjectId(), discordId: '111', joinedAt: NOW, strikes: Long.fromString('9007199254740993'), score: Decimal128.fromString('1.10'), tags: ['va', { nested: true }] },
+            {
+                _id: new ObjectId(),
+                discordId: '111',
+                joinedAt: NOW,
+                strikes: Long.fromString('9007199254740993'),
+                score: Decimal128.fromString('1.10'),
+                tags: ['va', { nested: true }],
+            },
             { _id: new ObjectId(), discordId: '222', joinedAt: null },
         ]);
         await source().createCollection('emptyOne');
@@ -87,11 +94,16 @@ describe('backup and restore round trip', () => {
         assert.equal(backup.manifest.formatVersion, FORMAT_VERSION);
         assert.equal(backup.manifest.database, 'roundtrip_source');
         assert.equal(backup.manifest.createdAt, NOW.toISOString());
-        assert.deepEqual(backup.manifest.collections.map(({ name, file, count }) => ({ name, file, count })), [
-            { name: 'emptyOne', file: '0001.ejson.gz', count: 0 },
-            { name: 'users', file: '0002.ejson.gz', count: 2 },
+        assert.deepEqual(
+            backup.manifest.collections.map(({ name, file, count }) => ({ name, file, count })),
+            [
+                { name: 'emptyOne', file: '0001.ejson.gz', count: 0 },
+                { name: 'users', file: '0002.ejson.gz', count: 2 },
+            ],
+        );
+        assert.deepEqual(backup.manifest.collections[1].indexes, [
+            { key: { discordId: 1 }, name: 'discordId_unique', unique: true },
         ]);
-        assert.deepEqual(backup.manifest.collections[1].indexes, [{ key: { discordId: 1 }, name: 'discordId_unique', unique: true }]);
     });
 
     test('leaves no partial folder behind', async () => {
@@ -99,16 +111,30 @@ describe('backup and restore round trip', () => {
     });
 
     test('verifies against the manifest without a database', async () => {
-        assert.deepEqual(await verifyBackup(backup.path), [{ name: 'emptyOne', count: 0 }, { name: 'users', count: 2 }]);
+        assert.deepEqual(await verifyBackup(backup.path), [
+            { name: 'emptyOne', count: 0 },
+            { name: 'users', count: 2 },
+        ]);
     });
 
     test('restores identical documents, types and indexes', async () => {
         const target = client.db('roundtrip_target');
-        assert.deepEqual(await restoreBackup(target, backup.path), [{ name: 'emptyOne', count: 0 }, { name: 'users', count: 2 }]);
+        assert.deepEqual(await restoreBackup(target, backup.path), [
+            { name: 'emptyOne', count: 0 },
+            { name: 'users', count: 2 },
+        ]);
         const sort = { discordId: 1 };
         assert.deepEqual(
-            await target.collection('users').find({}, { promoteLongs: false, promoteValues: false }).sort(sort).toArray(),
-            await source().collection('users').find({}, { promoteLongs: false, promoteValues: false }).sort(sort).toArray(),
+            await target
+                .collection('users')
+                .find({}, { promoteLongs: false, promoteValues: false })
+                .sort(sort)
+                .toArray(),
+            await source()
+                .collection('users')
+                .find({}, { promoteLongs: false, promoteValues: false })
+                .sort(sort)
+                .toArray(),
         );
         const indexNames = (await target.collection('users').indexes()).map(({ name }) => name).sort();
         assert.deepEqual(indexNames, ['_id_', 'discordId_unique']);
@@ -124,7 +150,10 @@ describe('backup and restore round trip', () => {
             return true;
         });
         assert.equal(await target.collection('users').countDocuments(), 1);
-        assert.deepEqual((await target.listCollections().toArray()).map(({ name }) => name), ['users']);
+        assert.deepEqual(
+            (await target.listCollections().toArray()).map(({ name }) => name),
+            ['users'],
+        );
     });
 });
 
@@ -133,7 +162,10 @@ describe('large collections', () => {
         test(`restores ${total} documents across insert batches`, async () => {
             const source = client.db(`batch_source_${total}`);
             await source.collection('tasks').insertMany(Array.from({ length: total }, (_, i) => ({ i })));
-            const { path: backupPath } = await createBackup(source, { directory: await freshDir(`batch${total}`), now: NOW });
+            const { path: backupPath } = await createBackup(source, {
+                directory: await freshDir(`batch${total}`),
+                now: NOW,
+            });
             const target = client.db(`batch_target_${total}`);
             assert.deepEqual(await restoreBackup(target, backupPath), [{ name: 'tasks', count: total }]);
             assert.equal(await target.collection('tasks').countDocuments(), total);
@@ -144,7 +176,13 @@ describe('large collections', () => {
 describe('createBackup failures', () => {
     test('removes the partial folder and rethrows', async () => {
         const directory = await freshDir('failure');
-        const broken = { listCollections: () => ({ toArray: async () => { throw new Error('connection lost'); } }) };
+        const broken = {
+            listCollections: () => ({
+                toArray: async () => {
+                    throw new Error('connection lost');
+                },
+            }),
+        };
         await assert.rejects(createBackup(broken, { directory, now: NOW }), /connection lost/);
         assert.deepEqual(await readdir(directory), []);
     });
@@ -195,7 +233,10 @@ describe('readManifest', () => {
         await assert.rejects(readManifest(dir), /Cannot read manifest.json/);
     });
 
-    for (const [label, manifest] of [['null', null], ['an unknown version', { formatVersion: 99, collections: [] }]]) {
+    for (const [label, manifest] of [
+        ['null', null],
+        ['an unknown version', { formatVersion: 99, collections: [] }],
+    ]) {
         test(`rejects ${label}`, async () => {
             const dir = await freshDir('manifest-version');
             await writeManifest(dir, manifest);
@@ -232,19 +273,29 @@ describe('damaged data files', () => {
     };
 
     test('reads a last line that has no trailing newline', async () => {
-        const dir = await backupWithData('no-newline', gzipSync('{"a":{"$numberInt":"1"}}\n{"a":{"$numberInt":"2"}}'), 2);
+        const dir = await backupWithData(
+            'no-newline',
+            gzipSync('{"a":{"$numberInt":"1"}}\n{"a":{"$numberInt":"2"}}'),
+            2,
+        );
         assert.deepEqual(await verifyBackup(dir), [{ name: 'users', count: 2 }]);
     });
 
     test('rejects a count that differs from the manifest', async () => {
         const dir = await backupWithData('wrong-count', gzipSync('{"a":{"$numberInt":"1"}}\n'), 3);
         await assert.rejects(verifyBackup(dir), /manifest says 3 documents, file has 1/);
-        await assert.rejects(restoreBackup(client.db('wrong_count_target'), dir), /manifest says 3 documents, file has 1/);
+        await assert.rejects(
+            restoreBackup(client.db('wrong_count_target'), dir),
+            /manifest says 3 documents, file has 1/,
+        );
     });
 
     test('rejects a line that is not EJSON', async () => {
         const dir = await backupWithData('bad-line', gzipSync('{"a":1}\nnot json\n'), 2);
-        await assert.rejects(verifyBackup(dir), { name: 'BackupFormatError', message: '0001.ejson.gz has a line that is not valid EJSON' });
+        await assert.rejects(verifyBackup(dir), {
+            name: 'BackupFormatError',
+            message: '0001.ejson.gz has a line that is not valid EJSON',
+        });
     });
 
     test('rejects a file that is not gzip', async () => {
@@ -302,6 +353,6 @@ describe('pruneBackups', () => {
         const directory = await makeBackups([daysAgo(30)]);
         await writeFile(path.join(directory, daysAgo(1)), 'x');
         assert.deepEqual(await pruneBackups(directory, { retentionDays: 14, now: NOW }), []);
-        assert.equal((await readFile(path.join(directory, daysAgo(1)), 'utf8')), 'x');
+        assert.equal(await readFile(path.join(directory, daysAgo(1)), 'utf8'), 'x');
     });
 });

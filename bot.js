@@ -18,21 +18,18 @@ dotenv.config();
 const OWNED_BUTTON_ACTIONS = new Set(['submit', 'extension', 'hiatus']);
 
 console.log('[STARTUP] Connecting to MongoDB...');
-connectDB().then(() => {
-    console.log('[STARTUP] ✅ MongoDB connected\n');
-}).catch(err => {
-    console.error('[STARTUP] ❌ MongoDB connection failed:', err);
-    process.exit(1);
-});
+connectDB()
+    .then(() => {
+        console.log('[STARTUP] ✅ MongoDB connected\n');
+    })
+    .catch((err) => {
+        console.error('[STARTUP] ❌ MongoDB connection failed:', err);
+        process.exit(1);
+    });
 
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds, 
-        GatewayIntentBits.GuildMembers, 
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent 
-    ],
-    partials: [Partials.GuildMember]
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+    partials: [Partials.GuildMember],
 });
 
 async function runScheduler(isStartup = false) {
@@ -43,18 +40,18 @@ async function runScheduler(isStartup = false) {
         console.log('[SCHEDULER] 🚀 STARTUP CHECK - Catching up on missed reminders...');
     }
     console.log('========================================\n');
-    
+
     const guild = client.guilds.cache.first();
     if (!guild) {
         console.log('[SCHEDULER] ⚠️ No guild found. Skipping scheduler run.');
         return;
     }
-    
+
     console.log('[REMINDERS] 📋 Fetching all pending tasks for analysis...');
     const Assignment = (await import('./DB/Schemas/assignment.js')).default;
     const allPendingTasks = await Assignment.find({ status: 'PENDING' });
     console.log(`[REMINDERS] Total pending tasks in DB: ${allPendingTasks.length}`);
-    
+
     if (allPendingTasks.length > 0) {
         const now = Date.now();
         console.log('[REMINDERS] Task analysis:');
@@ -62,79 +59,88 @@ async function runScheduler(isStartup = false) {
             const timeLeft = t.deadline.getTime() - now;
             const duration = t.deadline.getTime() - t.assignedAt.getTime();
             console.log(`[REMINDERS]   - "${t.taskName || t.taskType}" | User: ${t.discordUserId}`);
-            console.log(`[REMINDERS]     Time until deadline: ${Math.round(timeLeft / 1000)}s (${Math.round(timeLeft / 60000)}m)`);
-            console.log(`[REMINDERS]     Task duration: ${Math.round(duration / 1000)}s (${Math.round(duration / (24*60*60*1000))}d)`);
+            console.log(
+                `[REMINDERS]     Time until deadline: ${Math.round(timeLeft / 1000)}s (${Math.round(timeLeft / 60000)}m)`,
+            );
+            console.log(
+                `[REMINDERS]     Task duration: ${Math.round(duration / 1000)}s (${Math.round(duration / (24 * 60 * 60 * 1000))}d)`,
+            );
             console.log(`[REMINDERS]     First reminder sent: ${t.firstReminderSent}, Final: ${t.finalReminderSent}`);
         }
     }
     console.log();
-    
+
     console.log('[REMINDERS] 📋 Fetching tasks that need reminders...');
     const tasksNeedingReminders = await TaskUtils.fetchTasksNeedingReminders(config);
     console.log(`[REMINDERS] Found ${tasksNeedingReminders.length} task(s) needing reminders\n`);
-    
+
     let remindersSent = 0;
     let remindersSkipped = 0;
-    
+
     for (const { task, reminderType } of tasksNeedingReminders) {
         console.log(`[REMINDER-CHECK] Task: "${task.taskName || task.taskType}" | User: ${task.discordUserId}`);
         console.log(`[REMINDER-CHECK]   Role: ${task.roleName} | Type: ${reminderType.toUpperCase()}`);
         console.log(`[REMINDER-CHECK]   Deadline: ${task.deadline.toISOString()}`);
-        
+
         const user = await UserUtils.getUserProfile(task.discordUserId);
-        
+
         if (user && user.isOnHiatus) {
             console.log(`[REMINDER-CHECK]   ⏸️  SKIPPED - User is on hiatus\n`);
             remindersSkipped++;
             continue;
         }
-        
+
         const timeUntilDeadline = task.deadline.getTime() - Date.now();
         const daysLeft = Math.ceil(timeUntilDeadline / (24 * 60 * 60 * 1000));
         const hoursLeft = Math.ceil(timeUntilDeadline / (60 * 60 * 1000));
         const minutesLeft = Math.ceil(timeUntilDeadline / (60 * 1000));
-        
+
         console.log(`[REMINDER-CHECK]   ⏰ Time remaining: ${daysLeft}d ${hoursLeft}h ${minutesLeft}m`);
-        
+
         const timeString = daysLeft >= 1 ? `${daysLeft} day(s)` : `${hoursLeft} hour(s)`;
         const deadlineTs = Math.round(task.deadline.getTime() / 1000);
-        
+
         const reminderEmoji = reminderType === 'final' ? '🚨' : '⏰';
         const reminderLabel = reminderType === 'final' ? '**FINAL REMINDER**' : '**Friendly Reminder**';
-        const encouragement = reminderType === 'final' ? 'You can do this! The deadline is almost here, so let\'s give it our all~ ♪' : 'Keep up the great work! ♪';
-        
+        const encouragement =
+            reminderType === 'final'
+                ? "You can do this! The deadline is almost here, so let's give it our all~ ♪"
+                : 'Keep up the great work! ♪';
+
         const reminderChannel = guild.channels.cache.get(config.REMINDER_CHANNEL_ID);
         if (reminderChannel) {
-            console.log(`[REMINDER-CHECK]   📤 Sending ${reminderType} reminder to channel ${config.REMINDER_CHANNEL_ID}...`);
+            console.log(
+                `[REMINDER-CHECK]   📤 Sending ${reminderType} reminder to channel ${config.REMINDER_CHANNEL_ID}...`,
+            );
             await reminderChannel.send(
-                `${reminderEmoji} ${reminderLabel}\n<@${task.discordUserId}> Your task **${task.taskName || task.taskType}** (${task.roleName}) is due in **${timeString}**!\n${encouragement}\n📅 Deadline: <t:${deadlineTs}:F> (<t:${deadlineTs}:R>)`
+                `${reminderEmoji} ${reminderLabel}\n<@${task.discordUserId}> Your task **${task.taskName || task.taskType}** (${task.roleName}) is due in **${timeString}**!\n${encouragement}\n📅 Deadline: <t:${deadlineTs}:F> (<t:${deadlineTs}:R>)`,
             );
             console.log(`[REMINDER-CHECK]   ✅ Reminder sent successfully`);
         } else {
             console.log(`[REMINDER-CHECK]   ❌ ERROR - Reminder channel not found (${config.REMINDER_CHANNEL_ID})`);
         }
-        
+
         await TaskUtils.markReminderSent(task._id, reminderType);
         console.log(`[REMINDER-CHECK]   💾 Marked ${reminderType} reminder as sent in DB\n`);
         remindersSent++;
     }
-    
+
     console.log('[REMINDERS] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`[REMINDERS] 📊 Summary: ${remindersSent} sent, ${remindersSkipped} skipped`);
     console.log('[REMINDERS] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    
+
     console.log('[OVERDUE] 📋 Fetching overdue tasks...');
     const overdueTasks = await TaskUtils.fetchOverdueTasks();
     console.log(`[OVERDUE] Found ${overdueTasks.length} overdue task(s)\n`);
-    
+
     let overdueProcessed = 0;
     let overdueSkipped = 0;
-    
+
     for (const task of overdueTasks) {
         console.log(`[OVERDUE-CHECK] Task: "${task.taskName || task.taskType}" | User: ${task.discordUserId}`);
         console.log(`[OVERDUE-CHECK]   Role: ${task.roleName}`);
         console.log(`[OVERDUE-CHECK]   Deadline was: ${task.deadline.toISOString()}`);
-        
+
         const user = await UserUtils.getUserProfile(task.discordUserId);
 
         if (user && user.isOnHiatus) {
@@ -147,7 +153,9 @@ async function runScheduler(isStartup = false) {
         // exists. Dereferencing it here used to throw inside the interval
         // callback, which killed the process and produced a restart loop.
         if (!task.userId) {
-            console.warn(`[OVERDUE-CHECK]   ⚠️ SKIPPED - assignment ${task._id} references a user that no longer exists\n`);
+            console.warn(
+                `[OVERDUE-CHECK]   ⚠️ SKIPPED - assignment ${task._id} references a user that no longer exists\n`,
+            );
             overdueSkipped++;
             continue;
         }
@@ -164,139 +172,241 @@ async function runScheduler(isStartup = false) {
             continue;
         }
         console.log(`[OVERDUE-CHECK]   ⚡ Strike added. New total: ${formatStrikes(newStrikeCount)}`);
-        
+
         const logChannel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
         if (logChannel) {
             console.log(`[OVERDUE-CHECK]   📤 Sending overdue notification to log channel...`);
-            await logChannel.send(`💔 **Oh no... Deadline Missed**\n<@${task.discordUserId}> The deadline for **${task.taskName || task.taskType}** has passed...\nStrike added. Total: ${newStrikeCount}/3\nLet's work together to stay on track next time, okay? ♪`);
+            await logChannel.send(
+                `💔 **Oh no... Deadline Missed**\n<@${task.discordUserId}> The deadline for **${task.taskName || task.taskType}** has passed...\nStrike added. Total: ${newStrikeCount}/3\nLet's work together to stay on track next time, okay? ♪`,
+            );
             console.log(`[OVERDUE-CHECK]   ✅ Notification sent`);
         } else {
             console.log(`[OVERDUE-CHECK]   ❌ ERROR - Log channel not found (${config.LOG_CHANNEL_ID})`);
         }
-        
+
         console.log(`[OVERDUE-CHECK]   🔍 Checking for demotion (${newStrikeCount} strikes)...`);
         await Commands.checkDemotion(guild, task.discordUserId, newStrikeCount);
         console.log(`[OVERDUE-CHECK]   ✅ Demotion check complete\n`);
         overdueProcessed++;
     }
-    
+
     console.log('[OVERDUE] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`[OVERDUE] 📊 Summary: ${overdueProcessed} processed, ${overdueSkipped} skipped`);
     console.log('[OVERDUE] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    
+
     console.log('========================================');
     console.log(`[SCHEDULER] ✅ Completed at ${new Date().toISOString()}`);
     console.log('========================================\n');
 }
 
 const formatChoice = (str) => {
-    return str.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return str.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 const getRoleChoices = () => {
-    return Object.values(config.RULES).map(rule => ({
+    return Object.values(config.RULES).map((rule) => ({
         name: formatChoice(rule.name === 'BOT DEV' ? 'Bot Dev' : rule.name),
-        value: rule.name
+        value: rule.name,
     }));
 };
 
 const getTaskChoices = () => {
     const allTasks = new Set();
-    Object.values(config.RULES).forEach(rule => {
-        if (rule.tasks) Object.keys(rule.tasks).forEach(task => allTasks.add(task));
+    Object.values(config.RULES).forEach((rule) => {
+        if (rule.tasks) Object.keys(rule.tasks).forEach((task) => allTasks.add(task));
     });
     allTasks.add('custom');
-    
-    return Array.from(allTasks).map(task => ({
+
+    return Array.from(allTasks).map((task) => ({
         name: formatChoice(task),
-        value: task
+        value: task,
     }));
 };
 
 const commands = [
-    new SlashCommandBuilder().setName('assign').setDescription('Assign task')
-        .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
-        .addStringOption(o => o.setName('role').setDescription('Role').setRequired(true)
-            .addChoices(...getRoleChoices()))
-        .addStringOption(o => o.setName('task').setDescription('Task type').setRequired(true)
-            .addChoices(...getTaskChoices()))
-        .addStringOption(o => o.setName('name').setDescription('Task name').setRequired(false))
-        .addStringOption(o => o.setName('description').setDescription('Task description').setRequired(false))
-        .addIntegerOption(o => o.setName('duration_days').setDescription('Duration in days (ONLY for Custom tasks)').setRequired(false).setMinValue(1))
-        .addIntegerOption(o => o.setName('extension_days').setDescription('Extension days (ONLY for Custom tasks)').setRequired(false).setMinValue(1)),
-    new SlashCommandBuilder().setName('bulkassign').setDescription('Assign task to multiple users')
-        .addStringOption(o => o.setName('role').setDescription('Role').setRequired(true)
-            .addChoices(...getRoleChoices()))
-        .addStringOption(o => o.setName('task').setDescription('Task type').setRequired(true)
-            .addChoices(...getTaskChoices()))
-        .addStringOption(o => o.setName('name').setDescription('Task name').setRequired(false))
-        .addStringOption(o => o.setName('description').setDescription('Task description').setRequired(false))
-        .addIntegerOption(o => o.setName('duration_days').setDescription('Duration in days (ONLY for Custom tasks)').setRequired(false).setMinValue(1))
-        .addIntegerOption(o => o.setName('extension_days').setDescription('Extension days (ONLY for Custom tasks)').setRequired(false).setMinValue(1)),
-    new SlashCommandBuilder().setName('submit').setDescription('Complete task')
-        .addUserOption(o => o.setName('user').setDescription('User').setRequired(false))
-        .addStringOption(o => o.setName('task').setDescription('Task name (use /tasks to see list)').setRequired(false)),
-    new SlashCommandBuilder().setName('extension').setDescription('Request extension')
-        .addStringOption(o => o.setName('reason').setDescription('Reason for extension').setRequired(true))
-        .addUserOption(o => o.setName('user').setDescription('User').setRequired(false))
-        .addStringOption(o => o.setName('task').setDescription('Task name').setRequired(false)),
-    new SlashCommandBuilder().setName('profile').setDescription('View profile')
-        .addUserOption(o => o.setName('user').setDescription('User').setRequired(false)),
-    new SlashCommandBuilder().setName('card').setDescription('View ID card (like the website card)')
-        .addUserOption(o => o.setName('user').setDescription('User (leave blank for your own card)').setRequired(false)),
-    new SlashCommandBuilder().setName('strike').setDescription('Manage strikes')
-        .addSubcommand(s => s.setName('list').setDescription('List all users with strikes'))
-        .addSubcommand(s => s.setName('add').setDescription('Add Strike').addUserOption(o=>o.setName('user').setDescription('User').setRequired(true)).addStringOption(o=>o.setName('reason').setDescription('Reason').setRequired(true)))
-        .addSubcommand(s => s.setName('remove').setDescription('Remove Strike').addUserOption(o=>o.setName('user').setDescription('User').setRequired(true))),
-    new SlashCommandBuilder().setName('onboard').setDescription('Onboard a new user')
-        .addUserOption(o => o.setName('user').setDescription('User').setRequired(true)),
-    new SlashCommandBuilder().setName('deboard').setDescription('Safely deboard a user')
-        .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
-        .addStringOption(o => o.setName('message').setDescription('Custom deboard message (optional)').setRequired(false)),
-    new SlashCommandBuilder().setName('removetask').setDescription('Remove a task from a user (admins/owners only)')
-        .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
-        .addStringOption(o => o.setName('task').setDescription('Task name or type').setRequired(true)),
-    new SlashCommandBuilder().setName('hiatus').setDescription('Request or grant hiatus')
-        .addStringOption(o => o.setName('reason').setDescription('Reason for hiatus').setRequired(true))
-        .addUserOption(o => o.setName('user').setDescription('User (owners only - grants directly)').setRequired(false)),
-    new SlashCommandBuilder().setName('endhiatus').setDescription('End hiatus (leave blank to end your own)')
-        .addUserOption(o => o.setName('user').setDescription('User (optional)').setRequired(false)),
-    new SlashCommandBuilder().setName('tasks').setDescription('View detailed tasks')
-        .addUserOption(o => o.setName('user').setDescription('User').setRequired(false)),
-    new SlashCommandBuilder().setName('history').setDescription('View task history')
-        .addUserOption(o => o.setName('user').setDescription('Filter by user').setRequired(false))
-        .addStringOption(o => o.setName('task').setDescription('Filter by task name').setRequired(false).setMaxLength(MAX_SEARCH_LENGTH))
-        .addStringOption(o => o.setName('status').setDescription('Filter by status')
-            .addChoices(
-                { name: 'Pending', value: 'PENDING' },
-                { name: 'Completed', value: 'COMPLETED' },
-                { name: 'Late', value: 'LATE' },
-                { name: 'Excused', value: 'EXCUSED' }
-            )
-            .setRequired(false))
-        .addStringOption(o => o.setName('role').setDescription('Filter by role name').setRequired(false).setMaxLength(MAX_SEARCH_LENGTH)),
-    new SlashCommandBuilder().setName('checkfree').setDescription('Check who has no active tasks or check a specific user')
-        .addUserOption(o => o.setName('user').setDescription('Check a specific user').setRequired(false)),
+    new SlashCommandBuilder()
+        .setName('assign')
+        .setDescription('Assign task')
+        .addUserOption((o) => o.setName('user').setDescription('User').setRequired(true))
+        .addStringOption((o) =>
+            o
+                .setName('role')
+                .setDescription('Role')
+                .setRequired(true)
+                .addChoices(...getRoleChoices()),
+        )
+        .addStringOption((o) =>
+            o
+                .setName('task')
+                .setDescription('Task type')
+                .setRequired(true)
+                .addChoices(...getTaskChoices()),
+        )
+        .addStringOption((o) => o.setName('name').setDescription('Task name').setRequired(false))
+        .addStringOption((o) => o.setName('description').setDescription('Task description').setRequired(false))
+        .addIntegerOption((o) =>
+            o
+                .setName('duration_days')
+                .setDescription('Duration in days (ONLY for Custom tasks)')
+                .setRequired(false)
+                .setMinValue(1),
+        )
+        .addIntegerOption((o) =>
+            o
+                .setName('extension_days')
+                .setDescription('Extension days (ONLY for Custom tasks)')
+                .setRequired(false)
+                .setMinValue(1),
+        ),
+    new SlashCommandBuilder()
+        .setName('bulkassign')
+        .setDescription('Assign task to multiple users')
+        .addStringOption((o) =>
+            o
+                .setName('role')
+                .setDescription('Role')
+                .setRequired(true)
+                .addChoices(...getRoleChoices()),
+        )
+        .addStringOption((o) =>
+            o
+                .setName('task')
+                .setDescription('Task type')
+                .setRequired(true)
+                .addChoices(...getTaskChoices()),
+        )
+        .addStringOption((o) => o.setName('name').setDescription('Task name').setRequired(false))
+        .addStringOption((o) => o.setName('description').setDescription('Task description').setRequired(false))
+        .addIntegerOption((o) =>
+            o
+                .setName('duration_days')
+                .setDescription('Duration in days (ONLY for Custom tasks)')
+                .setRequired(false)
+                .setMinValue(1),
+        )
+        .addIntegerOption((o) =>
+            o
+                .setName('extension_days')
+                .setDescription('Extension days (ONLY for Custom tasks)')
+                .setRequired(false)
+                .setMinValue(1),
+        ),
+    new SlashCommandBuilder()
+        .setName('submit')
+        .setDescription('Complete task')
+        .addUserOption((o) => o.setName('user').setDescription('User').setRequired(false))
+        .addStringOption((o) =>
+            o.setName('task').setDescription('Task name (use /tasks to see list)').setRequired(false),
+        ),
+    new SlashCommandBuilder()
+        .setName('extension')
+        .setDescription('Request extension')
+        .addStringOption((o) => o.setName('reason').setDescription('Reason for extension').setRequired(true))
+        .addUserOption((o) => o.setName('user').setDescription('User').setRequired(false))
+        .addStringOption((o) => o.setName('task').setDescription('Task name').setRequired(false)),
+    new SlashCommandBuilder()
+        .setName('profile')
+        .setDescription('View profile')
+        .addUserOption((o) => o.setName('user').setDescription('User').setRequired(false)),
+    new SlashCommandBuilder()
+        .setName('card')
+        .setDescription('View ID card (like the website card)')
+        .addUserOption((o) =>
+            o.setName('user').setDescription('User (leave blank for your own card)').setRequired(false),
+        ),
+    new SlashCommandBuilder()
+        .setName('strike')
+        .setDescription('Manage strikes')
+        .addSubcommand((s) => s.setName('list').setDescription('List all users with strikes'))
+        .addSubcommand((s) =>
+            s
+                .setName('add')
+                .setDescription('Add Strike')
+                .addUserOption((o) => o.setName('user').setDescription('User').setRequired(true))
+                .addStringOption((o) => o.setName('reason').setDescription('Reason').setRequired(true)),
+        )
+        .addSubcommand((s) =>
+            s
+                .setName('remove')
+                .setDescription('Remove Strike')
+                .addUserOption((o) => o.setName('user').setDescription('User').setRequired(true)),
+        ),
+    new SlashCommandBuilder()
+        .setName('onboard')
+        .setDescription('Onboard a new user')
+        .addUserOption((o) => o.setName('user').setDescription('User').setRequired(true)),
+    new SlashCommandBuilder()
+        .setName('deboard')
+        .setDescription('Safely deboard a user')
+        .addUserOption((o) => o.setName('user').setDescription('User').setRequired(true))
+        .addStringOption((o) =>
+            o.setName('message').setDescription('Custom deboard message (optional)').setRequired(false),
+        ),
+    new SlashCommandBuilder()
+        .setName('removetask')
+        .setDescription('Remove a task from a user (admins/owners only)')
+        .addUserOption((o) => o.setName('user').setDescription('User').setRequired(true))
+        .addStringOption((o) => o.setName('task').setDescription('Task name or type').setRequired(true)),
+    new SlashCommandBuilder()
+        .setName('hiatus')
+        .setDescription('Request or grant hiatus')
+        .addStringOption((o) => o.setName('reason').setDescription('Reason for hiatus').setRequired(true))
+        .addUserOption((o) =>
+            o.setName('user').setDescription('User (owners only - grants directly)').setRequired(false),
+        ),
+    new SlashCommandBuilder()
+        .setName('endhiatus')
+        .setDescription('End hiatus (leave blank to end your own)')
+        .addUserOption((o) => o.setName('user').setDescription('User (optional)').setRequired(false)),
+    new SlashCommandBuilder()
+        .setName('tasks')
+        .setDescription('View detailed tasks')
+        .addUserOption((o) => o.setName('user').setDescription('User').setRequired(false)),
+    new SlashCommandBuilder()
+        .setName('history')
+        .setDescription('View task history')
+        .addUserOption((o) => o.setName('user').setDescription('Filter by user').setRequired(false))
+        .addStringOption((o) =>
+            o.setName('task').setDescription('Filter by task name').setRequired(false).setMaxLength(MAX_SEARCH_LENGTH),
+        )
+        .addStringOption((o) =>
+            o
+                .setName('status')
+                .setDescription('Filter by status')
+                .addChoices(
+                    { name: 'Pending', value: 'PENDING' },
+                    { name: 'Completed', value: 'COMPLETED' },
+                    { name: 'Late', value: 'LATE' },
+                    { name: 'Excused', value: 'EXCUSED' },
+                )
+                .setRequired(false),
+        )
+        .addStringOption((o) =>
+            o.setName('role').setDescription('Filter by role name').setRequired(false).setMaxLength(MAX_SEARCH_LENGTH),
+        ),
+    new SlashCommandBuilder()
+        .setName('checkfree')
+        .setDescription('Check who has no active tasks or check a specific user')
+        .addUserOption((o) => o.setName('user').setDescription('Check a specific user').setRequired(false)),
     new SlashCommandBuilder().setName('help').setDescription('Show all available commands'),
     new SlashCommandBuilder().setName('ping').setDescription('Check bot response time'),
-    new SlashCommandBuilder().setName('uptime').setDescription('Check how long the bot has been running')
-].map(c => c.toJSON());
-
+    new SlashCommandBuilder().setName('uptime').setDescription('Check how long the bot has been running'),
+].map((c) => c.toJSON());
 
 client.once('clientReady', async () => {
     console.log('\n🎤 ═══════════════════════════════════════════');
     console.log(`   Bot Ready: ${client.user.tag}`);
     console.log('   ═══════════════════════════════════════════\n');
-    
+
     const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN);
     try {
         console.log('[STARTUP] Registering slash commands...');
         await rest.put(Routes.applicationCommands(client.user.id), { body: commands });
         console.log('[STARTUP] ✅ Slash Commands Registered\n');
-    } catch (e) { 
+    } catch (e) {
         console.error('[STARTUP] ❌ Error registering commands:', e);
     }
-    
+
     console.log('[STARTUP] Running initial scheduler check to catch up on missed reminders...');
     try {
         await runScheduler(true);
@@ -304,23 +414,23 @@ client.once('clientReady', async () => {
     } catch (e) {
         console.error('[STARTUP] ❌ Error during initial scheduler check:', e);
     }
-    
+
     console.log('[STARTUP] Setting up scheduler...');
     const intervalMs = config.SCHEDULER_INTERVAL_MINUTES * 60 * 1000;
     // runScheduler is async: handing it straight to setInterval drops the
     // returned promise, so any rejection inside it became an unhandled
     // rejection and terminated the process.
     setInterval(() => {
-        runScheduler().catch(err => console.error('[SCHEDULER] ❌ Run failed:', err));
+        runScheduler().catch((err) => console.error('[SCHEDULER] ❌ Run failed:', err));
     }, intervalMs);
     console.log(`[STARTUP] ✅ Scheduler will run every ${config.SCHEDULER_INTERVAL_MINUTES} minutes\n`);
-    
+
     console.log('🎤 ═══════════════════════════════════════════');
     console.log('   Miku Bot is ready to help! ♪');
     console.log('   ═══════════════════════════════════════════\n');
 });
 
-client.on('interactionCreate', async interaction => {
+client.on('interactionCreate', async (interaction) => {
     if (interaction.isChatInputCommand()) {
         const { commandName } = interaction;
         console.log(`[COMMAND] /${commandName} by ${interaction.user.tag} (${interaction.user.id})`);
@@ -387,14 +497,18 @@ client.on('interactionCreate', async interaction => {
                     console.log(`[BUTTON]   ❌ Task not found: ${taskId}`);
                     return interaction.editReply({ content: '❌ Task not found.' });
                 }
-                
-                console.log(`[BUTTON]   Task found: "${task.taskName || task.taskType}" for user ${task.discordUserId}`);
+
+                console.log(
+                    `[BUTTON]   Task found: "${task.taskName || task.taskType}" for user ${task.discordUserId}`,
+                );
 
                 if (type === 'approve') {
                     if (action === 'submit') {
                         if (!isOwner) {
                             console.log(`[BUTTON]   ❌ Permission denied: Only owners can approve submissions`);
-                            return interaction.editReply({ content: 'Thanks for checking, but only owners can approve submissions! ♪' });
+                            return interaction.editReply({
+                                content: 'Thanks for checking, but only owners can approve submissions! ♪',
+                            });
                         }
                         console.log(`[BUTTON]   Approving submission...`);
                         // Conditional on status, so a double-click or a stale
@@ -402,11 +516,13 @@ client.on('interactionCreate', async interaction => {
                         // strikes for one piece of work.
                         const completed = await TaskUtils.completeAssignment(task._id);
                         if (!completed) {
-                            console.log(`[BUTTON]   ⚠️ Task ${task._id} was already resolved; ignoring duplicate approval`);
+                            console.log(
+                                `[BUTTON]   ⚠️ Task ${task._id} was already resolved; ignoring duplicate approval`,
+                            );
                             return interaction.editReply({
                                 content: `⚠️ That task has already been resolved.`,
                                 embeds: interaction.message.embeds,
-                                components: []
+                                components: [],
                             });
                         }
                         const newCount = await UserUtils.removeStrike(completed.userId);
@@ -414,25 +530,32 @@ client.on('interactionCreate', async interaction => {
                         await interaction.editReply({
                             content: `✅ Submission approved by <@${interaction.user.id}>`,
                             embeds: interaction.message.embeds,
-                            components: []
+                            components: [],
                         });
-                        
+
                         if (task.submissionChannelId) {
                             const submissionChannel = interaction.guild.channels.cache.get(task.submissionChannelId);
                             if (submissionChannel) {
-                                submissionChannel.send(`✨ Congratulations <@${task.discordUserId}>! Your submission for **${task.taskName || task.taskType}** has been approved! Amazing work~ ♪`);
+                                submissionChannel.send(
+                                    `✨ Congratulations <@${task.discordUserId}>! Your submission for **${task.taskName || task.taskType}** has been approved! Amazing work~ ♪`,
+                                );
                             }
                         }
-                        
+
                         const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                         if (logChannel) {
-                            logChannel.send(`✅ **${task.taskName || task.taskType}** completed by <@${task.discordUserId}>! Amazing work~ Strike removed. Current: ${formatStrikes(newCount)} ♪`);
+                            logChannel.send(
+                                `✅ **${task.taskName || task.taskType}** completed by <@${task.discordUserId}>! Amazing work~ Strike removed. Current: ${formatStrikes(newCount)} ♪`,
+                            );
                         }
                         console.log(`[BUTTON]   ✅ Submission approved successfully`);
                     } else if (action === 'extension') {
                         if (!isManagerOrOwner) {
                             console.log(`[BUTTON]   ❌ Permission denied: Only managers/owners can approve extensions`);
-                            return interaction.editReply({ content: 'Extension approvals are handled by managers and owners! Thanks for checking though~ ♪' });
+                            return interaction.editReply({
+                                content:
+                                    'Extension approvals are handled by managers and owners! Thanks for checking though~ ♪',
+                            });
                         }
                         console.log(`[BUTTON]   Approving extension...`);
                         // Same resolver the /extension request path uses, so the
@@ -446,7 +569,7 @@ client.on('interactionCreate', async interaction => {
                                 return interaction.editReply({
                                     content: `⚠️ Configuration error: ${configError.message}. Please contact an admin.`,
                                     embeds: interaction.message.embeds,
-                                    components: []
+                                    components: [],
                                 });
                             }
                             throw configError;
@@ -457,17 +580,18 @@ client.on('interactionCreate', async interaction => {
                         try {
                             updated = await TaskUtils.extendAssignment(task._id, extTime);
                         } catch (extendError) {
-                            const reason = extendError.message === 'ALREADY_EXTENDED'
-                                ? '⚠️ That task has already used all of its extensions.'
-                                : extendError.message === 'TASK_NOT_FOUND'
-                                    ? '⚠️ That task no longer exists.'
-                                    : null;
+                            const reason =
+                                extendError.message === 'ALREADY_EXTENDED'
+                                    ? '⚠️ That task has already used all of its extensions.'
+                                    : extendError.message === 'TASK_NOT_FOUND'
+                                      ? '⚠️ That task no longer exists.'
+                                      : null;
                             if (!reason) throw extendError;
                             console.log(`[BUTTON]   ⚠️ Extension refused: ${extendError.message}`);
                             return interaction.editReply({
                                 content: reason,
                                 embeds: interaction.message.embeds,
-                                components: []
+                                components: [],
                             });
                         }
                         const ts = Math.round(updated.deadline.getTime() / 1000);
@@ -475,43 +599,54 @@ client.on('interactionCreate', async interaction => {
                         await interaction.editReply({
                             content: `✅ Extension approved by <@${interaction.user.id}>`,
                             embeds: interaction.message.embeds,
-                            components: []
+                            components: [],
                         });
-                        
+
                         if (task.submissionChannelId) {
                             const submissionChannel = interaction.guild.channels.cache.get(task.submissionChannelId);
                             if (submissionChannel) {
-                                submissionChannel.send(`✨ Good news <@${task.discordUserId}>! Your extension request for **${task.taskName || task.taskType}** has been approved! New deadline: <t:${ts}:F> ♪`);
+                                submissionChannel.send(
+                                    `✨ Good news <@${task.discordUserId}>! Your extension request for **${task.taskName || task.taskType}** has been approved! New deadline: <t:${ts}:F> ♪`,
+                                );
                             }
                         }
-                        
+
                         const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                         if (logChannel) {
-                            logChannel.send(`⏰ Extension granted for <@${task.discordUserId}> - **${task.taskName || task.taskType}**! New deadline: <t:${ts}:F> ♪`);
+                            logChannel.send(
+                                `⏰ Extension granted for <@${task.discordUserId}> - **${task.taskName || task.taskType}**! New deadline: <t:${ts}:F> ♪`,
+                            );
                         }
                         console.log(`[BUTTON]   ✅ Extension approved successfully`);
                     }
                 } else if (type === 'deny') {
                     if (action === 'submit' && !isOwner) {
                         console.log(`[BUTTON]   ❌ Permission denied: Only owners can deny submissions`);
-                        return interaction.editReply({ content: 'Thanks for checking, but only owners can deny submissions! ♪' });
+                        return interaction.editReply({
+                            content: 'Thanks for checking, but only owners can deny submissions! ♪',
+                        });
                     }
                     if (action === 'extension' && !isManagerOrOwner) {
                         console.log(`[BUTTON]   ❌ Permission denied: Only managers/owners can deny extensions`);
-                        return interaction.editReply({ content: 'Extension decisions are handled by managers and owners! Thanks for checking though~ ♪' });
+                        return interaction.editReply({
+                            content:
+                                'Extension decisions are handled by managers and owners! Thanks for checking though~ ♪',
+                        });
                     }
                     console.log(`[BUTTON]   Denying ${action}...`);
                     await interaction.editReply({
                         content: `❌ ${action === 'submit' ? 'Submission' : 'Extension'} denied by <@${interaction.user.id}>`,
                         embeds: interaction.message.embeds,
-                        components: []
+                        components: [],
                     });
-                    
+
                     if (task.submissionChannelId) {
                         const submissionChannel = interaction.guild.channels.cache.get(task.submissionChannelId);
                         if (submissionChannel) {
                             const actionText = action === 'submit' ? 'submission' : 'extension request';
-                            submissionChannel.send(`<@${task.discordUserId}> Your ${actionText} for **${task.taskName || task.taskType}** was not approved. Please check with staff for feedback! 💖`);
+                            submissionChannel.send(
+                                `<@${task.discordUserId}> Your ${actionText} for **${task.taskName || task.taskType}** was not approved. Please check with staff for feedback! 💖`,
+                            );
                         }
                     }
                     console.log(`[BUTTON]   ✅ ${action} denied successfully`);
@@ -520,22 +655,25 @@ client.on('interactionCreate', async interaction => {
                 const userId = taskId;
                 const hiatusChannelId = interaction.message.embeds[0]?.footer?.text?.match(/Channel: (\d+)/)?.[1];
                 console.log(`[BUTTON]   Processing hiatus ${type} for user ${userId}`);
-                
+
                 if (!isManagerOrOwner) {
                     console.log(`[BUTTON]   ❌ Permission denied: Only managers/owners can handle hiatus requests`);
-                    return interaction.editReply({ content: 'Hiatus requests are handled by managers and owners! Thanks for looking out for everyone though~ ♪' });
+                    return interaction.editReply({
+                        content:
+                            'Hiatus requests are handled by managers and owners! Thanks for looking out for everyone though~ ♪',
+                    });
                 }
-                
+
                 if (type === 'approve') {
                     console.log(`[BUTTON]   Approving hiatus...`);
                     await UserUtils.setHiatus(userId, true);
-                    
+
                     const Assignment = (await import('./DB/Schemas/assignment.js')).default;
                     const pendingTasks = await Assignment.find({
                         discordUserId: userId,
-                        status: 'PENDING'
+                        status: 'PENDING',
                     });
-                    
+
                     console.log(`[BUTTON]   Found ${pendingTasks.length} pending tasks to pause`);
                     for (const task of pendingTasks) {
                         task.deadline = new Date('2099-12-31');
@@ -544,23 +682,27 @@ client.on('interactionCreate', async interaction => {
                         await task.save();
                     }
                     console.log(`[BUTTON]   Paused all deadlines`);
-                    
+
                     await interaction.editReply({
                         content: `✅ Hiatus approved by <@${interaction.user.id}>`,
                         embeds: interaction.message.embeds,
-                        components: []
+                        components: [],
                     });
-                    
+
                     if (hiatusChannelId) {
                         const hiatusChannel = interaction.guild.channels.cache.get(hiatusChannelId);
                         if (hiatusChannel) {
-                            hiatusChannel.send(`🌸 <@${userId}> Your hiatus request has been approved! All your tasks are paused. Take care and come back when you're ready~ ♪`);
+                            hiatusChannel.send(
+                                `🌸 <@${userId}> Your hiatus request has been approved! All your tasks are paused. Take care and come back when you're ready~ ♪`,
+                            );
                         }
                     }
-                    
+
                     const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                     if (logChannel) {
-                        logChannel.send(`🏖️ Hiatus approved for <@${userId}>. All ${pendingTasks.length} pending task(s) paused. Take the time you need!`);
+                        logChannel.send(
+                            `🏖️ Hiatus approved for <@${userId}>. All ${pendingTasks.length} pending task(s) paused. Take the time you need!`,
+                        );
                     }
                     console.log(`[BUTTON]   ✅ Hiatus approved successfully with ${pendingTasks.length} tasks paused`);
                 } else if (type === 'deny') {
@@ -568,13 +710,15 @@ client.on('interactionCreate', async interaction => {
                     await interaction.editReply({
                         content: `❌ Hiatus denied by <@${interaction.user.id}>`,
                         embeds: interaction.message.embeds,
-                        components: []
+                        components: [],
                     });
-                    
+
                     if (hiatusChannelId) {
                         const hiatusChannel = interaction.guild.channels.cache.get(hiatusChannelId);
                         if (hiatusChannel) {
-                            hiatusChannel.send(`<@${userId}> Your hiatus request was not approved. Please reach out to staff if you have questions! 💖`);
+                            hiatusChannel.send(
+                                `<@${userId}> Your hiatus request was not approved. Please reach out to staff if you have questions! 💖`,
+                            );
                         }
                     }
                     console.log(`[BUTTON]   ✅ Hiatus denied successfully`);
@@ -583,9 +727,9 @@ client.on('interactionCreate', async interaction => {
         } catch (e) {
             console.error(`[BUTTON] ❌ Error processing ${interaction.customId}:`, e);
             if (!interaction.replied && !interaction.deferred) {
-                interaction.reply({ content: "❌ Error processing request.", flags: 64 });
+                interaction.reply({ content: '❌ Error processing request.', flags: 64 });
             } else if (interaction.deferred) {
-                interaction.editReply({ content: "❌ Error processing request." });
+                interaction.editReply({ content: '❌ Error processing request.' });
             }
         }
     }
@@ -599,9 +743,9 @@ client.on('interactionCreate', async interaction => {
         } catch (e) {
             console.error(`[SELECT] ❌ Error processing ${interaction.customId}:`, e);
             if (!interaction.replied && !interaction.deferred) {
-                interaction.reply({ content: "❌ Error processing request.", flags: 64 });
+                interaction.reply({ content: '❌ Error processing request.', flags: 64 });
             } else if (interaction.deferred) {
-                interaction.editReply({ content: "❌ Error processing request." });
+                interaction.editReply({ content: '❌ Error processing request.' });
             }
         }
     }
@@ -609,38 +753,24 @@ client.on('interactionCreate', async interaction => {
     if (interaction.isUserSelectMenu()) {
         try {
             if (interaction.customId.startsWith('bulkassign_select_')) {
-                console.log(`[USER_SELECT] ${interaction.customId} by ${interaction.user.tag} (${interaction.user.id})`);
+                console.log(
+                    `[USER_SELECT] ${interaction.customId} by ${interaction.user.tag} (${interaction.user.id})`,
+                );
                 await Commands.handleBulkAssignSelect(interaction);
             }
         } catch (e) {
             console.error(`[USER_SELECT] ❌ Error processing ${interaction.customId}:`, e);
             if (!interaction.replied && !interaction.deferred) {
-                interaction.reply({ content: "❌ Error processing request.", flags: 64 });
+                interaction.reply({ content: '❌ Error processing request.', flags: 64 });
             } else if (interaction.deferred) {
-                interaction.editReply({ content: "❌ Error processing request." });
+                interaction.editReply({ content: '❌ Error processing request.' });
             }
         }
     }
 });
 
-
-client.on('messageCreate', async message => {
-    if (message.author.bot) return;
-    if (!message.content.startsWith('!')) return;
-
-    const commandName = message.content.split(' ')[0].substring(1);
-    console.log(`[PREFIX] !${commandName} by ${message.author.tag} (${message.author.id})`);
-    try {
-        await Commands.handlePrefixCommand(message);
-        console.log(`[PREFIX] ✅ !${commandName} completed successfully`);
-    } catch (e) {
-        console.error(`[PREFIX] ❌ Error in !${commandName}:`, e);
-        message.reply("❌ Error executing command.");
-    }
-});
-
 console.log('[STARTUP] Logging in to Discord...');
-client.login(process.env.BOT_TOKEN).catch(err => {
+client.login(process.env.BOT_TOKEN).catch((err) => {
     console.error('[STARTUP] ❌ Failed to login to Discord:', err);
     process.exit(1);
 });

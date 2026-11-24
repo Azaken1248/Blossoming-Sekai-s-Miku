@@ -1,29 +1,79 @@
 {
-  "name": "blossoming-sekai's-miku",
+  "name": "blossoming-sekai-miku",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
+  "description": "Discord bot and API that run task assignments, deadlines, reminders, strikes and hiatus for the Blossoming Sekai creative team",
+  "keywords": [
+    "discord-bot",
+    "task-management",
+    "express",
+    "mongodb"
+  ],
+  "homepage": "https://github.com/Azaken1248/Blossoming-Sekai-s-Miku#readme",
+  "bugs": {
+    "url": "https://github.com/Azaken1248/Blossoming-Sekai-s-Miku/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Azaken1248/Blossoming-Sekai-s-Miku.git"
+  },
+  "license": "MIT",
+  "author": "Azaken",
   "type": "module",
+  "main": "bot.js",
+  "files": [
+    "API/",
+    "DB/",
+    "Utils/",
+    "public/",
+    "scripts/",
+    "bot.js",
+    "config.js",
+    "README.md",
+    "PERMISSIONS.md",
+    "LICENSE",
+    "!**/.env",
+    "!**/.env.*",
+    "!configProd.js"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "test": "node --test \"tests/**/*.test.js\"",
+    "start:bot": "node bot.js",
+    "start:api": "node API/api.js",
+    "test": "node --test --experimental-test-module-mocks \"tests/**/*.test.js\"",
     "coverage": "c8 npm test",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "backup": "node scripts/backupDatabase.js",
     "restore": "node scripts/restoreDatabase.js",
-    "start:api": "node API/api.js"
+    "prepare": "node .husky/install.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "cors": "^2.8.5",
-    "discord.js": "^14.25.1",
-    "dotenv": "^17.2.3",
-    "express": "^4.18.2",
-    "mongoose": "^8.0.0",
-    "sharp": "^0.35.5"
+    "cors": "2.8.6",
+    "discord.js": "14.28.1",
+    "dotenv": "17.4.2",
+    "express": "4.22.3",
+    "mongoose": "8.24.10",
+    "sharp": "0.35.5"
   },
   "devDependencies": {
-    "c8": "^12.0.0",
-    "mongodb-memory-server": "^10.4.3"
+    "@commitlint/cli": "21.2.4",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "c8": "12.0.0",
+    "eslint": "10.15.0",
+    "eslint-plugin-security": "4.2.1",
+    "globals": "17.14.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.2",
+    "mongodb-memory-server": "10.4.3",
+    "prettier": "3.10.1",
+    "supertest": "7.3.2",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.74.0"
   }
 }

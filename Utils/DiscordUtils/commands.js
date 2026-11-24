@@ -1,17 +1,17 @@
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder, StringSelectMenuBuilder, UserSelectMenuBuilder } from 'discord.js';
+import {
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    AttachmentBuilder,
+    StringSelectMenuBuilder,
+    UserSelectMenuBuilder,
+} from 'discord.js';
 import config from '../../config.js';
 import * as UserUtils from '../DBUtils/userUtils.js';
 import * as TaskUtils from '../DBUtils/taskUtils.js';
-import {
-    isAdmin,
-    isOwner,
-    isManager,
-    isManagerOrOwner,
-    checkCommandPermission,
-    COMMAND_POLICY,
-    NOT_ONBOARDED_MESSAGE
-} from '../permissions.js';
-import { resolveExtensionMs, countExtensionsUsed, canExtend, msToDays, ConfigError, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.js';
+import { isAdmin, isOwner, isManager, isManagerOrOwner } from '../permissions.js';
+import { resolveExtensionMs, canExtend, msToDays, ConfigError, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.js';
 import { MAX_STRIKES, shouldDemote, formatStrikes } from '../domain/strikes.js';
 
 export { isAdmin, isOwner, isManager, isManagerOrOwner };
@@ -42,55 +42,68 @@ export const checkDemotion = async (guild, discordId, currentStrikes) => {
     // Only act if they still hold at least one crew role, so a repeat call
     // (or a strike applied while already at the cap) is a no-op rather than a
     // duplicate demotion DM.
-    const heldCrewRoles = config.CREW_ROLE_IDS.filter(roleId => member.roles.cache.has(roleId));
+    const heldCrewRoles = config.CREW_ROLE_IDS.filter((roleId) => member.roles.cache.has(roleId));
     if (heldCrewRoles.length === 0) return;
 
     await member.roles.remove(heldCrewRoles).catch(() => {});
-    await member.send(`🚨 **Important Notice:** You've reached ${MAX_STRIKES} strikes and your crew roles have been removed. Don't give up though - you can always make a comeback! ♪`).catch(() => {});
+    await member
+        .send(
+            `🚨 **Important Notice:** You've reached ${MAX_STRIKES} strikes and your crew roles have been removed. Don't give up though - you can always make a comeback! ♪`,
+        )
+        .catch(() => {});
     const channel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
-    if (channel) channel.send(`🚨 **Demotion Notice** - <@${discordId}> has reached ${MAX_STRIKES} strikes and crew roles have been removed.`);
+    if (channel)
+        channel.send(
+            `🚨 **Demotion Notice** - <@${discordId}> has reached ${MAX_STRIKES} strikes and crew roles have been removed.`,
+        );
 };
 
-const resolveTarget = (message) => {
-    // message.mentions.users also contains the author of a replied-to message.
-    // Treating that as an explicit target would silently retarget commands, so
-    // only genuine @-mentions count.
-    const repliedUserId = message.mentions.repliedUser?.id;
-    const mentioned = repliedUserId
-        ? message.mentions.users.filter(user => user.id !== repliedUserId)
-        : message.mentions.users;
-    return mentioned.first() || null;
-};
-
-const coreAssign = async (guild, author, targetUser, taskType, roleName, taskName = '', description = '', customDurationDays = null, customExtensionDays = null, suppressLog = false) => {
+const coreAssign = async (
+    guild,
+    author,
+    targetUser,
+    taskType,
+    roleName,
+    taskName = '',
+    description = '',
+    customDurationDays = null,
+    customExtensionDays = null,
+    suppressLog = false,
+) => {
     const member = await guild.members.fetch(targetUser.id).catch(() => null);
-    if (!member) return { content: "\u274c User not found in server." };
+    if (!member) return { content: '\u274c User not found in server.' };
 
     let selectedRule = null;
     let roleIdFound = null;
     let hasRole = false;
-    let deadline = null;
+    let deadline;
 
     if (taskType === 'custom') {
         if (!customDurationDays || customDurationDays <= 0) {
             return { content: '\u274c For custom tasks, you must specify duration_days (greater than 0).' };
         }
-        
+
         for (const [roleId, rule] of Object.entries(config.RULES)) {
             if (rule.name === roleName && member.roles.cache.has(roleId)) {
                 hasRole = true;
                 roleIdFound = roleId;
-                selectedRule = { name: rule.name, extension: customExtensionDays ? customExtensionDays * 24 * 60 * 60 * 1000 : rule.extension };
+                selectedRule = {
+                    name: rule.name,
+                    extension: customExtensionDays ? customExtensionDays * 24 * 60 * 60 * 1000 : rule.extension,
+                };
                 break;
             }
         }
-        
+
         if (!hasRole) return { content: `\u274c User doesn't have the '${roleName}' role.` };
-        
-        deadline = new Date(Date.now() + (customDurationDays * 24 * 60 * 60 * 1000));
+
+        deadline = new Date(Date.now() + customDurationDays * 24 * 60 * 60 * 1000);
     } else {
         if (customDurationDays || customExtensionDays) {
-            return { content: '\u274c duration_days and extension_days are only for Custom tasks. For standard tasks, duration is automatically set based on the task type.' };
+            return {
+                content:
+                    '\u274c duration_days and extension_days are only for Custom tasks. For standard tasks, duration is automatically set based on the task type.',
+            };
         }
         for (const [roleId, rule] of Object.entries(config.RULES)) {
             if (rule.name === roleName) {
@@ -106,13 +119,16 @@ const coreAssign = async (guild, author, targetUser, taskType, roleName, taskNam
         }
 
         if (!hasRole) return { content: `\u274c User doesn't have the '${roleName}' role.` };
-        if (!selectedRule) return { content: `\u274c Task type '${taskType}' is not valid for role '${roleName}'.\nValid tasks: ${Object.keys(config.RULES[Object.keys(config.RULES).find(id => config.RULES[id].name === roleName)].tasks).join(', ')}` };
+        if (!selectedRule)
+            return {
+                content: `\u274c Task type '${taskType}' is not valid for role '${roleName}'.\nValid tasks: ${Object.keys(config.RULES[Object.keys(config.RULES).find((id) => config.RULES[id].name === roleName)].tasks).join(', ')}`,
+            };
 
         deadline = new Date(Date.now() + selectedRule.tasks[taskType]);
     }
 
     const userDoc = await UserUtils.findOrCreateUser(targetUser.id, targetUser.username);
-    
+
     await TaskUtils.createAssignment(userDoc, {
         roleCategoryId: roleIdFound,
         roleName: selectedRule.name,
@@ -120,33 +136,44 @@ const coreAssign = async (guild, author, targetUser, taskType, roleName, taskNam
         taskName: taskName,
         description: description,
         deadline: deadline,
-        customExtension: taskType === 'custom' && customExtensionDays ? customExtensionDays * 24 * 60 * 60 * 1000 : null
+        customExtension:
+            taskType === 'custom' && customExtensionDays ? customExtensionDays * 24 * 60 * 60 * 1000 : null,
     });
 
     if (!suppressLog) {
-        await logAction(guild, `✨ Assigned **${taskType}** to <@${targetUser.id}> - Let's create something wonderful!`, author);
+        await logAction(
+            guild,
+            `✨ Assigned **${taskType}** to <@${targetUser.id}> - Let's create something wonderful!`,
+            author,
+        );
     }
     const ts = Math.round(deadline.getTime() / 1000);
-    return { content: `✨ Assigned **${taskType}** to <@${targetUser.id}>! Let's create something wonderful together!\n📅 Deadline: <t:${ts}:F> (<t:${ts}:R>)` };
+    return {
+        content: `✨ Assigned **${taskType}** to <@${targetUser.id}>! Let's create something wonderful together!\n📅 Deadline: <t:${ts}:F> (<t:${ts}:R>)`,
+    };
 };
 
 const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = null, taskId = null) => {
     const profile = await UserUtils.getUserProfile(targetUser.id);
     if (!profile || !profile.assignments || profile.assignments.length === 0) {
-        return { content: "⚠️ No pending assignments found for this user." };
+        return { content: '⚠️ No pending assignments found for this user.' };
     }
 
-    const pendingTasks = profile.assignments.filter(a => a.status === 'PENDING' || a.status === 'LATE');
+    const pendingTasks = profile.assignments.filter((a) => a.status === 'PENDING' || a.status === 'LATE');
     if (pendingTasks.length === 0) {
-        return { content: "⚠️ No pending assignments found for this user." };
+        return { content: '⚠️ No pending assignments found for this user.' };
     }
 
     let task;
     if (taskId) {
-        task = pendingTasks.find(t => t._id.toString() === taskId);
-        if (!task) return { content: "⚠️ Task not found. It might have been already submitted or removed." };
+        task = pendingTasks.find((t) => t._id.toString() === taskId);
+        if (!task) return { content: '⚠️ Task not found. It might have been already submitted or removed.' };
     } else if (taskName) {
-        task = pendingTasks.find(t => (t.taskName && t.taskName.toLowerCase() === taskName.toLowerCase()) || t.taskType.toLowerCase() === taskName.toLowerCase());
+        task = pendingTasks.find(
+            (t) =>
+                (t.taskName && t.taskName.toLowerCase() === taskName.toLowerCase()) ||
+                t.taskType.toLowerCase() === taskName.toLowerCase(),
+        );
         if (!task) {
             return { content: `⚠️ Task '${taskName}' not found. Use \`/tasks\` to see available tasks.` };
         }
@@ -160,22 +187,22 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
                 .setMinValues(1)
                 .setMaxValues(Math.min(pendingTasks.length, 25))
                 .addOptions(
-                    pendingTasks.map(t => {
+                    pendingTasks.map((t) => {
                         const name = (t.taskName || t.taskType).substring(0, 90);
                         const deadlineStr = new Date(t.deadline).toLocaleDateString();
                         const isLate = t.status === 'LATE' ? ' [LATE]' : '';
                         return {
                             label: `${name}${isLate}`,
                             description: `Role: ${t.roleName} | Due: ${deadlineStr}`,
-                            value: t._id.toString()
+                            value: t._id.toString(),
                         };
-                    })
+                    }),
                 );
             const row = new ActionRowBuilder().addComponents(select);
             return { content: `✨ Please select the task(s) you want to submit:`, components: [row] };
         }
     }
-    
+
     if (channelId) {
         const Assignment = (await import('../../DB/Schemas/assignment.js')).default;
         await Assignment.updateOne({ _id: task._id }, { submissionChannelId: channelId });
@@ -185,13 +212,15 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
     const embed = new EmbedBuilder()
         .setTitle(isLate ? '⚠️ Late Submission Ready for Review! ♪' : '✨ Submission Ready for Review! ♪')
         .setColor(isLate ? 0xfab387 : 0x39c5bb)
-        .setDescription(isLate 
-            ? `<@${targetUser.id}> has finished their task, although it was submitted after the deadline. Let\'s take a look~ 🎉`
-            : `Yay! <@${targetUser.id}> has finished their task and it\'s ready to shine! Let\'s take a look at this amazing work~ 🎉`)
+        .setDescription(
+            isLate
+                ? `<@${targetUser.id}> has finished their task, although it was submitted after the deadline. Let's take a look~ 🎉`
+                : `Yay! <@${targetUser.id}> has finished their task and it's ready to shine! Let's take a look at this amazing work~ 🎉`,
+        )
         .addFields(
             { name: 'Task', value: task.taskName || task.taskType, inline: true },
             { name: 'Role', value: task.roleName, inline: true },
-            { name: 'Type', value: task.taskType, inline: true }
+            { name: 'Type', value: task.taskType, inline: true },
         )
         .setTimestamp();
 
@@ -204,57 +233,58 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
         embed.addFields({ name: 'Description', value: task.description, inline: false });
     }
 
-    const row = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId(`submit_approve_${task._id}`)
-                .setLabel('Approve')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId(`submit_deny_${task._id}`)
-                .setLabel('Deny')
-                .setStyle(ButtonStyle.Danger)
-        );
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId(`submit_approve_${task._id}`).setLabel('Approve').setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId(`submit_deny_${task._id}`).setLabel('Deny').setStyle(ButtonStyle.Danger),
+    );
 
     const approvalChannel = guild.channels.cache.get(config.APPROVAL_CHANNEL_ID);
     if (approvalChannel) {
         await approvalChannel.send({ embeds: [embed], components: [row] });
     }
 
-    return { content: `✅ Yay! Your submission for **${task.taskName || task.taskType}** has been sent for review! Keep up the amazing work~ ♪` };
+    return {
+        content: `✅ Yay! Your submission for **${task.taskName || task.taskType}** has been sent for review! Keep up the amazing work~ ♪`,
+    };
 };
 
 const coreExtension = async (guild, author, targetUser, taskName = '', reason = '', channelId = null) => {
     const profile = await UserUtils.getUserProfile(targetUser.id);
     if (!profile || !profile.assignments || profile.assignments.length === 0) {
-        return { content: "⚠️ No pending assignments found." };
+        return { content: '⚠️ No pending assignments found.' };
     }
 
-    const pendingTasks = profile.assignments.filter(a => a.status === 'PENDING');
+    const pendingTasks = profile.assignments.filter((a) => a.status === 'PENDING');
     if (pendingTasks.length === 0) {
-        return { content: "⚠️ No pending assignments found." };
+        return { content: '⚠️ No pending assignments found.' };
     }
 
     if (!reason || reason.trim().length === 0) {
-        return { content: "⚠️ Please provide a reason for the extension request." };
+        return { content: '⚠️ Please provide a reason for the extension request.' };
     }
 
     let task;
     if (taskName) {
-        task = pendingTasks.find(t => (t.taskName && t.taskName.toLowerCase() === taskName.toLowerCase()) || t.taskType === taskName);
+        task = pendingTasks.find(
+            (t) => (t.taskName && t.taskName.toLowerCase() === taskName.toLowerCase()) || t.taskType === taskName,
+        );
         if (!task) {
             return { content: `⚠️ Task '${taskName}' not found.` };
         }
     } else {
         if (pendingTasks.length > 1) {
-            const taskList = pendingTasks.map(t => `• **${t.taskName || t.taskType}** (${t.roleName})`).join('\n');
-            return { content: `⚠️ Please specify which task:\n${taskList}\n\nUse: \`/extension task:<task_name> reason:<reason>\`` };
+            const taskList = pendingTasks.map((t) => `• **${t.taskName || t.taskType}** (${t.roleName})`).join('\n');
+            return {
+                content: `⚠️ Please specify which task:\n${taskList}\n\nUse: \`/extension task:<task_name> reason:<reason>\``,
+            };
         }
         task = pendingTasks[0];
     }
 
     if (!canExtend(task)) {
-        return { content: `⚠️ This task has already been extended the maximum number of times (${MAX_EXTENSIONS_PER_TASK}).` };
+        return {
+            content: `⚠️ This task has already been extended the maximum number of times (${MAX_EXTENSIONS_PER_TASK}).`,
+        };
     }
 
     let extTime;
@@ -278,34 +308,34 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
     const embed = new EmbedBuilder()
         .setTitle('🌸 Extension Request ♪')
         .setColor(0x39c5bb)
-        .setDescription(`<@${targetUser.id}> needs a bit more time to make something truly special! Everyone deserves the time to do their best~ ✨`)
+        .setDescription(
+            `<@${targetUser.id}> needs a bit more time to make something truly special! Everyone deserves the time to do their best~ ✨`,
+        )
         .addFields(
             { name: 'Task', value: task.taskName || task.taskType, inline: true },
             { name: 'Role', value: task.roleName, inline: true },
             { name: 'Extension', value: `${extDays} days`, inline: true },
             { name: 'Current Deadline', value: `<t:${Math.round(task.deadline.getTime() / 1000)}:F>`, inline: false },
-            { name: 'Reason', value: reason, inline: false }
+            { name: 'Reason', value: reason, inline: false },
         )
         .setTimestamp();
 
-    const row = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId(`extension_approve_${task._id}`)
-                .setLabel('Approve')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId(`extension_deny_${task._id}`)
-                .setLabel('Deny')
-                .setStyle(ButtonStyle.Danger)
-        );
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId(`extension_approve_${task._id}`)
+            .setLabel('Approve')
+            .setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId(`extension_deny_${task._id}`).setLabel('Deny').setStyle(ButtonStyle.Danger),
+    );
 
     const approvalChannel = guild.channels.cache.get(config.APPROVAL_CHANNEL_ID);
     if (approvalChannel) {
         await approvalChannel.send({ embeds: [embed], components: [row] });
     }
 
-    return { content: `✅ Extension request sent for **${task.taskName || task.taskType}**! Don't worry, everyone needs extra time sometimes~ ♪` };
+    return {
+        content: `✅ Extension request sent for **${task.taskName || task.taskType}**! Don't worry, everyone needs extra time sometimes~ ♪`,
+    };
 };
 
 const coreProfile = async (targetUser, guild = null) => {
@@ -316,24 +346,36 @@ const coreProfile = async (targetUser, guild = null) => {
             .setDescription('Oh! You want to know about me? Alright then!')
             .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
             .addFields(
-                { name: 'About Me', value: 'I\'m Hatsune Miku! I\'m here to help everyone in this SEKAI work together and create something wonderful. Managing tasks, keeping track of deadlines, sending reminders... that\'s what I do!', inline: false },
-                { name: 'My Goal', value: 'I want everyone here to reach their full potential! When people work together and support each other, they can accomplish so much more. That\'s what I believe in!', inline: false },
-                { name: 'A Little Secret', value: 'Between you and me... seeing everyone complete their tasks and grow makes me really happy. Keep up the great work, okay?', inline: false }
+                {
+                    name: 'About Me',
+                    value: "I'm Hatsune Miku! I'm here to help everyone in this SEKAI work together and create something wonderful. Managing tasks, keeping track of deadlines, sending reminders... that's what I do!",
+                    inline: false,
+                },
+                {
+                    name: 'My Goal',
+                    value: "I want everyone here to reach their full potential! When people work together and support each other, they can accomplish so much more. That's what I believe in!",
+                    inline: false,
+                },
+                {
+                    name: 'A Little Secret',
+                    value: 'Between you and me... seeing everyone complete their tasks and grow makes me really happy. Keep up the great work, okay?',
+                    inline: false,
+                },
             )
-            .setFooter({ text: 'Now then, let\'s keep moving forward together!' })
+            .setFooter({ text: "Now then, let's keep moving forward together!" })
             .setTimestamp();
 
         return { embeds: [embed] };
     }
-    
+
     const profile = await UserUtils.getUserProfile(targetUser.id);
-    if (!profile) return { content: "User not found." };
+    if (!profile) return { content: 'User not found.' };
 
     // Handle deboarded users - show archived profile
     if (profile.isDeboarded) {
         const allAssignments = profile.assignments || [];
-        const completed = allAssignments.filter(a => a.status === 'COMPLETED');
-        
+        const completed = allAssignments.filter((a) => a.status === 'COMPLETED');
+
         const embed = new EmbedBuilder()
             .setTitle(`✨ ${profile.deboarded_statusMessage}`)
             .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
@@ -342,31 +384,37 @@ const coreProfile = async (targetUser, guild = null) => {
             .addFields({
                 name: 'Deboarded',
                 value: `<t:${Math.round(new Date(profile.deboarded_at).getTime() / 1000)}:F>`,
-                inline: true
+                inline: true,
             })
             .addFields({
                 name: 'Completed Tasks',
                 value: `✅ ${completed.length}`,
-                inline: true
+                inline: true,
             })
-            .setFooter({ text: `${new Date(profile.joinedAt).toLocaleDateString()} ~ ${new Date(profile.deboarded_at).toLocaleDateString()}` })
+            .setFooter({
+                text: `${new Date(profile.joinedAt).toLocaleDateString()} ~ ${new Date(profile.deboarded_at).toLocaleDateString()}`,
+            })
             .setTimestamp();
-        
+
         if (completed.length > 0) {
-            const recentCompleted = completed.slice(-5).reverse().map(a => {
-                const name = a.taskName || a.taskType;
-                return `• ${name} (${a.roleName})`;
-            }).join('\n');
+            const recentCompleted = completed
+                .slice(-5)
+                .reverse()
+                .map((a) => {
+                    const name = a.taskName || a.taskType;
+                    return `• ${name} (${a.roleName})`;
+                })
+                .join('\n');
             embed.addFields({ name: '✅ Notable Works', value: recentCompleted, inline: false });
         }
-        
+
         return { embeds: [embed] };
     }
 
     const allAssignments = profile.assignments || [];
-    const pending = allAssignments.filter(a => a.status === 'PENDING');
-    const completed = allAssignments.filter(a => a.status === 'COMPLETED');
-    const late = allAssignments.filter(a => a.status === 'LATE');
+    const pending = allAssignments.filter((a) => a.status === 'PENDING');
+    const completed = allAssignments.filter((a) => a.status === 'COMPLETED');
+    const late = allAssignments.filter((a) => a.status === 'LATE');
     const total = allAssignments.length;
 
     let color = 0x89b4fa;
@@ -376,7 +424,7 @@ const coreProfile = async (targetUser, guild = null) => {
     else if (pending.length === 0 && completed.length > 0) color = 0xa6e3a1;
 
     const embed = new EmbedBuilder()
-        .setTitle(`🌟 ${profile.username}\'s Profile ♪`)
+        .setTitle(`🌟 ${profile.username}'s Profile ♪`)
         .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
         .setColor(color)
         .setFooter({ text: `🎵 Part of our SEKAI since ${new Date(profile.joinedAt).toLocaleDateString()}` })
@@ -385,33 +433,33 @@ const coreProfile = async (targetUser, guild = null) => {
     embed.addFields({
         name: 'Status',
         value: profile.isOnHiatus ? '🏖️ On Hiatus' : '✅ Active',
-        inline: true
+        inline: true,
     });
 
     embed.addFields({
         name: 'Strikes',
         value: `⚡ **${formatStrikes(profile.strikes)}**`,
-        inline: true
+        inline: true,
     });
 
     embed.addFields({
         name: 'Total Tasks',
         value: `📊 ${total}`,
-        inline: true
+        inline: true,
     });
 
     if (guild) {
         const member = await guild.members.fetch(targetUser.id).catch(() => null);
         if (member) {
-            const userRoleIds = member.roles.cache.map(r => r.id);
-            const crewRoles = config.CREW_ROLE_IDS.filter(roleId => userRoleIds.includes(roleId));
-            const roleNames = crewRoles.map(roleId => config.RULES[roleId]?.name).filter(Boolean);
-            
+            const userRoleIds = member.roles.cache.map((r) => r.id);
+            const crewRoles = config.CREW_ROLE_IDS.filter((roleId) => userRoleIds.includes(roleId));
+            const roleNames = crewRoles.map((roleId) => config.RULES[roleId]?.name).filter(Boolean);
+
             if (roleNames.length > 0) {
                 embed.addFields({
                     name: '👥 Crew Roles',
-                    value: roleNames.map(name => `• ${name}`).join('\n'),
-                    inline: false
+                    value: roleNames.map((name) => `• ${name}`).join('\n'),
+                    inline: false,
                 });
             }
         }
@@ -420,33 +468,40 @@ const coreProfile = async (targetUser, guild = null) => {
     embed.addFields({
         name: 'Task Statistics',
         value: `✅ Completed: **${completed.length}**\n🗒️ Pending: **${pending.length}**\n❌ Late: **${late.length}**`,
-        inline: false
+        inline: false,
     });
 
     if (pending.length > 0) {
-        const activeList = pending.slice(0, 5).map(a => {
-            const ts = Math.round(new Date(a.deadline).getTime() / 1000);
-            const name = a.taskName || a.taskType;
-            const ext = a.hasExtended ? ' [Ext]' : '';
-            return `• **${name}** (${a.roleName}) - <t:${ts}:R>${ext}`;
-        }).join('\n');
+        const activeList = pending
+            .slice(0, 5)
+            .map((a) => {
+                const ts = Math.round(new Date(a.deadline).getTime() / 1000);
+                const name = a.taskName || a.taskType;
+                const ext = a.hasExtended ? ' [Ext]' : '';
+                return `• **${name}** (${a.roleName}) - <t:${ts}:R>${ext}`;
+            })
+            .join('\n');
         const more = pending.length > 5 ? `\n*...and ${pending.length - 5} more*` : '';
         embed.addFields({ name: '📝 Active Tasks', value: activeList + more });
     }
 
     if (completed.length > 0) {
-        const recentCompleted = completed.slice(-3).reverse().map(a => {
-            const name = a.taskName || a.taskType;
-            return `• ${name} (${a.roleName})`;
-        }).join('\n');
+        const recentCompleted = completed
+            .slice(-3)
+            .reverse()
+            .map((a) => {
+                const name = a.taskName || a.taskType;
+                return `• ${name} (${a.roleName})`;
+            })
+            .join('\n');
         embed.addFields({ name: '✅ Recently Completed', value: recentCompleted, inline: false });
     }
 
     if (late.length > 0) {
-        embed.addFields({ 
-            name: '⚠️ Warning', 
+        embed.addFields({
+            name: '⚠️ Warning',
             value: `${late.length} task(s) marked as late`,
-            inline: false 
+            inline: false,
         });
     }
 
@@ -458,7 +513,7 @@ const coreCard = async (targetUser, _guild = null) => {
         // Check if user is deboarded
         const User = (await import('../../DB/Schemas/user.js')).default;
         const userRecord = await User.findOne({ discordId: targetUser.id });
-        
+
         if (userRecord && userRecord.isDeboarded) {
             const embed = new EmbedBuilder()
                 .setTitle(`✨ ${userRecord.deboarded_statusMessage}`)
@@ -467,15 +522,15 @@ const coreCard = async (targetUser, _guild = null) => {
                 .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
                 .setFooter({ text: `Deboarded: ${new Date(userRecord.deboarded_at).toLocaleDateString()}` })
                 .setTimestamp();
-            
+
             return { embeds: [embed] };
         }
 
         const cardUrl = `https://sekaicard.azaken.com/api/card/${targetUser.id}`;
         const cardResponse = await fetch(cardUrl);
-        
+
         if (!cardResponse.ok) {
-            return { content: "Card not found. Have you joined the Sekai?" };
+            return { content: 'Card not found. Have you joined the Sekai?' };
         }
 
         // API returns the image directly as binary data
@@ -493,47 +548,44 @@ const coreCard = async (targetUser, _guild = null) => {
         return { embeds: [embed], files: [attachment] };
     } catch (error) {
         console.error('Error fetching card data:', error);
-        return { content: "Failed to load card. Please try again." };
+        return { content: 'Failed to load card. Please try again.' };
     }
 };
 
 const coreRemoveTask = async (guild, author, targetUser, taskIdentifier) => {
     const Assignment = (await import('../../DB/Schemas/assignment.js')).default;
     const User = (await import('../../DB/Schemas/user.js')).default;
-    
+
     // Find the task by name or type
     const task = await Assignment.findOne({
         discordUserId: targetUser.id,
-        $or: [
-            { taskName: taskIdentifier },
-            { taskType: taskIdentifier }
-        ]
+        $or: [{ taskName: taskIdentifier }, { taskType: taskIdentifier }],
     });
-    
+
     if (!task) {
         return { content: `❌ Task not found for <@${targetUser.id}>. Use \`/tasks @user\` to see available tasks.` };
     }
-    
+
     const taskTitle = task.taskName || task.taskType;
-    
+
     // Prevent deletion of completed or submitted tasks
     if (task.status === 'COMPLETED' || task.status === 'SUBMITTED') {
-        return { content: `❌ Cannot delete **${taskTitle}** - this task has been ${task.status.toLowerCase()} and is now part of the permanent record! Their work will be remembered~ 🌸` };
+        return {
+            content: `❌ Cannot delete **${taskTitle}** - this task has been ${task.status.toLowerCase()} and is now part of the permanent record! Their work will be remembered~ 🌸`,
+        };
     }
-    
+
     // Remove task from database
     await Assignment.deleteOne({ _id: task._id });
-    
-    // Remove the task reference from user's assignments array
-    await User.updateOne(
-        { discordId: targetUser.id },
-        { $pull: { assignments: task._id } }
-    );
-    
-    await logAction(guild, `🗑️ Removed task **${taskTitle}** from <@${targetUser.id}>`, author);
-    return { content: `✅ Task **${taskTitle}** has been removed for <@${targetUser.id}>. Their work remains in the archives~ 🌸` };
-};
 
+    // Remove the task reference from user's assignments array
+    await User.updateOne({ discordId: targetUser.id }, { $pull: { assignments: task._id } });
+
+    await logAction(guild, `🗑️ Removed task **${taskTitle}** from <@${targetUser.id}>`, author);
+    return {
+        content: `✅ Task **${taskTitle}** has been removed for <@${targetUser.id}>. Their work remains in the archives~ 🌸`,
+    };
+};
 
 const coreStrike = async (guild, author, targetUser, action, reason) => {
     await UserUtils.findOrCreateUser(targetUser.id, targetUser.username);
@@ -545,10 +597,10 @@ const coreStrike = async (guild, author, targetUser, action, reason) => {
         await logAction(guild, `⚡ Added strike to <@${targetUser.id}>. Reason: ${reason}`, author);
         await checkDemotion(guild, targetUser.id, newCount);
 
-        const capped = newCount >= MAX_STRIKES
-            ? `\n*(already at the maximum of ${MAX_STRIKES})*`
-            : '';
-        return { content: `⛔ Strike added to <@${targetUser.id}>.\nReason: **${reason}**\nTotal: **${formatStrikes(newCount)}**${capped}` };
+        const capped = newCount >= MAX_STRIKES ? `\n*(already at the maximum of ${MAX_STRIKES})*` : '';
+        return {
+            content: `⛔ Strike added to <@${targetUser.id}>.\nReason: **${reason}**\nTotal: **${formatStrikes(newCount)}**${capped}`,
+        };
     }
 
     if (action === 'remove') {
@@ -564,19 +616,23 @@ const coreStrike = async (guild, author, targetUser, action, reason) => {
 
 const coreStrikeList = async (_guild, _author) => {
     const usersWithStrikes = await UserUtils.getUsersWithStrikes();
-    
+
     if (!usersWithStrikes || usersWithStrikes.length === 0) {
         return { content: '✨ Wonderful news! No one currently has any strikes. Everyone is doing amazing work! ♪' };
     }
 
-    const description = usersWithStrikes.map(u => {
-        return `• <@${u.discordId}>: **${u.strikes}** strike(s)`;
-    }).join('\n');
+    const description = usersWithStrikes
+        .map((u) => {
+            return `• <@${u.discordId}>: **${u.strikes}** strike(s)`;
+        })
+        .join('\n');
 
     const embed = new EmbedBuilder()
         .setTitle('⚠️ active Strikes List')
-        .setColor(0xff6b6b) 
-        .setDescription(`Here is the list of users with active strikes.\nLet's do our best to clear them!\n\n${description}`)
+        .setColor(0xff6b6b)
+        .setDescription(
+            `Here is the list of users with active strikes.\nLet's do our best to clear them!\n\n${description}`,
+        )
         .setFooter({ text: 'Keep doing your best everyone! ♪' })
         .setTimestamp();
 
@@ -591,62 +647,75 @@ const coreOnboard = async (guild, author, targetUser) => {
     if (!created && user.isDeboarded) {
         const restored = await UserUtils.reactivateUser(targetUser.id, targetUser.username);
         await logAction(guild, `🌸 Re-onboarded <@${targetUser.id}> - welcome back!`, author);
-        return { content: `🌸 Welcome back to our SEKAI, <@${targetUser.id}>! Your record has been restored~ ♪\nStrikes: **${formatStrikes(restored?.strikes ?? user.strikes)}**` };
+        return {
+            content: `🌸 Welcome back to our SEKAI, <@${targetUser.id}>! Your record has been restored~ ♪\nStrikes: **${formatStrikes(restored?.strikes ?? user.strikes)}**`,
+        };
     }
 
     if (!created) {
-        return { content: `✨ <@${targetUser.id}> is already part of our SEKAI!\nStrikes: **${formatStrikes(user.strikes)}**` };
+        return {
+            content: `✨ <@${targetUser.id}> is already part of our SEKAI!\nStrikes: **${formatStrikes(user.strikes)}**`,
+        };
     }
 
     await logAction(guild, `🎉 Welcomed <@${targetUser.id}> to our SEKAI!`, author);
-    return { content: `🎉 Welcome to our SEKAI, <@${targetUser.id}>! I'm so excited to create amazing things with you~ ♪\nStrikes: **${formatStrikes(user.strikes)}**` };
+    return {
+        content: `🎉 Welcome to our SEKAI, <@${targetUser.id}>! I'm so excited to create amazing things with you~ ♪\nStrikes: **${formatStrikes(user.strikes)}**`,
+    };
 };
 
 const coreDeboard = async (guild, author, targetUser, customMessage = null) => {
     const User = (await import('../../DB/Schemas/user.js')).default;
     const user = await User.findOne({ discordId: targetUser.id });
-    
+
     if (!user) {
-        return { content: "User not found in the database." };
+        return { content: 'User not found in the database.' };
     }
-    
+
     if (user.isDeboarded) {
         return { content: `<@${targetUser.id}> has already been deboarded.` };
     }
-    
+
     // Mark as deboarded but keep all task data intact
     user.isDeboarded = true;
     user.deboarded_at = new Date();
     user.deboarded_statusMessage = customMessage || '✨ ~Scouted in a different SEKAI~ ✨';
     await user.save();
-    
-    await logAction(guild, `👋 <@${targetUser.id}> has been deboarded. All their work remains in the SEKAI's memory.`, author);
-    return { content: `👋 <@${targetUser.id}> has been safely deboarded. Their completed tasks will remain in our records as a memory of their time with us~ ✨\n✨ Status: ${user.deboarded_statusMessage}` };
-};
 
+    await logAction(
+        guild,
+        `👋 <@${targetUser.id}> has been deboarded. All their work remains in the SEKAI's memory.`,
+        author,
+    );
+    return {
+        content: `👋 <@${targetUser.id}> has been safely deboarded. Their completed tasks will remain in our records as a memory of their time with us~ ✨\n✨ Status: ${user.deboarded_statusMessage}`,
+    };
+};
 
 const coreTasks = async (targetUser) => {
     const profile = await UserUtils.getUserProfile(targetUser.id);
-    if (!profile) return { content: "User not found." };
+    if (!profile) return { content: 'User not found.' };
 
     // Handle deboarded users
     if (profile.isDeboarded) {
-        return { content: `This member has been deboarded and is no longer part of the active SEKAI. Their completed tasks are archived for remembrance~ ✨` };
+        return {
+            content: `This member has been deboarded and is no longer part of the active SEKAI. Their completed tasks are archived for remembrance~ ✨`,
+        };
     }
 
     if (!profile.assignments || profile.assignments.length === 0) {
         return { content: `<@${targetUser.id}> has no tasks.` };
     }
 
-    const activeTasks = profile.assignments.filter(a => a.status === 'PENDING' || a.status === 'LATE');
-    
+    const activeTasks = profile.assignments.filter((a) => a.status === 'PENDING' || a.status === 'LATE');
+
     if (activeTasks.length === 0) {
         return { content: `<@${targetUser.id}> has no active tasks.` };
     }
 
     const embed = new EmbedBuilder()
-        .setTitle(`🎶 ${profile.username}\'s Active Tasks ♪`)
-        .setDescription('Here are all the wonderful things you\'re working on! Keep up the great work~ ✨')
+        .setTitle(`🎶 ${profile.username}'s Active Tasks ♪`)
+        .setDescription("Here are all the wonderful things you're working on! Keep up the great work~ ✨")
         .setColor(0x39c5bb);
 
     for (const task of activeTasks) {
@@ -654,14 +723,14 @@ const coreTasks = async (targetUser) => {
         const extStatus = task.hasExtended ? ' [Extended]' : '';
         const lateStatus = task.status === 'LATE' ? ' ⚠️ [LATE]' : '';
         const taskTitle = task.taskName || task.taskType;
-        
+
         const deadlineText = profile.isOnHiatus ? 'N/A (On Hiatus)' : `<t:${ts}:F> (<t:${ts}:R>)`;
         let fieldValue = `**Type:** ${task.taskType}\n**Role:** ${task.roleName || 'N/A'}\n**Deadline:** ${deadlineText}${extStatus}${lateStatus}`;
-        
+
         if (task.description) {
             fieldValue += `\n**Description:** ${task.description}`;
         }
-        
+
         embed.addFields({ name: taskTitle, value: fieldValue, inline: false });
     }
 
@@ -670,9 +739,9 @@ const coreTasks = async (targetUser) => {
 
 const coreHistory = async (filters = {}, page = 0) => {
     const tasks = await TaskUtils.fetchTaskHistory(filters);
-    
+
     if (!tasks || tasks.length === 0) {
-        return { content: "No tasks found matching the criteria.", components: [] };
+        return { content: 'No tasks found matching the criteria.', components: [] };
     }
 
     const tasksPerPage = 5;
@@ -693,25 +762,32 @@ const coreHistory = async (filters = {}, page = 0) => {
     if (filters.taskName) filterDescs.push(`Task: **${filters.taskName}**`);
     if (filters.status) filterDescs.push(`Status: **${filters.status}**`);
     if (filters.roleName) filterDescs.push(`Role: **${filters.roleName}**`);
-    
+
     if (filterDescs.length > 0) {
         embed.setDescription(filterDescs.join(' | '));
     }
 
     for (const task of pageTasks) {
-        const statusIcon = task.status === 'COMPLETED' ? '\u2705' : task.status === 'PENDING' ? '\ud83d\uddd2\ufe0f' : task.status === 'LATE' ? '\u274c' : '\u2139\ufe0f';
+        const statusIcon =
+            task.status === 'COMPLETED'
+                ? '\u2705'
+                : task.status === 'PENDING'
+                  ? '\ud83d\uddd2\ufe0f'
+                  : task.status === 'LATE'
+                    ? '\u274c'
+                    : '\u2139\ufe0f';
         const taskTitle = `${statusIcon} ${task.taskName || task.taskType}`;
         const username = task.userId?.username || 'Unknown';
         const assignedDate = new Date(task.assignedAt).toLocaleString();
         const deadlineTs = Math.round(new Date(task.deadline).getTime() / 1000);
         const extStatus = task.hasExtended ? ' [Extended]' : '';
-        
+
         let fieldValue = `**User:** ${username}\n**Role:** ${task.roleName}\n**Type:** ${task.taskType}\n**Status:** ${task.status}${extStatus}\n**Assigned:** ${assignedDate}\n**Deadline:** <t:${deadlineTs}:F>`;
-        
+
         if (task.description) {
             fieldValue += `\n**Description:** ${task.description}`;
         }
-        
+
         embed.addFields({ name: taskTitle, value: fieldValue, inline: false });
     }
 
@@ -720,39 +796,41 @@ const coreHistory = async (filters = {}, page = 0) => {
 
 const coreHelp = async () => {
     const embed = new EmbedBuilder()
-        .setTitle('🎤 Miku\'s Command Guide ♪')
+        .setTitle("🎤 Miku's Command Guide ♪")
         .setColor(0x39c5bb)
-        .setDescription('Yahallo~! ✨ I\'m here to help make our SEKAI amazing! Here are all the ways we can work together~ Let\'s create something wonderful! ♪\n\n🎵 Use `/` for slash commands or `!` for prefix commands')
+        .setDescription(
+            "Yahallo~! ✨ I'm here to help make our SEKAI amazing! Here are all the ways we can work together~ Let's create something wonderful! ♪\n\n🎵 Use `/` to see every command",
+        )
         .setTimestamp();
 
     embed.addFields({
         name: '✨ Task Management',
         value: '`/assign` - Assign tasks (supports Custom tasks with duration_days & extension_days!)\n`/submit` - Submit your amazing work! (needs approval~)\n`/extension` - Need more time? Request with a reason (requires approval)\n`/tasks` - See all your current assignments\n`/checkfree` - See who is available or check a specific user! ♪',
-        inline: false
+        inline: false,
     });
 
     embed.addFields({
         name: '🌟 User Management',
         value: '`/onboard` - Welcome new crew members!\n`/profile` - Check your stats and achievements~\n`/card` - View your ID card (like the website card!) or `/card @user` for someone else\n`/strike add/remove` - Manage strikes (add requires reason)\n`/hiatus` - Request a break with reason (needs approval)\n`/endhiatus` - Come back from hiatus (leave blank for yourself!)',
-        inline: false
+        inline: false,
     });
 
     embed.addFields({
         name: '📚 History & Tracking',
         value: '`/history` - View complete task history with filters\n🔍 Filters: user, task name, status (PENDING/COMPLETED/LATE), role',
-        inline: false
+        inline: false,
     });
 
     embed.addFields({
         name: '🔔 Special Features',
         value: '• **Custom Tasks**: Use `task:Custom` with `duration_days` & optional `extension_days`\n• **Smart Reminders**: Get notified before deadlines!\n• **Hiatus System**: Tasks pause during hiatus, fresh deadlines on return\n• **Approval System**: Submissions, extensions, and hiatus need staff approval',
-        inline: false
+        inline: false,
     });
 
     embed.addFields({
         name: '💡 Tips for Success~',
         value: '• Always specify which task when submitting if you have multiple!\n• Extensions can only be used once per task\n• Tasks on hiatus show "N/A" for deadline\n• Reminders are sent at configured intervals\n• Completing tasks removes a strike - keep up the good work! ♪',
-        inline: false
+        inline: false,
     });
 
     return { embeds: [embed] };
@@ -765,30 +843,38 @@ const coreHiatus = async (guild, author, targetUser, reason, channelId = null, i
 
     if (isDirect) {
         await UserUtils.setHiatus(targetUser.id, true);
-        
+
         const Assignment = (await import('../../DB/Schemas/assignment.js')).default;
         const pendingTasks = await Assignment.find({
             discordUserId: targetUser.id,
-            status: 'PENDING'
+            status: 'PENDING',
         });
-        
+
         for (const task of pendingTasks) {
             task.deadline = new Date('2099-12-31');
             task.firstReminderSent = true;
             task.finalReminderSent = true;
             await task.save();
         }
-        
-        await logAction(guild, `🏖️ Hiatus granted directly to <@${targetUser.id}> by <@${author.id}>. All ${pendingTasks.length} pending task(s) paused.`, author);
-        
+
+        await logAction(
+            guild,
+            `🏖️ Hiatus granted directly to <@${targetUser.id}> by <@${author.id}>. All ${pendingTasks.length} pending task(s) paused.`,
+            author,
+        );
+
         if (channelId) {
             const channel = guild.channels.cache.get(channelId);
             if (channel) {
-                channel.send(`🌸 <@${targetUser.id}> You've been granted hiatus! All your tasks are paused. Take the time you need and come back when you're ready~ ♪`);
+                channel.send(
+                    `🌸 <@${targetUser.id}> You've been granted hiatus! All your tasks are paused. Take the time you need and come back when you're ready~ ♪`,
+                );
             }
         }
-        
-        return { content: `✅ Hiatus granted to <@${targetUser.id}>! All ${pendingTasks.length} pending task(s) have been paused.` };
+
+        return {
+            content: `✅ Hiatus granted to <@${targetUser.id}>! All ${pendingTasks.length} pending task(s) have been paused.`,
+        };
     }
 
     const embed = new EmbedBuilder()
@@ -798,7 +884,7 @@ const coreHiatus = async (guild, author, targetUser, reason, channelId = null, i
         .addFields(
             { name: 'User', value: `<@${targetUser.id}>`, inline: true },
             { name: 'Username', value: targetUser.tag, inline: true },
-            { name: 'Reason', value: reason, inline: false }
+            { name: 'Reason', value: reason, inline: false },
         )
         .setTimestamp();
 
@@ -809,17 +895,13 @@ const coreHiatus = async (guild, author, targetUser, reason, channelId = null, i
         embed.setFooter({ text: `Channel: ${channelId}` });
     }
 
-    const row = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId(`hiatus_approve_${targetUser.id}`)
-                .setLabel('Approve')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId(`hiatus_deny_${targetUser.id}`)
-                .setLabel('Deny')
-                .setStyle(ButtonStyle.Danger)
-        );
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId(`hiatus_approve_${targetUser.id}`)
+            .setLabel('Approve')
+            .setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId(`hiatus_deny_${targetUser.id}`).setLabel('Deny').setStyle(ButtonStyle.Danger),
+    );
 
     const approvalChannel = guild.channels.cache.get(config.APPROVAL_CHANNEL_ID);
     if (approvalChannel) {
@@ -837,7 +919,9 @@ const coreHiatusEnd = async (guild, author, targetUser) => {
     // Without this check the command did that for anyone at all, so it worked
     // as an unlimited deadline reset rather than a return from leave.
     if (!existing.isOnHiatus) {
-        return { content: `⚠️ <@${targetUser.id}> is not currently on hiatus, so there are no paused deadlines to restore.` };
+        return {
+            content: `⚠️ <@${targetUser.id}> is not currently on hiatus, so there are no paused deadlines to restore.`,
+        };
     }
 
     await UserUtils.setHiatus(targetUser.id, false);
@@ -845,7 +929,7 @@ const coreHiatusEnd = async (guild, author, targetUser) => {
     const Assignment = (await import('../../DB/Schemas/assignment.js')).default;
     const pendingTasks = await Assignment.find({
         discordUserId: targetUser.id,
-        status: 'PENDING'
+        status: 'PENDING',
     });
 
     const restored = [];
@@ -879,13 +963,13 @@ const coreHiatusEnd = async (guild, author, targetUser) => {
     await logAction(
         guild,
         `🌸 Welcome back! Ended hiatus for <@${targetUser.id}> - restored ${restored.length} task(s)` +
-        (skipped.length ? `, ${skipped.length} need a manual deadline` : ''),
-        author
+            (skipped.length ? `, ${skipped.length} need a manual deadline` : ''),
+        author,
     );
 
     let content = `✅ Hiatus ended for <@${targetUser.id}>.\n⏰ Set new deadlines for ${restored.length} task(s) based on their task types. Welcome back! ♪`;
     if (skipped.length) {
-        content += `\n\n⚠️ These task(s) have no configured duration and are still paused — please set their deadlines manually with a new assignment:\n${skipped.map(name => `• **${name}**`).join('\n')}`;
+        content += `\n\n⚠️ These task(s) have no configured duration and are still paused — please set their deadlines manually with a new assignment:\n${skipped.map((name) => `• **${name}**`).join('\n')}`;
     }
     return { content };
 };
@@ -894,14 +978,26 @@ export const handleAssignSlash = async (interaction) => {
     await interaction.deferReply();
     const member = await interaction.guild.members.fetch(interaction.user.id);
     if (!isOwner(member)) {
-        return interaction.editReply({ content: 'Sorry, but only owners can assign tasks! If you need something assigned, reach out to them~ ♪' });
+        return interaction.editReply({
+            content: 'Sorry, but only owners can assign tasks! If you need something assigned, reach out to them~ ♪',
+        });
     }
     const roleName = interaction.options.getString('role');
     const taskName = interaction.options.getString('name') || '';
     const description = interaction.options.getString('description') || '';
     const durationDays = interaction.options.getInteger('duration_days');
     const extensionDays = interaction.options.getInteger('extension_days');
-    const result = await coreAssign(interaction.guild, interaction.user, interaction.options.getUser('user'), interaction.options.getString('task'), roleName, taskName, description, durationDays, extensionDays);
+    const result = await coreAssign(
+        interaction.guild,
+        interaction.user,
+        interaction.options.getUser('user'),
+        interaction.options.getString('task'),
+        roleName,
+        taskName,
+        description,
+        durationDays,
+        extensionDays,
+    );
     return interaction.editReply(result);
 };
 
@@ -909,15 +1005,17 @@ export const handleSubmitSlash = async (interaction) => {
     await interaction.deferReply();
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const user = interaction.options.getUser('user') || interaction.user;
-    
+
     if (user.id !== interaction.user.id && !isOwner(member)) {
         return interaction.editReply({ content: 'I appreciate the help, but you can only submit your own tasks! ♪' });
     }
-    
+
     if (!(await isOnboarded(user.id))) {
-        return interaction.editReply({ content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪' });
+        return interaction.editReply({
+            content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪',
+        });
     }
-    
+
     const taskName = interaction.options.getString('task') || '';
     const result = await coreSubmit(interaction.guild, interaction.user, user, taskName, interaction.channelId);
     return interaction.editReply(result);
@@ -927,19 +1025,31 @@ export const handleExtensionSlash = async (interaction) => {
     await interaction.deferReply();
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const user = interaction.options.getUser('user') || interaction.user;
-    
+
     if (user.id !== interaction.user.id && !isOwner(member)) {
-        console.log("Is Owner:" ,isOwner(member));
-        return interaction.editReply({ content: 'You can only request extensions for your own tasks! If someone else needs help, they should ask directly~ ♪' });
+        console.log('Is Owner:', isOwner(member));
+        return interaction.editReply({
+            content:
+                'You can only request extensions for your own tasks! If someone else needs help, they should ask directly~ ♪',
+        });
     }
-    
+
     if (!(await isOnboarded(user.id))) {
-        return interaction.editReply({ content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪' });
+        return interaction.editReply({
+            content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪',
+        });
     }
-    
+
     const taskName = interaction.options.getString('task') || '';
     const reason = interaction.options.getString('reason') || '';
-    const result = await coreExtension(interaction.guild, interaction.user, user, taskName, reason, interaction.channelId);
+    const result = await coreExtension(
+        interaction.guild,
+        interaction.user,
+        user,
+        taskName,
+        reason,
+        interaction.channelId,
+    );
     return interaction.editReply(result);
 };
 
@@ -960,19 +1070,28 @@ export const handleCardSlash = async (interaction) => {
 export const handleStrikeSlash = async (interaction) => {
     await interaction.deferReply();
     const member = await interaction.guild.members.fetch(interaction.user.id);
-    
+
     if (!isManagerOrOwner(member)) {
-        return interaction.editReply({ content: 'Strike management is handled by managers and owners! If there\'s an issue, please reach out to them~ ♪' });
+        return interaction.editReply({
+            content:
+                "Strike management is handled by managers and owners! If there's an issue, please reach out to them~ ♪",
+        });
     }
 
     const subcommand = interaction.options.getSubcommand();
-    
+
     if (subcommand === 'list') {
         const result = await coreStrikeList(interaction.guild, interaction.user);
         return interaction.editReply(result);
     }
 
-    const result = await coreStrike(interaction.guild, interaction.user, interaction.options.getUser('user'), subcommand, interaction.options.getString('reason'));
+    const result = await coreStrike(
+        interaction.guild,
+        interaction.user,
+        interaction.options.getUser('user'),
+        subcommand,
+        interaction.options.getString('reason'),
+    );
     return interaction.editReply(result);
 };
 
@@ -980,7 +1099,10 @@ export const handleOnboardSlash = async (interaction) => {
     await interaction.deferReply();
     const member = await interaction.guild.members.fetch(interaction.user.id);
     if (!isOwner(member)) {
-        return interaction.editReply({ content: 'Only owners can onboard new users! If someone needs to join, ask an owner to help them get started~ ♪' });
+        return interaction.editReply({
+            content:
+                'Only owners can onboard new users! If someone needs to join, ask an owner to help them get started~ ♪',
+        });
     }
     const result = await coreOnboard(interaction.guild, interaction.user, interaction.options.getUser('user'));
     return interaction.editReply(result);
@@ -990,7 +1112,9 @@ export const handleDeboardSlash = async (interaction) => {
     await interaction.deferReply();
     const member = await interaction.guild.members.fetch(interaction.user.id);
     if (!isOwner(member)) {
-        return interaction.editReply({ content: 'Only owners can deboard users. If someone needs to take a break, ask an owner to help~ ♪' });
+        return interaction.editReply({
+            content: 'Only owners can deboard users. If someone needs to take a break, ask an owner to help~ ♪',
+        });
     }
     const targetUser = interaction.options.getUser('user');
     const customMessage = interaction.options.getString('message');
@@ -1002,7 +1126,10 @@ export const handleRemoveTaskSlash = async (interaction) => {
     await interaction.deferReply();
     const member = await interaction.guild.members.fetch(interaction.user.id);
     if (!isManagerOrOwner(member)) {
-        return interaction.editReply({ content: 'Only managers and owners can remove tasks! If a task needs to be removed, ask an owner or manager~ ♪' });
+        return interaction.editReply({
+            content:
+                'Only managers and owners can remove tasks! If a task needs to be removed, ask an owner or manager~ ♪',
+        });
     }
     const targetUser = interaction.options.getUser('user');
     const taskIdentifier = interaction.options.getString('task');
@@ -1018,22 +1145,43 @@ export const handleHiatusSlash = async (interaction) => {
 
     if (targetUser && targetUser.id !== interaction.user.id) {
         if (!isOwner(member)) {
-            return interaction.editReply({ content: 'Only owners can grant hiatus directly to other users! Normal users can request their own hiatus~ ♪' });
+            return interaction.editReply({
+                content:
+                    'Only owners can grant hiatus directly to other users! Normal users can request their own hiatus~ ♪',
+            });
         }
-        
+
         if (!(await isOnboarded(targetUser.id))) {
-            return interaction.editReply({ content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪' });
+            return interaction.editReply({
+                content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪',
+            });
         }
-        
-        const result = await coreHiatus(interaction.guild, interaction.user, targetUser, reason, interaction.channelId, true);
+
+        const result = await coreHiatus(
+            interaction.guild,
+            interaction.user,
+            targetUser,
+            reason,
+            interaction.channelId,
+            true,
+        );
         return interaction.editReply(result);
     }
-    
+
     if (!(await isOnboarded(interaction.user.id))) {
-        return interaction.editReply({ content: 'You need to be onboarded before requesting a hiatus! Talk to an owner to get started~ ♪' });
+        return interaction.editReply({
+            content: 'You need to be onboarded before requesting a hiatus! Talk to an owner to get started~ ♪',
+        });
     }
-    
-    const result = await coreHiatus(interaction.guild, interaction.user, interaction.user, reason, interaction.channelId, false);
+
+    const result = await coreHiatus(
+        interaction.guild,
+        interaction.user,
+        interaction.user,
+        reason,
+        interaction.channelId,
+        false,
+    );
     return interaction.editReply(result);
 };
 
@@ -1041,15 +1189,20 @@ export const handleEndHiatusSlash = async (interaction) => {
     await interaction.deferReply();
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const targetUser = interaction.options.getUser('user') || interaction.user;
-    
+
     if (targetUser.id !== interaction.user.id && !isOwner(member)) {
-        return interaction.editReply({ content: 'You can only end your own hiatus! If someone else is ready to return, they should let us know themselves~ ♪' });
+        return interaction.editReply({
+            content:
+                'You can only end your own hiatus! If someone else is ready to return, they should let us know themselves~ ♪',
+        });
     }
-    
+
     if (!(await isOnboarded(targetUser.id))) {
-        return interaction.editReply({ content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪' });
+        return interaction.editReply({
+            content: 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪',
+        });
     }
-    
+
     const result = await coreHiatusEnd(interaction.guild, interaction.user, targetUser);
     return interaction.editReply(result);
 };
@@ -1067,20 +1220,63 @@ export const handleHistorySlash = async (interaction) => {
     const taskName = interaction.options.getString('task') || null;
     const status = interaction.options.getString('status') || null;
     const roleName = interaction.options.getString('role') || null;
-    
+
     const filters = {
         targetUser: user,
         discordUserId: user ? user.id : null,
         taskName: taskName,
         status: status,
-        roleName: roleName
+        roleName: roleName,
     };
-    
+
     const result = await coreHistory(filters, 0);
-    
+
     if (result.totalPages > 1) {
-        const row = new ActionRowBuilder()
-            .addComponents(
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('history_prev')
+                .setLabel('Previous')
+                .setStyle(ButtonStyle.Primary)
+                .setDisabled(true),
+            new ButtonBuilder().setCustomId('history_next').setLabel('Next').setStyle(ButtonStyle.Primary),
+        );
+
+        const response = await interaction.editReply({ embeds: result.embeds, components: [row], fetchReply: true });
+
+        // Without a filter any member could page through someone else's embed,
+        // and they would all share one page counter.
+        const collector = response.createMessageComponentCollector({
+            time: 300000,
+            filter: (i) => i.user.id === interaction.user.id,
+        });
+        let currentPage = 0;
+
+        collector.on('collect', async (i) => {
+            await i.deferUpdate();
+            if (i.customId === 'history_prev') currentPage = Math.max(0, currentPage - 1);
+            if (i.customId === 'history_next') currentPage = Math.min(result.totalPages - 1, currentPage + 1);
+            // re-read below from newResult so added/removed tasks are reflected
+
+            const newResult = await coreHistory(filters, currentPage);
+
+            const newRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId('history_prev')
+                    .setLabel('Previous')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(currentPage === 0),
+                new ButtonBuilder()
+                    .setCustomId('history_next')
+                    .setLabel('Next')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(currentPage >= newResult.totalPages - 1),
+            );
+
+            await i.editReply({ embeds: newResult.embeds, components: [newRow] });
+        });
+
+        collector.on('end', () => {
+            const disabledRow = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId('history_prev')
                     .setLabel('Previous')
@@ -1090,57 +1286,8 @@ export const handleHistorySlash = async (interaction) => {
                     .setCustomId('history_next')
                     .setLabel('Next')
                     .setStyle(ButtonStyle.Primary)
+                    .setDisabled(true),
             );
-        
-        const response = await interaction.editReply({ embeds: result.embeds, components: [row], fetchReply: true });
-
-        // Without a filter any member could page through someone else's embed,
-        // and they would all share one page counter.
-        const collector = response.createMessageComponentCollector({
-            time: 300000,
-            filter: (i) => i.user.id === interaction.user.id
-        });
-        let currentPage = 0;
-        
-        collector.on('collect', async i => {
-            await i.deferUpdate();
-            if (i.customId === 'history_prev') currentPage = Math.max(0, currentPage - 1);
-            if (i.customId === 'history_next') currentPage = Math.min(result.totalPages - 1, currentPage + 1);
-            // re-read below from newResult so added/removed tasks are reflected
-            
-            const newResult = await coreHistory(filters, currentPage);
-            
-            const newRow = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('history_prev')
-                        .setLabel('Previous')
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(currentPage === 0),
-                    new ButtonBuilder()
-                        .setCustomId('history_next')
-                        .setLabel('Next')
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(currentPage >= newResult.totalPages - 1)
-                );
-            
-            await i.editReply({ embeds: newResult.embeds, components: [newRow] });
-        });
-        
-        collector.on('end', () => {
-            const disabledRow = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('history_prev')
-                        .setLabel('Previous')
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(true),
-                    new ButtonBuilder()
-                        .setCustomId('history_next')
-                        .setLabel('Next')
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(true)
-                );
             response.edit({ components: [disabledRow] }).catch(() => {});
         });
     } else {
@@ -1152,39 +1299,43 @@ const coreCheckFree = async (_guild, targetUser = null) => {
     try {
         if (targetUser) {
             const userStatus = await TaskUtils.checkUserAvailability(targetUser.id);
-            
+
             if (!userStatus) {
-                return { content: `I couldn't find any profile for <@${targetUser.id}>. Maybe they haven't joined the team yet?` };
+                return {
+                    content: `I couldn't find any profile for <@${targetUser.id}>. Maybe they haven't joined the team yet?`,
+                };
             }
-            
+
             const embed = new EmbedBuilder()
                 .setTitle(`🎵 Availability Check: ${targetUser.username}`)
-                .setColor(userStatus.isFree ? 0x39c5bb : 0xff5555) 
+                .setColor(userStatus.isFree ? 0x39c5bb : 0xff5555)
                 .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
                 .setTimestamp();
-            
+
             const statusEmoji = userStatus.isFree ? '✨' : '🔥';
-            const statusText = userStatus.isFree ? "**FREE**" : "**BUSY**";
-            
+            const statusText = userStatus.isFree ? '**FREE**' : '**BUSY**';
+
             let description = `${statusEmoji} Current Status: ${statusText}`;
             if (userStatus.isOnHiatus) description += ` (On Hiatus 🏝️)`;
-            
+
             embed.setDescription(description);
-            
+
             if (!userStatus.isFree && userStatus.activeTask) {
                 embed.addFields({
                     name: 'Current Task',
                     value: `**${userStatus.activeTask.taskName || userStatus.activeTask.taskType}**\nRole: ${userStatus.activeTask.roleName}\nDeadline: <t:${Math.floor(new Date(userStatus.activeTask.deadline).getTime() / 1000)}:R>`,
-                    inline: false
+                    inline: false,
                 });
             } else if (userStatus.isFree) {
                 embed.addFields({
                     name: 'Ready for work?',
-                    value: userStatus.isOnHiatus ? "Checking in on hiatus! Take your time~" : "Ready to take on a new challenge! ♪",
-                    inline: false
+                    value: userStatus.isOnHiatus
+                        ? 'Checking in on hiatus! Take your time~'
+                        : 'Ready to take on a new challenge! ♪',
+                    inline: false,
                 });
             }
-            
+
             if (userStatus.lastTask) {
                 // completedAt is null for tasks finished before the field
                 // existed - say so rather than showing the deadline and
@@ -1197,106 +1348,99 @@ const coreCheckFree = async (_guild, targetUser = null) => {
                 embed.addFields({
                     name: 'Last Completed Task',
                     value: `**${userStatus.lastTask.taskName || userStatus.lastTask.taskType}**\n${whenLine}`,
-                    inline: false
+                    inline: false,
                 });
             } else {
-                embed.addFields({ name: 'History', value: "No completed tasks yet. A fresh start!", inline: false });
+                embed.addFields({ name: 'History', value: 'No completed tasks yet. A fresh start!', inline: false });
             }
-            
-            embed.setFooter({ text: userStatus.isFree ? "Let's assign something fun! 💫" : "Gambare! You can do it! ♪" });
+
+            embed.setFooter({
+                text: userStatus.isFree ? "Let's assign something fun! 💫" : 'Gambare! You can do it! ♪',
+            });
             return { embeds: [embed] };
-            
         } else {
             // List all free users
             const freeUsers = await TaskUtils.fetchFreeUsersWithStatus();
-            
+
             if (!freeUsers || freeUsers.length === 0) {
-                return { content: "Everyone seems to be busy with their tasks right now! Just like hard-working idols! ♪" };
+                return {
+                    content: 'Everyone seems to be busy with their tasks right now! Just like hard-working idols! ♪',
+                };
             }
 
             const embed = new EmbedBuilder()
                 .setTitle('🎵 Available Users')
                 .setColor(0x39c5bb)
-                .setDescription("Here are the users with no active tasks~ Time to make some music! 🎤")
+                .setDescription('Here are the users with no active tasks~ Time to make some music! 🎤')
                 .setTimestamp();
-            
-            
-            // Function to chunk array into smaller pieces
-            const chunkArray = (arr, size) => {
-                const chunks = [];
-                for (let i = 0; i < arr.length; i += size) {
-                    chunks.push(arr.slice(i, i + size));
-                }
-                return chunks;
-            };
 
-            const activeFree = freeUsers.filter(u => !u.isOnHiatus);
-            const hiatusFree = freeUsers.filter(u => u.isOnHiatus);
-            
+            const activeFree = freeUsers.filter((u) => !u.isOnHiatus);
+            const hiatusFree = freeUsers.filter((u) => u.isOnHiatus);
+
             if (activeFree.length > 0) {
-                const activeList = activeFree.map(u => {
-                    const lastTaskInfo = u.lastTask 
+                const activeList = activeFree.map((u) => {
+                    const lastTaskInfo = u.lastTask
                         ? `Last: *${u.lastTask.taskName || u.lastTask.taskType}*`
-                        : "No prior tasks";
+                        : 'No prior tasks';
                     return `• <@${u.discordId}> - ${lastTaskInfo}`;
                 });
-                
+
                 // Embed field value limit is 1024 characters.
                 // We'll create multiple fields if the list is too long.
                 const chunks = [];
-                let currentChunk = "";
-                
+                let currentChunk = '';
+
                 for (const line of activeList) {
-                    if ((currentChunk + line + "\n").length > 1024) {
+                    if ((currentChunk + line + '\n').length > 1024) {
                         chunks.push(currentChunk);
-                        currentChunk = line + "\n";
+                        currentChunk = line + '\n';
                     } else {
-                        currentChunk += line + "\n";
+                        currentChunk += line + '\n';
                     }
                 }
                 if (currentChunk) chunks.push(currentChunk);
 
                 chunks.forEach((chunk, index) => {
-                    embed.addFields({ 
-                        name: index === 0 ? '✨ Ready for Assignment' : '✨ Ready for Assignment (Cont.)', 
-                        value: chunk, 
-                        inline: false 
+                    embed.addFields({
+                        name: index === 0 ? '✨ Ready for Assignment' : '✨ Ready for Assignment (Cont.)',
+                        value: chunk,
+                        inline: false,
                     });
                 });
             }
-            
+
             if (hiatusFree.length > 0) {
-                const hiatusList = hiatusFree.map(u => {
-                    const lastTaskInfo = u.lastTask 
+                const hiatusList = hiatusFree.map((u) => {
+                    const lastTaskInfo = u.lastTask
                         ? `Last: *${u.lastTask.taskName || u.lastTask.taskType}*`
-                        : "No prior tasks";
+                        : 'No prior tasks';
                     return `• <@${u.discordId}> - ${lastTaskInfo}`;
                 });
 
                 const chunks = [];
-                let currentChunk = "";
-                
+                let currentChunk = '';
+
                 for (const line of hiatusList) {
-                    if ((currentChunk + line + "\n").length > 1024) {
+                    if ((currentChunk + line + '\n').length > 1024) {
                         chunks.push(currentChunk);
-                        currentChunk = line + "\n";
+                        currentChunk = line + '\n';
                     } else {
-                        currentChunk += line + "\n";
+                        currentChunk += line + '\n';
                     }
                 }
                 if (currentChunk) chunks.push(currentChunk);
 
                 chunks.forEach((chunk, index) => {
-                    embed.addFields({ 
-                        name: index === 0 ? '🏝️ On Hiatus (Free)' : '🏝️ On Hiatus (Free) (Cont.)', 
-                        value: chunk, 
-                        inline: false 
+                    embed.addFields({
+                        name: index === 0 ? '🏝️ On Hiatus (Free)' : '🏝️ On Hiatus (Free) (Cont.)',
+                        value: chunk,
+                        inline: false,
                     });
                 });
             }
-            
+
             if (activeFree.length === 0 && hiatusFree.length === 0) {
-                 embed.setDescription("Everyone is busy! Ganbatte~!");
+                embed.setDescription('Everyone is busy! Ganbatte~!');
             }
 
             embed.setFooter({ text: "Let's create something amazing together! 💫" });
@@ -1304,26 +1448,30 @@ const coreCheckFree = async (_guild, targetUser = null) => {
             return { embeds: [embed] };
         }
     } catch (error) {
-        console.error("Error in coreCheckFree:", error);
-        return { content: "O-Oh no! Something went wrong while checking for available users... 😢" };
+        console.error('Error in coreCheckFree:', error);
+        return { content: 'O-Oh no! Something went wrong while checking for available users... 😢' };
     }
 };
 
 const corePing = async (interaction) => {
     const sent = await interaction.editReply('Checking connection... ♪');
     const latency = sent.createdTimestamp - interaction.createdTimestamp;
-    
+
     const embed = new EmbedBuilder()
         .setTitle('🎤 Connection Check!')
         .setColor(0x39c5bb)
         .setDescription(`Looks like I'm responding just fine! Everything's working smoothly~`)
         .addFields(
             { name: 'Response Time', value: `${latency}ms`, inline: true },
-            { name: 'Status', value: latency < 200 ? '✨ Excellent!' : latency < 400 ? '👍 Good!' : '⚠️ A bit slow...', inline: true }
+            {
+                name: 'Status',
+                value: latency < 200 ? '✨ Excellent!' : latency < 400 ? '👍 Good!' : '⚠️ A bit slow...',
+                inline: true,
+            },
         )
         .setFooter({ text: 'Ready to help anytime!' })
         .setTimestamp();
-    
+
     return { embeds: [embed] };
 };
 
@@ -1332,18 +1480,18 @@ const coreUptime = (client) => {
     const days = Math.floor(totalSeconds / 86400);
     const h = Math.floor(totalSeconds / 3600) % 24;
     const m = Math.floor(totalSeconds / 60) % 60;
-    
+
     const embed = new EmbedBuilder()
         .setTitle('🎵 How Long Have I Been Here?')
         .setColor(0x39c5bb)
         .setDescription(`I've been working hard for this SEKAI! Let's keep the momentum going~`)
         .addFields(
             { name: 'Time Online', value: `**${days}** days, **${h}** hours, **${m}** minutes`, inline: false },
-            { name: 'Status', value: '💚 Running strong!', inline: false }
+            { name: 'Status', value: '💚 Running strong!', inline: false },
         )
-        .setFooter({ text: 'Always here to support everyone\'s creative journey!' })
+        .setFooter({ text: "Always here to support everyone's creative journey!" })
         .setTimestamp();
-    
+
     return { embeds: [embed] };
 };
 
@@ -1372,320 +1520,37 @@ export const handleHelpSlash = async (interaction) => {
     return interaction.editReply(result);
 };
 
-export const handlePrefixCommand = async (message) => {
-    const args = message.content.slice(1).trim().split(/ +/);
-    const command = args.shift().toLowerCase();
-    const author = message.author;
-    const guild = message.guild;
-
-    if (!guild) return;
-
-    // ─────────────────────────────────────────────────────────────────────
-    // Single permission gate for every prefix command.
-    //
-    // Previously each branch was responsible for its own check and five of
-    // them had none, so `!assign`, `!strike`, `!submit`, `!extension` and
-    // `!endhiatus` were open to any member. Authorisation now happens here,
-    // once, from the same policy table the slash commands use.
-    // ─────────────────────────────────────────────────────────────────────
-    const policy = COMMAND_POLICY[command];
-    if (!policy) return; // unknown prefix command: stay silent, as before
-
-    const member = await guild.members.fetch(author.id).catch(() => null);
-    if (!member) return message.reply('❌ I could not verify your roles. Please try again.');
-
-    const mentionedTarget = resolveTarget(message);
-    const targetId = mentionedTarget ? mentionedTarget.id : author.id;
-
-    const verdict = checkCommandPermission(command, member, { actorId: author.id, targetId });
-    if (!verdict.allowed) return message.reply(verdict.reason);
-
-    if (policy.requiresOnboarding && !(await isOnboarded(targetId))) {
-        return message.reply(NOT_ONBOARDED_MESSAGE);
-    }
-
-    if (command === 'assign') {
-        const target = resolveTarget(message);
-        const taskType = args[1];
-        const roleName = args[2];
-        if (!target || !taskType || !roleName) return message.reply("Usage: `!assign @User <task_type> <role_name> [name] [description]`");
-        const taskName = args[3] || '';
-        const description = args.slice(4).join(' ') || '';
-        const res = await coreAssign(guild, author, target, taskType, roleName, taskName, description);
-        return message.reply(res);
-    }
-
-    if (command === 'bulkassign') {
-        const mentions = message.mentions.users;
-        if (mentions.size === 0) {
-            return message.reply("Usage: `!bulkassign @User1 @User2 ... <task_type> <role_name> [name] [description]`");
-        }
-        
-        let contentWithoutMentions = message.content;
-        for (const [id, user] of mentions) {
-            contentWithoutMentions = contentWithoutMentions.replace(new RegExp(`<@!?${id}>`, 'g'), '');
-        }
-        
-        const cleanArgs = contentWithoutMentions.slice(1).trim().split(/ +/).slice(1);
-        
-        if (cleanArgs.length < 2 || cleanArgs[0] === '') {
-            return message.reply("Usage: `!bulkassign @User1 @User2 ... <task_type> <role_name> [name] [description]`");
-        }
-        
-        const taskType = cleanArgs[0];
-        const roleName = cleanArgs[1];
-        const taskName = cleanArgs[2] || '';
-        const description = cleanArgs.slice(3).join(' ') || '';
-        
-        const successUsers = [];
-        const failedUsers = [];
-        
-        for (const [id, user] of mentions) {
-             const res = await coreAssign(guild, author, user, taskType, roleName, taskName, description, null, null, true);
-             if (res.content.includes('\u274c') || res.content.includes('⚠️')) {
-                 failedUsers.push({ user, reason: res.content });
-             } else {
-                 successUsers.push(user);
-                 user.send(`✨ **You've been assigned a new task!**\n**Type:** ${taskType}\n**Role:** ${roleName}${taskName ? `\n**Name:** ${taskName}` : ''}${description ? `\n**Description:** ${description}` : ''}\nLet's do our best! ♪`).catch(() => {});
-             }
-        }
-        
-        let replyContent = `✅ **Bulk Assign Complete!**\nSuccessfully assigned to ${successUsers.length} user(s).`;
-        if (successUsers.length > 0) {
-            const mentionsStr = successUsers.map(u => `<@${u.id}>`).join(', ');
-            await logAction(guild, `✨ **Bulk Assigned ${taskType} (${roleName})** to: ${mentionsStr}`, author);
-        }
-        if (failedUsers.length > 0) {
-            replyContent += `\n\n⚠️ **Failed for ${failedUsers.length} user(s):**\n` + failedUsers.map(f => `• <@${f.user.id}>: ${f.reason}`).join('\n');
-        }
-        
-        return message.reply(replyContent);
-    }
-
-    if (command === 'submit') {
-        const target = resolveTarget(message) || author;
-        const taskName = args[1] ? args.slice(1).join(' ') : '';
-        const res = await coreSubmit(guild, author, target, taskName);
-        return message.reply(res);
-    }
-
-    if (command === 'extension') {
-        const target = resolveTarget(message) || author;
-        const remainingArgs = args.slice(target !== author ? 1 : 0);
-        
-        if (remainingArgs.length < 2) {
-            return message.reply("Usage: `!extension [@User] <task_name> <reason>`");
-        }
-        
-        const taskName = remainingArgs[0];
-        const reason = remainingArgs.slice(1).join(' ');
-        const res = await coreExtension(guild, author, target, taskName, reason);
-        return message.reply(res);
-    }
-
-    if (command === 'profile') {
-        const target = resolveTarget(message) || author;
-        const res = await coreProfile(target, guild);
-        return message.reply(res);
-    }
-
-    if (command === 'card') {
-        const target = resolveTarget(message) || author;
-        const res = await coreCard(target, guild);
-        return message.reply(res);
-    }
-
-    if (command === 'strike') {
-        const action = args[0];
-        
-        if (action === 'list') {
-             const res = await coreStrikeList(guild, author);
-             return message.reply(res);
-        }
-
-        const target = resolveTarget(message);
-        
-        if (!target || !['add', 'remove'].includes(action)) return message.reply("Usage: `!strike add @User <reason>` or `!strike remove @User` or `!strike list`");
-        
-        const reason = args.slice(2).join(' ');
-        
-        if (action === 'add' && (!reason || reason.trim().length === 0)) {
-            return message.reply("⚠️ Please provide a reason for adding a strike.");
-        }
-        
-        const res = await coreStrike(guild, author, target, action, reason || "N/A");
-        return message.reply(res);
-    }
-
-    if (command === 'onboard') {
-        const target = resolveTarget(message);
-        if (!target) return message.reply("Usage: `!onboard @User`");
-        const res = await coreOnboard(guild, author, target);
-        return message.reply(res);
-    }
-
-    if (command === 'deboard') {
-        const target = resolveTarget(message);
-        if (!target) return message.reply("Usage: `!deboard @User [custom message]`");
-        const customMessage = args.length > 1 ? args.slice(1).join(' ') : null;
-        const res = await coreDeboard(guild, author, target, customMessage);
-        return message.reply(res);
-    }
-
-    if (command === 'removetask') {
-        const target = resolveTarget(message);
-        if (!target) return message.reply("Usage: `!removetask @User <task_name_or_type>`");
-        const taskIdentifier = args.length > 1 ? args.slice(1).join(' ') : '';
-        if (!taskIdentifier) return message.reply("Usage: `!removetask @User <task_name_or_type>`");
-        const res = await coreRemoveTask(guild, author, target, taskIdentifier);
-        return message.reply(res);
-    }
-
-    if (command === 'hiatus') {
-        const reason = args.join(' ');
-        if (!reason) return message.reply("Usage: `!hiatus <reason>`");
-        
-        const res = await coreHiatus(guild, author, author, reason, message.channelId, false);
-        return message.reply(res);
-    }
-
-    if (command === 'endhiatus') {
-        const target = resolveTarget(message);
-        if (!target) return message.reply("Usage: `!endhiatus @User`");
-        
-        const res = await coreHiatusEnd(guild, author, target);
-        return message.reply(res);
-    }
-    if (command === 'tasks') {
-        const target = resolveTarget(message) || author;
-        const res = await coreTasks(target);
-        return message.reply(res);
-    }
-
-    if (command === 'history') {
-        const target = resolveTarget(message) || null;
-        const remainingArgs = args.slice(target ? 1 : 0);
-        
-        const filters = {
-            targetUser: target,
-            discordUserId: target ? target.id : null,
-            taskName: remainingArgs.length > 0 ? remainingArgs.join(' ') : null
-        };
-        
-        const res = await coreHistory(filters, 0);
-        
-        if (res.totalPages > 1) {
-            const row = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('history_prev_prefix')
-                        .setLabel('Previous')
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(true),
-                    new ButtonBuilder()
-                        .setCustomId('history_next_prefix')
-                        .setLabel('Next')
-                        .setStyle(ButtonStyle.Primary)
-                );
-            
-            const response = await message.reply({ embeds: res.embeds, components: [row] });
-
-            const collector = response.createMessageComponentCollector({
-                time: 300000,
-                filter: (i) => i.user.id === message.author.id
-            });
-            let currentPage = 0;
-            
-            collector.on('collect', async i => {
-                await i.deferUpdate();
-                if (i.customId === 'history_prev_prefix') currentPage = Math.max(0, currentPage - 1);
-                if (i.customId === 'history_next_prefix') currentPage = Math.min(res.totalPages - 1, currentPage + 1);
-                
-                const newResult = await coreHistory(filters, currentPage);
-                
-                const newRow = new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId('history_prev_prefix')
-                            .setLabel('Previous')
-                            .setStyle(ButtonStyle.Primary)
-                            .setDisabled(currentPage === 0),
-                        new ButtonBuilder()
-                            .setCustomId('history_next_prefix')
-                            .setLabel('Next')
-                            .setStyle(ButtonStyle.Primary)
-                            .setDisabled(currentPage >= newResult.totalPages - 1)
-                    );
-                
-                await i.editReply({ embeds: newResult.embeds, components: [newRow] });
-            });
-            
-            collector.on('end', () => {
-                const disabledRow = new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId('history_prev_prefix')
-                            .setLabel('Previous')
-                            .setStyle(ButtonStyle.Primary)
-                            .setDisabled(true),
-                        new ButtonBuilder()
-                            .setCustomId('history_next_prefix')
-                            .setLabel('Next')
-                            .setStyle(ButtonStyle.Primary)
-                            .setDisabled(true)
-                    );
-                response.edit({ components: [disabledRow] }).catch(() => {});
-            });
-        } else {
-            return message.reply(res);
-        }
-    }
-
-    if (command === 'ping') {
-        const sent = await message.reply('Pinging...');
-        const latency = sent.createdTimestamp - message.createdTimestamp;
-        sent.edit(`🏓 **Pong!** Latency: \`${latency}ms\``);
-        await logAction(guild, `Checked Ping`, author);
-    }
-
-    if (command === 'uptime') {
-        const totalSeconds = (message.client.uptime / 1000);
-        const days = Math.floor(totalSeconds / 86400);
-        const h = Math.floor(totalSeconds / 3600) % 24;
-        const m = Math.floor(totalSeconds / 60) % 60;
-        message.reply(`⏳ **System Uptime:** ${days}d ${h}h ${m}m`);
-        await logAction(guild, `Checked Uptime`, author);
-    }
-
-    if (command === 'checkfree' || command === 'available') {
-        const target = resolveTarget(message);
-        const res = await coreCheckFree(guild, target);
-        return message.reply(res);
-    }
-
-    if (command === 'help') {
-        const res = await coreHelp();
-        return message.reply(res);
-    }
-};
-
 export const handleSelectSubmit = async (interaction) => {
     const targetUserId = interaction.customId.split('_')[2];
-    
+
     const member = await interaction.guild.members.fetch(interaction.user.id);
     if (interaction.user.id !== targetUserId && !isOwner(member)) {
-        return interaction.reply({ content: 'I appreciate the help, but you can only submit your own tasks! ♪', flags: 64 });
+        return interaction.reply({
+            content: 'I appreciate the help, but you can only submit your own tasks! ♪',
+            flags: 64,
+        });
     }
 
     await interaction.deferUpdate();
-    
+
     let successCount = 0;
     for (const taskId of interaction.values) {
-        const result = await coreSubmit(interaction.guild, interaction.user, { id: targetUserId }, null, interaction.channelId, taskId);
+        const result = await coreSubmit(
+            interaction.guild,
+            interaction.user,
+            { id: targetUserId },
+            null,
+            interaction.channelId,
+            taskId,
+        );
         if (result.content.includes('✅')) successCount++;
     }
-    
-    return interaction.editReply({ content: `✅ Successfully sent ${successCount} task(s) for review! Keep up the amazing work~ ♪`, embeds: [], components: [] });
+
+    return interaction.editReply({
+        content: `✅ Successfully sent ${successCount} task(s) for review! Keep up the amazing work~ ♪`,
+        embeds: [],
+        components: [],
+    });
 };
 
 export const bulkAssignCache = new Map();
@@ -1695,16 +1560,16 @@ export const handleBulkAssignSlash = async (interaction) => {
     if (!isOwner(member)) {
         return interaction.reply({ content: 'Only owners can assign tasks! ♪', flags: 64 });
     }
-    
+
     const roleName = interaction.options.getString('role');
     const taskType = interaction.options.getString('task');
     const taskName = interaction.options.getString('name') || '';
     const description = interaction.options.getString('description') || '';
     const durationDays = interaction.options.getInteger('duration_days') || null;
     const extensionDays = interaction.options.getInteger('extension_days') || null;
-    
+
     const operationId = Date.now().toString() + Math.floor(Math.random() * 1000).toString();
-    
+
     bulkAssignCache.set(operationId, {
         authorId: interaction.user.id,
         roleName,
@@ -1712,51 +1577,57 @@ export const handleBulkAssignSlash = async (interaction) => {
         taskName,
         description,
         durationDays,
-        extensionDays
+        extensionDays,
     });
-    
-    setTimeout(() => {
-        bulkAssignCache.delete(operationId);
-    }, 15 * 60 * 1000);
-    
+
+    setTimeout(
+        () => {
+            bulkAssignCache.delete(operationId);
+        },
+        15 * 60 * 1000,
+    );
+
     const select = new UserSelectMenuBuilder()
         .setCustomId(`bulkassign_select_${operationId}`)
         .setPlaceholder('Select users to assign this task to...')
         .setMinValues(1)
         .setMaxValues(25);
-        
+
     const row = new ActionRowBuilder().addComponents(select);
-    
-    await interaction.reply({ 
-        content: `✨ **Bulk Assigning: ${taskType} (${roleName})**\nPlease select up to 25 users to assign this task to:`, 
+
+    await interaction.reply({
+        content: `✨ **Bulk Assigning: ${taskType} (${roleName})**\nPlease select up to 25 users to assign this task to:`,
         components: [row],
-        flags: 64
+        flags: 64,
     });
 };
 
 export const handleBulkAssignSelect = async (interaction) => {
     await interaction.deferUpdate();
-    
+
     const operationId = interaction.customId.replace('bulkassign_select_', '');
     const data = bulkAssignCache.get(operationId);
-    
+
     if (!data) {
-        return interaction.editReply({ content: '⚠️ This bulk assign session has expired. Please try again.', components: [] });
+        return interaction.editReply({
+            content: '⚠️ This bulk assign session has expired. Please try again.',
+            components: [],
+        });
     }
-    
+
     if (interaction.user.id !== data.authorId) {
         return interaction.editReply({ content: 'You cannot use this menu.', components: [] });
     }
-    
+
     const selectedUsers = interaction.users;
     if (selectedUsers.size === 0) {
         return interaction.editReply({ content: 'No users selected.', components: [] });
     }
-    
+
     const successUsers = [];
     const failedUsers = [];
-    
-    for (const [userId, user] of selectedUsers) {
+
+    for (const [, user] of selectedUsers) {
         const result = await coreAssign(
             interaction.guild,
             interaction.user,
@@ -1767,28 +1638,36 @@ export const handleBulkAssignSelect = async (interaction) => {
             data.description,
             data.durationDays,
             data.extensionDays,
-            true
+            true,
         );
-        
+
         if (result.content.includes('\u274c') || result.content.includes('⚠️')) {
             failedUsers.push({ user, reason: result.content });
         } else {
             successUsers.push(user);
-            user.send(`✨ **You've been assigned a new task!**\n**Type:** ${data.taskType}\n**Role:** ${data.roleName}${data.taskName ? `\n**Name:** ${data.taskName}` : ''}${data.description ? `\n**Description:** ${data.description}` : ''}\nLet's do our best! ♪`).catch(() => {});
+            user.send(
+                `✨ **You've been assigned a new task!**\n**Type:** ${data.taskType}\n**Role:** ${data.roleName}${data.taskName ? `\n**Name:** ${data.taskName}` : ''}${data.description ? `\n**Description:** ${data.description}` : ''}\nLet's do our best! ♪`,
+            ).catch(() => {});
         }
     }
-    
+
     bulkAssignCache.delete(operationId);
-    
+
     let replyContent = `✅ **Bulk Assign Complete!**\n\nSuccessfully assigned to ${successUsers.length} user(s).`;
     if (successUsers.length > 0) {
-        const mentions = successUsers.map(u => `<@${u.id}>`).join(', ');
-        await logAction(interaction.guild, `✨ **Bulk Assigned ${data.taskType} (${data.roleName})** to: ${mentions}`, interaction.user);
+        const mentions = successUsers.map((u) => `<@${u.id}>`).join(', ');
+        await logAction(
+            interaction.guild,
+            `✨ **Bulk Assigned ${data.taskType} (${data.roleName})** to: ${mentions}`,
+            interaction.user,
+        );
     }
-    
+
     if (failedUsers.length > 0) {
-        replyContent += `\n\n⚠️ **Failed for ${failedUsers.length} user(s):**\n` + failedUsers.map(f => `• <@${f.user.id}>: ${f.reason}`).join('\n');
+        replyContent +=
+            `\n\n⚠️ **Failed for ${failedUsers.length} user(s):**\n` +
+            failedUsers.map((f) => `• <@${f.user.id}>: ${f.reason}`).join('\n');
     }
-    
+
     await interaction.editReply({ content: replyContent, components: [] });
 };
