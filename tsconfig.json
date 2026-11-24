@@ -21,8 +21,8 @@
     "skipLibCheck": true,
     "allowJs": true,
     "checkJs": false,
-    "outDir": "dist",
-    "rootDir": "."
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["bot.js", "config.js", "API", "DB", "Utils", "scripts", "tools", "tests"],
   "exclude": ["node_modules", "dist", "coverage", "public"]
