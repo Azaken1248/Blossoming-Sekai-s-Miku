@@ -6,16 +6,16 @@
     "statements": 232
   },
   "API/controllers/assignmentController.js": {
-    "lines": 86,
-    "branches": 10,
-    "functions": 2,
-    "statements": 86
+    "lines": 5,
+    "branches": 3,
+    "functions": 0,
+    "statements": 5
   },
   "API/controllers/userController.js": {
-    "lines": 426,
-    "branches": 41,
-    "functions": 13,
-    "statements": 426
+    "lines": 346,
+    "branches": 37,
+    "functions": 10,
+    "statements": 346
   },
   "Utils/DiscordUtils/commands.js": {
     "lines": 2,
