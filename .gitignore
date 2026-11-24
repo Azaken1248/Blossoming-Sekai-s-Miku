@@ -5,3 +5,4 @@ configProd.js
 coverage
 backups
 backup.log
+dist

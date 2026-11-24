@@ -8,22 +8,28 @@
     "coverage": "c8 npm test",
     "backup": "node scripts/backupDatabase.js",
     "restore": "node scripts/restoreDatabase.js",
-    "start:api": "node API/api.js"
+    "start:api": "node API/api.js",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "cors": "^2.8.5",
-    "discord.js": "^14.25.1",
-    "dotenv": "^17.2.3",
-    "express": "^4.18.2",
-    "mongoose": "^8.0.0",
-    "sharp": "^0.35.5"
+    "cors": "2.8.6",
+    "discord.js": "14.28.1",
+    "dotenv": "17.4.2",
+    "express": "4.22.3",
+    "mongoose": "8.24.10",
+    "sharp": "0.35.5"
   },
   "devDependencies": {
-    "c8": "^12.0.0",
-    "mongodb-memory-server": "^10.4.3"
+    "@types/node": "24.19.2",
+    "c8": "12.0.0",
+    "mongodb-memory-server": "10.4.3",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }

@@ -66,7 +66,7 @@ blossoming-sekai's-miku/
 ## Installation
 
 ### Prerequisites
-- Node.js v16 or higher
+- Node.js 24 (see `.nvmrc`; `nvm use` picks it up)
 - MongoDB instance (local or cloud)
 - Discord Bot Token
 
@@ -78,9 +78,9 @@ git clone <repository-url>
 cd blossoming-sekai's-miku
 ```
 
-2. Install dependencies:
+2. Install the exact versions in `package-lock.json`:
 ```bash
-npm install
+npm ci
 ```
 
 3. Create a `.env` file in the root directory:
@@ -88,6 +88,7 @@ npm install
 BOT_TOKEN=your_discord_bot_token
 MONGO_URI=your_mongodb_connection_string
 ```
+   The API reads `API/.env` when started from `API/`. It also takes `API_KEY` (required for write endpoints), `PORT` (default `3000`), `CORS_ORIGINS` and `NODE_ENV`.
 
 4. Configure role IDs and channel IDs in `config.js`:
    - Update `OWNER_ROLE_ID`
