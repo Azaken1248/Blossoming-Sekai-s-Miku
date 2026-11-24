@@ -1,6 +1,7 @@
 {
   "all": true,
   "include": [
+    "API/serverPort.js",
     "Utils/Backup/**",
     "Utils/DBUtils/searchPattern.js",
     "scripts/**"

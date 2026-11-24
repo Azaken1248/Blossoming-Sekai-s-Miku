@@ -13,9 +13,10 @@ import analyticsRoutes from './routes/analytics.js';
 import { buildUserSummary } from './controllers/userController.js';
 import { buildCorsOptions, describeCorsPolicy } from './corsPolicy.js';
 import { reportApiKeyStatus } from './middleware/requireApiKey.js';
+import { readPort } from './serverPort.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = readPort(process.env.PORT);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
