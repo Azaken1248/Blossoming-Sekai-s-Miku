@@ -8,7 +8,7 @@ import {
     isManager,
     isManagerOrOwner
 } from '../permissions.js';
-import { resolveExtensionMs, countExtensionsUsed, canExtend, msToDays, ConfigError, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.js';
+import { resolveExtensionMs, canExtend, msToDays, ConfigError, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.js';
 import { MAX_STRIKES, shouldDemote, formatStrikes } from '../domain/strikes.js';
 
 export { isAdmin, isOwner, isManager, isManagerOrOwner };
@@ -55,7 +55,7 @@ const coreAssign = async (guild, author, targetUser, taskType, roleName, taskNam
     let selectedRule = null;
     let roleIdFound = null;
     let hasRole = false;
-    let deadline = null;
+    let deadline;
 
     if (taskType === 'custom') {
         if (!customDurationDays || customDurationDays <= 0) {
@@ -172,8 +172,8 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
         .setTitle(isLate ? '⚠️ Late Submission Ready for Review! ♪' : '✨ Submission Ready for Review! ♪')
         .setColor(isLate ? 0xfab387 : 0x39c5bb)
         .setDescription(isLate 
-            ? `<@${targetUser.id}> has finished their task, although it was submitted after the deadline. Let\'s take a look~ 🎉`
-            : `Yay! <@${targetUser.id}> has finished their task and it\'s ready to shine! Let\'s take a look at this amazing work~ 🎉`)
+            ? `<@${targetUser.id}> has finished their task, although it was submitted after the deadline. Let's take a look~ 🎉`
+            : `Yay! <@${targetUser.id}> has finished their task and it's ready to shine! Let's take a look at this amazing work~ 🎉`)
         .addFields(
             { name: 'Task', value: task.taskName || task.taskType, inline: true },
             { name: 'Role', value: task.roleName, inline: true },
@@ -362,7 +362,7 @@ const coreProfile = async (targetUser, guild = null) => {
     else if (pending.length === 0 && completed.length > 0) color = 0xa6e3a1;
 
     const embed = new EmbedBuilder()
-        .setTitle(`🌟 ${profile.username}\'s Profile ♪`)
+        .setTitle(`🌟 ${profile.username}'s Profile ♪`)
         .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
         .setColor(color)
         .setFooter({ text: `🎵 Part of our SEKAI since ${new Date(profile.joinedAt).toLocaleDateString()}` })
@@ -631,7 +631,7 @@ const coreTasks = async (targetUser) => {
     }
 
     const embed = new EmbedBuilder()
-        .setTitle(`🎶 ${profile.username}\'s Active Tasks ♪`)
+        .setTitle(`🎶 ${profile.username}'s Active Tasks ♪`)
         .setDescription('Here are all the wonderful things you\'re working on! Keep up the great work~ ✨')
         .setColor(0x39c5bb);
 
@@ -1207,15 +1207,6 @@ const coreCheckFree = async (_guild, targetUser = null) => {
                 .setTimestamp();
             
             
-            // Function to chunk array into smaller pieces
-            const chunkArray = (arr, size) => {
-                const chunks = [];
-                for (let i = 0; i < arr.length; i += size) {
-                    chunks.push(arr.slice(i, i + size));
-                }
-                return chunks;
-            };
-
             const activeFree = freeUsers.filter(u => !u.isOnHiatus);
             const hiatusFree = freeUsers.filter(u => u.isOnHiatus);
             
@@ -1445,7 +1436,7 @@ export const handleBulkAssignSelect = async (interaction) => {
     const successUsers = [];
     const failedUsers = [];
     
-    for (const [userId, user] of selectedUsers) {
+    for (const [, user] of selectedUsers) {
         const result = await coreAssign(
             interaction.guild,
             interaction.user,

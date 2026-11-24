@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import connectDB from '../DB/db.js';
 import User from '../DB/Schemas/user.js';
-import Assignment from '../DB/Schemas/assignment.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -98,30 +97,6 @@ const fetchUserSummaryForShare = async (discordId) => {
     }
 };
 
-const getUserMetrics = async (discordId) => {
-    const assignments = await Assignment.find({ discordUserId: discordId })
-        .select('status roleName')
-        .lean();
-
-    const tasksCompleted = assignments.filter((assignment) => assignment.status === 'COMPLETED').length;
-    const roleCounts = assignments.reduce((accumulator, assignment) => {
-        const roleName = assignment.roleName || 'Unknown';
-        accumulator[roleName] = (accumulator[roleName] || 0) + 1;
-        return accumulator;
-    }, {});
-
-    const topTaskRoles = Object.entries(roleCounts)
-        .sort((left, right) => right[1] - left[1])
-        .slice(0, 3)
-        .map(([roleName]) => roleName);
-
-    return {
-        totalAssignments: assignments.length,
-        tasksCompleted,
-        topTaskRoles
-    };
-};
-
 const createProfileCardSvg = (user, metrics = {}, stickerUris = []) => {
         const username = encodeSvgText(user.username || 'Unknown User');
         const discordId = encodeSvgText(user.discordId || 'unknown');
@@ -200,7 +175,7 @@ app.get('/share/user/:discordId/card.svg', async (req, res) => {
                 res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
                 res.setHeader('Cache-Control', 'public, max-age=300');
                 return res.send(svg);
-        } catch (error) {
+        } catch {
                 return res.status(500).send('Unable to render card');
         }
 });
@@ -259,7 +234,7 @@ app.get('/share/user/:discordId', async (req, res) => {
 </html>`;
 
                 return res.send(html);
-        } catch (error) {
+        } catch {
                 return res.status(500).send('<h1>Failed to load share page</h1>');
         }
 });

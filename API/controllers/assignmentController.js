@@ -1,5 +1,4 @@
 import * as taskUtils from '../../Utils/DBUtils/taskUtils.js';
-import * as userUtils from '../../Utils/DBUtils/userUtils.js';
 import User from '../../DB/Schemas/user.js';
 import config from '../../config.js';
 

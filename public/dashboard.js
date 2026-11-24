@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 fetchChartData('status');
             }
-        } catch (e) { tableBody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:var(--ctp-red)">Network Error</td></tr>`; }
+        } catch { tableBody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:var(--ctp-red)">Network Error</td></tr>`; }
     }
 
     async function fetchChartData(groupByField) {
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             s4Val.textContent = users.reduce((acc, curr) => acc + (curr.strikes || 0), 0);
             
             updateUserChartFromLocalData(users);
-        } catch (e) { tableBody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--ctp-red)">Network Error</td></tr>`; }
+        } catch { tableBody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--ctp-red)">Network Error</td></tr>`; }
     }
 
     function updateUserChartFromLocalData(userData) {

@@ -48,7 +48,7 @@ const fetchAsBase64 = async (url) => {
         const buffer = Buffer.from(await response.arrayBuffer());
         const mimeType = response.headers.get('content-type') || 'image/png';
         return `data:${mimeType};base64,${buffer.toString('base64')}`;
-    } catch (e) {
+    } catch {
         return '';
     }
 };

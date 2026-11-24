@@ -16,7 +16,7 @@
 
 export const DEFAULT_ALLOWED_ORIGINS = ['https://sekai.azaken.com'];
 
-const LOCALHOST_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d{1,5})?$/;
+const LOCALHOST_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d{1,5}|)$/;
 
 export const parseOriginList = (raw) =>
     String(raw ?? '')

@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sumData = await sumRes.json();
                 summary = sumData.data;
             }
-        } catch(e) {}
+        } catch {}
 
         const merged = summary || user;
         currentUser = merged;
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
             a.click();
             URL.revokeObjectURL(url);
             statusText.textContent = 'Download started!';
-        } catch (error) {
+        } catch {
             statusText.textContent = 'Failed to download image.';
         }
         setTimeout(() => statusText.textContent = '', 3000);
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await navigator.clipboard.writeText(url);
             statusText.textContent = 'Share link copied!';
-        } catch (error) {
+        } catch {
             statusText.textContent = 'Failed to copy link.';
         }
         setTimeout(() => statusText.textContent = '', 3000);
