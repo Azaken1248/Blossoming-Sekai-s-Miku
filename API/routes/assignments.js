@@ -1,10 +1,10 @@
 import express from 'express';
-import { 
-    createAssignment, 
-    completeAssignment, 
-    extendAssignment, 
-    getPendingTask, 
-    getOverdueTasks 
+import {
+    createAssignment,
+    completeAssignment,
+    extendAssignment,
+    getPendingTask,
+    getOverdueTasks,
 } from '../controllers/assignmentController.js';
 
 import { requireApiKey } from '../middleware/requireApiKey.js';

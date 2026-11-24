@@ -15,21 +15,27 @@ const SET_OPERATORS = new Set(['in', 'nin']);
 
 /** field -> how its value should be coerced and which operators it accepts. */
 export const DEFAULT_FILTERABLE_FIELDS = {
-    status:         { type: 'enum', values: ['PENDING', 'COMPLETED', 'LATE', 'EXCUSED'] },
-    roleName:       { type: 'string' },
+    status: { type: 'enum', values: ['PENDING', 'COMPLETED', 'LATE', 'EXCUSED'] },
+    roleName: { type: 'string' },
     roleCategoryId: { type: 'string' },
-    taskType:       { type: 'string' },
-    taskName:       { type: 'string' },
-    discordUserId:  { type: 'string' },
-    hasExtended:    { type: 'boolean' },
+    taskType: { type: 'string' },
+    taskName: { type: 'string' },
+    discordUserId: { type: 'string' },
+    hasExtended: { type: 'boolean' },
     extensionCount: { type: 'number', operators: COMPARISON_OPERATORS },
-    assignedAt:     { type: 'date',   operators: COMPARISON_OPERATORS },
-    deadline:       { type: 'date',   operators: COMPARISON_OPERATORS },
-    completedAt:    { type: 'date',   operators: COMPARISON_OPERATORS }
+    assignedAt: { type: 'date', operators: COMPARISON_OPERATORS },
+    deadline: { type: 'date', operators: COMPARISON_OPERATORS },
+    completedAt: { type: 'date', operators: COMPARISON_OPERATORS },
 };
 
 const SORTABLE_FIELDS = new Set([
-    'assignedAt', 'deadline', 'completedAt', 'status', 'roleName', 'taskType', 'extensionCount'
+    'assignedAt',
+    'deadline',
+    'completedAt',
+    'status',
+    'roleName',
+    'taskType',
+    'extensionCount',
 ]);
 
 export const MAX_LIMIT = 200;

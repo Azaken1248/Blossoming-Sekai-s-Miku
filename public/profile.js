@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cardContainerEl = document.getElementById('capture-area');
     const mainCardEl = document.getElementById('main-id-card');
-    
+
     const avatarEl = document.getElementById('profile-avatar');
     const nameEl = document.getElementById('profile-name');
     const idEl = document.getElementById('profile-id');
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     window.addEventListener('resize', handleResize);
-    handleResize(); 
+    handleResize();
 
     const queryDiscordId = new URLSearchParams(window.location.search).get('discordId');
     init();
@@ -55,18 +55,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // new Option() escapes both label and value; the old template literal
         // interpolated Discord usernames straight into markup.
         userSelect.replaceChildren(
-            ...users.map(user => new Option(`${user.username || 'Unknown'} (${user.discordId})`, user.discordId))
+            ...users.map((user) => new Option(`${user.username || 'Unknown'} (${user.discordId})`, user.discordId)),
         );
 
-        if (queryDiscordId && users.some(user => user.discordId === queryDiscordId)) {
+        if (queryDiscordId && users.some((user) => user.discordId === queryDiscordId)) {
             userSelect.value = queryDiscordId;
         }
 
         new TomSelect('#user-select', {
             create: false,
-            placeholder: "Search for a member...",
-            maxOptions: null, 
-            sortField: { field: "text", direction: "asc" } 
+            placeholder: 'Search for a member...',
+            maxOptions: null,
+            sortField: { field: 'text', direction: 'asc' },
         });
 
         loadProfileById(userSelect.value);
@@ -105,14 +105,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadProfileById(discordId) {
-        const user = users.find(entry => entry.discordId === discordId);
+        const user = users.find((entry) => entry.discordId === discordId);
         if (!user) return;
 
         const summaryUrl = `${API_USERS}/${encodeURIComponent(user.discordId)}/summary`;
         let summary = null;
         try {
             const sumRes = await fetch(summaryUrl);
-            if(sumRes.ok) {
+            if (sumRes.ok) {
                 const sumData = await sumRes.json();
                 summary = sumData.data;
             }
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         avatarEl.crossOrigin = 'anonymous';
         if (avatarUrl) {
             avatarEl.src = avatarUrl;
-            avatarEl.onerror = () => avatarEl.src = getAvatarUrl(merged.discordId, merged.username);
+            avatarEl.onerror = () => (avatarEl.src = getAvatarUrl(merged.discordId, merged.username));
         } else {
             avatarEl.src = getAvatarUrl(merged.discordId, merged.username);
         }
@@ -139,26 +139,32 @@ document.addEventListener('DOMContentLoaded', () => {
             hiatusEl.className = 'badge badge-hiatus';
         } else {
             hiatusEl.textContent = '✨ Active';
-            hiatusEl.className = 'badge badge-COMPLETED'; 
+            hiatusEl.className = 'badge badge-COMPLETED';
         }
 
         if (merged.strikes > 0) {
             strikesEl.textContent = `${merged.strikes} Strikes`;
-            strikesEl.className = 'badge badge-LATE'; 
+            strikesEl.className = 'badge badge-LATE';
         } else {
             strikesEl.textContent = 'Clean Record';
-            strikesEl.className = 'badge badge-EXCUSED'; 
+            strikesEl.className = 'badge badge-EXCUSED';
         }
 
-        mikuDescriptionEl.textContent = merged.mikuDescription || `✨ Exploring the Sekai with ${merged.username || 'this member'}!`;
+        mikuDescriptionEl.textContent =
+            merged.mikuDescription || `✨ Exploring the Sekai with ${merged.username || 'this member'}!`;
 
-        if(merged.discordId === '383329758697750528') {
-            mikuDescriptionEl.textContent = "My confusion has expanded from the size of Miyamasuzaka Girls' Academy to the size of Shibuya, Tokyo.";
+        if (merged.discordId === '383329758697750528') {
+            mikuDescriptionEl.textContent =
+                "My confusion has expanded from the size of Miyamasuzaka Girls' Academy to the size of Shibuya, Tokyo.";
         }
 
-        const roleList = Array.isArray(merged.actualRoles) && merged.actualRoles.length
-            ? merged.actualRoles : (Array.isArray(merged.roles) ? merged.roles : []);
-            
+        const roleList =
+            Array.isArray(merged.actualRoles) && merged.actualRoles.length
+                ? merged.actualRoles
+                : Array.isArray(merged.roles)
+                  ? merged.roles
+                  : [];
+
         if (specialBadgesEl) {
             const devId = '1213817849693478972';
             const ownerIds = ['657310325925740561', '799240925921542194'];
@@ -176,16 +182,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Role names come from live Discord roles and may contain markup
         // characters, so they are set as text rather than parsed as HTML.
         serverRolesEl.replaceChildren(
-            ...(roleList.length ? roleList : ['Member']).map(r => makeBadge('badge badge-EXCUSED', r))
+            ...(roleList.length ? roleList : ['Member']).map((r) => makeBadge('badge badge-EXCUSED', r)),
         );
 
-        const workRoles = Array.isArray(merged.topTaskRoles) && merged.topTaskRoles.length
-            ? merged.topTaskRoles
-            : ['-'];
-        workRolesEl.replaceChildren(...workRoles.map(r => makeBadge('badge', r)));
+        const workRoles =
+            Array.isArray(merged.topTaskRoles) && merged.topTaskRoles.length ? merged.topTaskRoles : ['-'];
+        workRolesEl.replaceChildren(...workRoles.map((r) => makeBadge('badge', r)));
 
         completedEl.textContent = merged.tasksCompleted || 0;
-        
+
         const dateStr = merged.joinedAt ? new Date(merged.joinedAt).toLocaleDateString() : 'Unknown';
         joinedEl.textContent = dateStr;
 
@@ -198,31 +203,31 @@ document.addEventListener('DOMContentLoaded', () => {
         offScreen.style.position = 'fixed';
         offScreen.style.top = '-9999px';
         offScreen.style.left = '0';
-        offScreen.style.width = '600px'; 
-        
+        offScreen.style.width = '600px';
+
         const clone = cardContainerEl.cloneNode(true);
-        
+
         const cardInClone = clone.querySelector('.sekai-id-card');
         if (cardInClone) cardInClone.classList.remove('compact-mode');
-        
+
         offScreen.appendChild(clone);
         document.body.appendChild(offScreen);
 
         const canvas = await html2canvas(clone, {
-            backgroundColor: "#1e1e2e", 
+            backgroundColor: '#1e1e2e',
             scale: 2,
             useCORS: true,
-            logging: false
+            logging: false,
         });
 
         document.body.removeChild(offScreen);
-        return await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        return await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
     }
 
     loadBtn.addEventListener('click', async () => {
         await loadProfileById(userSelect.value);
         statusText.textContent = 'Profile loaded.';
-        setTimeout(() => statusText.textContent = '', 2000);
+        setTimeout(() => (statusText.textContent = ''), 2000);
     });
 
     userSelect.addEventListener('change', async () => {
@@ -244,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
             statusText.textContent = 'Failed to copy image.';
         }
-        setTimeout(() => statusText.textContent = '', 3000);
+        setTimeout(() => (statusText.textContent = ''), 3000);
     });
 
     downloadBtn.addEventListener('click', async () => {
@@ -262,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch {
             statusText.textContent = 'Failed to download image.';
         }
-        setTimeout(() => statusText.textContent = '', 3000);
+        setTimeout(() => (statusText.textContent = ''), 3000);
     });
 
     copyLinkBtn.addEventListener('click', async () => {
@@ -274,6 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch {
             statusText.textContent = 'Failed to copy link.';
         }
-        setTimeout(() => statusText.textContent = '', 3000);
+        setTimeout(() => (statusText.textContent = ''), 3000);
     });
 });

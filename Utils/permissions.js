@@ -13,7 +13,7 @@ export const isOwner = (member) =>
     Boolean(member) && (isAdmin(member.id) || member.roles.cache.has(config.OWNER_ROLE_ID));
 
 export const isManager = (member) =>
-    Boolean(member) && (isAdmin(member.id) || config.MANAGER_ROLE_IDS.some(roleId => member.roles.cache.has(roleId)));
+    Boolean(member) && (isAdmin(member.id) || config.MANAGER_ROLE_IDS.some((roleId) => member.roles.cache.has(roleId)));
 
 export const isManagerOrOwner = (member) => isOwner(member) || isManager(member);
 
@@ -59,7 +59,7 @@ export const COMMAND_POLICY = {
     },
     strike: {
         permission: 'managerOrOwner',
-        denial: 'Strike management is handled by managers and owners! If there\'s an issue, please reach out to them~ ♪',
+        denial: "Strike management is handled by managers and owners! If there's an issue, please reach out to them~ ♪",
     },
     onboard: {
         permission: 'owner',
@@ -93,19 +93,19 @@ export const COMMAND_POLICY = {
         requiresOnboarding: true,
         denial: 'You can only end your own hiatus! If someone else is ready to return, they should let us know themselves~ ♪',
     },
-    profile:   { permission: 'anyone' },
-    card:      { permission: 'anyone' },
-    tasks:     { permission: 'anyone' },
-    history:   { permission: 'anyone' },
+    profile: { permission: 'anyone' },
+    card: { permission: 'anyone' },
+    tasks: { permission: 'anyone' },
+    history: { permission: 'anyone' },
     checkfree: { permission: 'anyone' },
     available: { permission: 'anyone' },
-    help:      { permission: 'anyone' },
-    ping:      { permission: 'anyone' },
-    uptime:    { permission: 'anyone' },
+    help: { permission: 'anyone' },
+    ping: { permission: 'anyone' },
+    uptime: { permission: 'anyone' },
 };
 
 export const NOT_ONBOARDED_MESSAGE = 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪';
-export const UNKNOWN_COMMAND_MESSAGE = '❔ I don\'t recognise that command. Try `/help` to see what I can do! ♪';
+export const UNKNOWN_COMMAND_MESSAGE = "❔ I don't recognise that command. Try `/help` to see what I can do! ♪";
 
 /**
  * Check a command against the policy table.
@@ -119,7 +119,7 @@ export const checkCommandPermission = (commandName, member, { actorId, targetId 
         return { allowed: false, reason: UNKNOWN_COMMAND_MESSAGE };
     }
     if (!hasPermission(member, policy.permission, { actorId, targetId })) {
-        return { allowed: false, reason: policy.denial ?? 'You don\'t have permission to do that.' };
+        return { allowed: false, reason: policy.denial ?? "You don't have permission to do that." };
     }
     return { allowed: true, policy };
 };
@@ -138,7 +138,8 @@ export const APPROVAL_POLICY = {
     },
     hiatus: {
         permission: 'managerOrOwner',
-        approveDenial: 'Hiatus requests are handled by managers and owners! Thanks for looking out for everyone though~ ♪',
+        approveDenial:
+            'Hiatus requests are handled by managers and owners! Thanks for looking out for everyone though~ ♪',
         denyDenial: 'Hiatus requests are handled by managers and owners! Thanks for looking out for everyone though~ ♪',
     },
 };

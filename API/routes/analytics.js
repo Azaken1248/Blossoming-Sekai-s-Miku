@@ -1,5 +1,9 @@
 import express from 'express';
-import { getFilteredAssignments, getAssignmentStats, getUsersWithAssignments } from '../controllers/analyticsController.js';
+import {
+    getFilteredAssignments,
+    getAssignmentStats,
+    getUsersWithAssignments,
+} from '../controllers/analyticsController.js';
 
 const router = express.Router();
 

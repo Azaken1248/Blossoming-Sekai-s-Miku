@@ -35,7 +35,10 @@ before(async () => {
     mongod = await MongoMemoryServer.create();
     client = await new MongoClient(mongod.getUri()).connect();
     workDir = await mkdtemp(path.join(tmpdir(), 'sekai-jobs-'));
-    await client.db('jobs_source').collection('users').insertMany([{ discordId: '1' }, { discordId: '2' }]);
+    await client
+        .db('jobs_source')
+        .collection('users')
+        .insertMany([{ discordId: '1' }, { discordId: '2' }]);
     await client.db('jobs_source').collection('assignments').insertOne({ taskId: 't1' });
 });
 
@@ -49,15 +52,24 @@ describe('runBackup and runRestore', () => {
     test('backs up, verifies, prunes and restores', async () => {
         const directory = await freshDir('job');
         const log = silentLog();
-        const result = await runBackup({ MONGO_URI: uriFor('jobs_source'), BACKUP_DIR: directory, BACKUP_RETENTION_DAYS: '7' }, log);
-        assert.deepEqual(result.verified, [{ name: 'assignments', count: 1 }, { name: 'users', count: 2 }]);
+        const result = await runBackup(
+            { MONGO_URI: uriFor('jobs_source'), BACKUP_DIR: directory, BACKUP_RETENTION_DAYS: '7' },
+            log,
+        );
+        assert.deepEqual(result.verified, [
+            { name: 'assignments', count: 1 },
+            { name: 'users', count: 2 },
+        ]);
         assert.deepEqual(result.removed, []);
         assert.match(log.lines.info[0], /assignments=1, users=2/);
         assert.equal(log.lines.info[1], 'Removed 0 backup(s) older than 7 days');
 
         const restoreLog = silentLog();
         const restored = await runRestore([result.backupPath, uriFor('jobs_restored')], restoreLog);
-        assert.deepEqual(restored, [{ name: 'assignments', count: 1 }, { name: 'users', count: 2 }]);
+        assert.deepEqual(restored, [
+            { name: 'assignments', count: 1 },
+            { name: 'users', count: 2 },
+        ]);
         assert.match(restoreLog.lines.info[0], /^Restored .* \(assignments=1, users=2\)$/);
         assert.equal(await client.db('jobs_restored').collection('users').countDocuments(), 2);
     });
@@ -70,8 +82,13 @@ describe('runBackup and runRestore', () => {
 
     test('restore refuses a target that already holds the collections', async () => {
         const directory = await freshDir('occupied');
-        const { backupPath } = await runBackup({ MONGO_URI: uriFor('jobs_source'), BACKUP_DIR: directory }, silentLog());
-        await assert.rejects(runRestore([backupPath, uriFor('jobs_source')], silentLog()), { name: 'RestoreTargetInUseError' });
+        const { backupPath } = await runBackup(
+            { MONGO_URI: uriFor('jobs_source'), BACKUP_DIR: directory },
+            silentLog(),
+        );
+        await assert.rejects(runRestore([backupPath, uriFor('jobs_source')], silentLog()), {
+            name: 'RestoreTargetInUseError',
+        });
     });
 
     test('uses the console when no log is given', async (t) => {
@@ -81,7 +98,10 @@ describe('runBackup and runRestore', () => {
     });
 
     test('restore logs to the console when no log is given', async (t) => {
-        const { backupPath } = await runBackup({ MONGO_URI: uriFor('jobs_source'), BACKUP_DIR: await freshDir('console-restore') }, silentLog());
+        const { backupPath } = await runBackup(
+            { MONGO_URI: uriFor('jobs_source'), BACKUP_DIR: await freshDir('console-restore') },
+            silentLog(),
+        );
         const info = t.mock.method(console, 'info', () => {});
         await runRestore([backupPath, uriFor('jobs_console_restored')]);
         assert.equal(info.mock.callCount(), 1);
@@ -95,14 +115,21 @@ describe('runCli', () => {
 
     test('returns 1 and logs only the error name and message when the job fails', async () => {
         const log = silentLog();
-        const failing = async () => { throw new TypeError('bad thing'); };
+        const failing = async () => {
+            throw new TypeError('bad thing');
+        };
         assert.equal(await runCli(failing, null, log), 1);
         assert.deepEqual(log.lines.error, ['TypeError: bad thing']);
     });
 
     test('logs to the console by default', async (t) => {
         const error = t.mock.method(console, 'error', () => {});
-        assert.equal(await runCli(async () => { throw new Error('x'); }, null), 1);
+        assert.equal(
+            await runCli(async () => {
+                throw new Error('x');
+            }, null),
+            1,
+        );
         assert.equal(error.mock.callCount(), 1);
     });
 });
@@ -126,7 +153,11 @@ describe('command line scripts', () => {
         });
         assert.match(backup.stdout, /Backup written to/);
         const [name] = await readdir(directory);
-        const restore = await run(process.execPath, [script('restoreDatabase.js'), path.join(directory, name), uriFor('jobs_cli_restored')], { cwd, env: cleanEnv({}) });
+        const restore = await run(
+            process.execPath,
+            [script('restoreDatabase.js'), path.join(directory, name), uriFor('jobs_cli_restored')],
+            { cwd, env: cleanEnv({}) },
+        );
         assert.match(restore.stdout, /assignments=1, users=2/);
     });
 

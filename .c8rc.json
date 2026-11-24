@@ -1,15 +1,7 @@
 {
   "all": true,
-  "include": [
-    "API/serverPort.js",
-    "Utils/Backup/**",
-    "Utils/DBUtils/searchPattern.js",
-    "scripts/**"
-  ],
-  "reporter": [
-    "text",
-    "lcov"
-  ],
+  "include": ["API/serverPort.js", "Utils/Backup/**", "Utils/DBUtils/searchPattern.js", "scripts/**"],
+  "reporter": ["text", "lcov"],
   "check-coverage": true,
   "lines": 100,
   "branches": 100,

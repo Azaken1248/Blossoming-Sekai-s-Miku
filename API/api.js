@@ -28,16 +28,18 @@ connectDB();
 
 app.use('/api/users', userRoutes);
 app.use('/api/assignments', assignmentRoutes);
-app.use('/api/v1/analytics', analyticsRoutes); 
+app.use('/api/v1/analytics', analyticsRoutes);
 
-const escapeHtml = (unsafe = '') => String(unsafe)
+const escapeHtml = (unsafe = '') =>
+    String(unsafe)
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
 
-const encodeSvgText = (text = '') => String(text)
+const encodeSvgText = (text = '') =>
+    String(text)
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
@@ -45,8 +47,8 @@ const encodeSvgText = (text = '') => String(text)
         .replaceAll("'", '&apos;');
 
 const getAvatarUrl = (discordId = '', username = 'Miku Fan') => {
-        const seed = encodeURIComponent(discordId || username || 'miku');
-        return `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}&backgroundColor=94e2d5,cba6f7,89dceb`;
+    const seed = encodeURIComponent(discordId || username || 'miku');
+    return `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}&backgroundColor=94e2d5,cba6f7,89dceb`;
 };
 
 const getBaseUrl = (req) => `${req.protocol}://${req.get('host')}`;
@@ -65,19 +67,20 @@ const readAssetAsDataUri = (fileName) => {
 
 const stickerFileNames = (() => {
     try {
-        return fs.readdirSync(assetsDir).filter(fileName => /^PNG\s\d+\.png$/i.test(fileName));
+        return fs.readdirSync(assetsDir).filter((fileName) => /^PNG\s\d+\.png$/i.test(fileName));
     } catch (_error) {
         return [];
     }
 })();
 
-const stickerUriMap = new Map(stickerFileNames.map(fileName => [fileName, readAssetAsDataUri(fileName)]));
+const stickerUriMap = new Map(stickerFileNames.map((fileName) => [fileName, readAssetAsDataUri(fileName)]));
 
 const pickRandomStickers = (count = 2) => {
     if (!stickerFileNames.length) return [];
     const shuffled = [...stickerFileNames].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count)
-        .map(fileName => stickerUriMap.get(fileName))
+    return shuffled
+        .slice(0, count)
+        .map((fileName) => stickerUriMap.get(fileName))
         .filter(Boolean);
 };
 
@@ -98,21 +101,31 @@ const fetchUserSummaryForShare = async (discordId) => {
 };
 
 const createProfileCardSvg = (user, metrics = {}, stickerUris = []) => {
-        const username = encodeSvgText(user.username || 'Unknown User');
-        const discordId = encodeSvgText(user.discordId || 'unknown');
-        const strikes = Number(user.strikes || 0);
-        const hiatusLabel = user.isOnHiatus ? 'On Hiatus' : 'Active';
-        const joinedAt = user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US') : 'Unknown';
-    const serverRoles = Array.isArray(user.actualRoles) && user.actualRoles.length > 0
-        ? user.actualRoles.slice(0, 2).join(' • ')
-        : (Array.isArray(user.roles) && user.roles.length > 0 ? user.roles.slice(0, 2).join(' • ') : 'Crew Member');
-    const workRoles = Array.isArray(metrics.topTaskRoles) && metrics.topTaskRoles.length > 0 ? metrics.topTaskRoles.slice(0, 2).join(' • ') : 'No task role data';
-    const avatarUrl = encodeSvgText(user.avatarUrl || user.profileImageUrl || getAvatarUrl(user.discordId, user.username));
+    const username = encodeSvgText(user.username || 'Unknown User');
+    const discordId = encodeSvgText(user.discordId || 'unknown');
+    const strikes = Number(user.strikes || 0);
+    const hiatusLabel = user.isOnHiatus ? 'On Hiatus' : 'Active';
+    const joinedAt = user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US') : 'Unknown';
+    const serverRoles =
+        Array.isArray(user.actualRoles) && user.actualRoles.length > 0
+            ? user.actualRoles.slice(0, 2).join(' • ')
+            : Array.isArray(user.roles) && user.roles.length > 0
+              ? user.roles.slice(0, 2).join(' • ')
+              : 'Crew Member';
+    const workRoles =
+        Array.isArray(metrics.topTaskRoles) && metrics.topTaskRoles.length > 0
+            ? metrics.topTaskRoles.slice(0, 2).join(' • ')
+            : 'No task role data';
+    const avatarUrl = encodeSvgText(
+        user.avatarUrl || user.profileImageUrl || getAvatarUrl(user.discordId, user.username),
+    );
     const completed = Number(metrics.tasksCompleted || 0);
-    const mikuDescription = encodeSvgText(user.mikuDescription || `${user.username || 'This teammate'} keeps adding sparkles to Sekai!`);
+    const mikuDescription = encodeSvgText(
+        user.mikuDescription || `${user.username || 'This teammate'} keeps adding sparkles to Sekai!`,
+    );
     const [stickerOne, stickerTwo] = stickerUris;
 
-        return `<?xml version="1.0" encoding="UTF-8"?>
+    return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="${username} profile card">
     <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -160,43 +173,42 @@ const createProfileCardSvg = (user, metrics = {}, stickerUris = []) => {
 };
 
 app.get('/share/user/:discordId/card.svg', async (req, res) => {
-        try {
+    try {
         const summaryUser = await fetchUserSummaryForShare(req.params.discordId);
-        const user = summaryUser || await User.findOne({ discordId: req.params.discordId }).lean();
-                if (!user) {
-                        return res.status(404).send('User not found');
-                }
+        const user = summaryUser || (await User.findOne({ discordId: req.params.discordId }).lean());
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
 
         const metrics = {
             tasksCompleted: user.tasksCompleted,
-            topTaskRoles: user.topTaskRoles
+            topTaskRoles: user.topTaskRoles,
         };
         const svg = createProfileCardSvg(user, metrics, pickRandomStickers(2));
-                res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
-                res.setHeader('Cache-Control', 'public, max-age=300');
-                return res.send(svg);
-        } catch {
-                return res.status(500).send('Unable to render card');
-        }
+        res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        return res.send(svg);
+    } catch {
+        return res.status(500).send('Unable to render card');
+    }
 });
 
-
 app.get('/share/user/:discordId', async (req, res) => {
-        try {
+    try {
         const summaryUser = await fetchUserSummaryForShare(req.params.discordId);
-        const user = summaryUser || await User.findOne({ discordId: req.params.discordId }).lean();
-                if (!user) {
-                        return res.status(404).send('<h1>User not found</h1>');
-                }
+        const user = summaryUser || (await User.findOne({ discordId: req.params.discordId }).lean());
+        if (!user) {
+            return res.status(404).send('<h1>User not found</h1>');
+        }
 
-                const baseUrl = getBaseUrl(req);
-                const cardImageUrl = `${baseUrl}/api/users/${encodeURIComponent(user.discordId)}/card.png`;
-                const sharePageUrl = `${baseUrl}/share/user/${encodeURIComponent(user.discordId)}`;
-                const profileWebUrl = `${baseUrl}/public/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
-                const title = `${user.username || 'Sekai User'} • Blossoming Sekai Profile`;
+        const baseUrl = getBaseUrl(req);
+        const cardImageUrl = `${baseUrl}/api/users/${encodeURIComponent(user.discordId)}/card.png`;
+        const sharePageUrl = `${baseUrl}/share/user/${encodeURIComponent(user.discordId)}`;
+        const profileWebUrl = `${baseUrl}/public/profile.html?discordId=${encodeURIComponent(user.discordId)}`;
+        const title = `${user.username || 'Sekai User'} • Blossoming Sekai Profile`;
         const description = `${user.username || 'User'} • ${user.tasksCompleted || 0} tasks done • ${user.isOnHiatus ? 'On Hiatus' : 'Active'} • ${user.strikes || 0} strike(s) • ${user.mikuDescription || 'Miku-approved teammate!'}`;
 
-                const html = `<!DOCTYPE html>
+        const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -233,10 +245,10 @@ app.get('/share/user/:discordId', async (req, res) => {
 </body>
 </html>`;
 
-                return res.send(html);
-        } catch {
-                return res.status(500).send('<h1>Failed to load share page</h1>');
-        }
+        return res.send(html);
+    } catch {
+        return res.status(500).send('<h1>Failed to load share page</h1>');
+    }
 });
 
 app.get('/', (_req, res) => {

@@ -33,7 +33,11 @@ export class RestoreTargetInUseError extends Error {
     }
 }
 
-export const backupName = (date) => `sekai-${date.toISOString().replace(/\.\d{3}/, '').replace(/[-:]/g, '')}`;
+export const backupName = (date) =>
+    `sekai-${date
+        .toISOString()
+        .replace(/\.\d{3}/, '')
+        .replace(/[-:]/g, '')}`;
 
 export const parseBackupName = (name) => {
     const match = BACKUP_NAME_PATTERN.exec(name);
@@ -52,19 +56,19 @@ const dataFileName = (index) => `${String(index + 1).padStart(4, '0')}.ejson.gz`
 
 const indexSpecs = async (collection) => {
     const indexes = await collection.indexes();
-    return indexes
-        .filter((index) => index.name !== '_id_')
-        .map(({ v, ns, ...spec }) => spec);
+    return indexes.filter((index) => index.name !== '_id_').map(({ v, ns, ...spec }) => spec);
 };
 
 const writeDocuments = async (collection, file) => {
     let count = 0;
-    const lines = Readable.from((async function* () {
-        for await (const document of collection.find({})) {
-            count += 1;
-            yield `${EJSON.stringify(document, { relaxed: false })}\n`;
-        }
-    })());
+    const lines = Readable.from(
+        (async function* () {
+            for await (const document of collection.find({})) {
+                count += 1;
+                yield `${EJSON.stringify(document, { relaxed: false })}\n`;
+            }
+        })(),
+    );
     await pipeline(lines, createGzip(), createWriteStream(file, { mode: PRIVATE_FILE }));
     return count;
 };
@@ -101,7 +105,10 @@ export const createBackup = async (db, { directory, now = new Date() }) => {
     await mkdir(partialPath, { mode: PRIVATE_DIRECTORY });
     try {
         const listed = await db.listCollections({ type: 'collection' }, { nameOnly: true }).toArray();
-        const names = listed.map(({ name }) => name).filter((name) => !name.startsWith('system.')).sort();
+        const names = listed
+            .map(({ name }) => name)
+            .filter((name) => !name.startsWith('system.'))
+            .sort();
         const collections = [];
         for (const [index, name] of names.entries()) {
             const collection = db.collection(name);
@@ -116,7 +123,9 @@ export const createBackup = async (db, { directory, now = new Date() }) => {
             createdAt: now.toISOString(),
             collections,
         };
-        await writeFile(path.join(partialPath, MANIFEST_FILE), JSON.stringify(manifest, null, 2), { mode: PRIVATE_FILE });
+        await writeFile(path.join(partialPath, MANIFEST_FILE), JSON.stringify(manifest, null, 2), {
+            mode: PRIVATE_FILE,
+        });
         await rename(partialPath, finalPath);
         return { path: finalPath, manifest };
     } catch (error) {
@@ -126,13 +135,13 @@ export const createBackup = async (db, { directory, now = new Date() }) => {
 };
 
 const isValidEntry = (entry) =>
-    typeof entry?.name === 'string'
-    && entry.name.length > 0
-    && typeof entry.file === 'string'
-    && DATA_FILE_PATTERN.test(entry.file)
-    && Number.isInteger(entry.count)
-    && entry.count >= 0
-    && Array.isArray(entry.indexes);
+    typeof entry?.name === 'string' &&
+    entry.name.length > 0 &&
+    typeof entry.file === 'string' &&
+    DATA_FILE_PATTERN.test(entry.file) &&
+    Number.isInteger(entry.count) &&
+    entry.count >= 0 &&
+    Array.isArray(entry.indexes);
 
 export const readManifest = async (backupPath) => {
     let manifest;

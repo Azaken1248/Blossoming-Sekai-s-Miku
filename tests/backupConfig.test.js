@@ -30,7 +30,10 @@ test('blank retention falls back to the default', () => {
 
 test('accepts retention at both limits', () => {
     assert.equal(readBackupConfig({ ...baseEnv, BACKUP_RETENTION_DAYS: '1' }).retentionDays, 1);
-    assert.equal(readBackupConfig({ ...baseEnv, BACKUP_RETENTION_DAYS: String(MAX_RETENTION_DAYS) }).retentionDays, MAX_RETENTION_DAYS);
+    assert.equal(
+        readBackupConfig({ ...baseEnv, BACKUP_RETENTION_DAYS: String(MAX_RETENTION_DAYS) }).retentionDays,
+        MAX_RETENTION_DAYS,
+    );
 });
 
 for (const value of ['0', '-3', '2.5', 'abc', String(MAX_RETENTION_DAYS + 1)]) {
@@ -41,7 +44,10 @@ for (const value of ['0', '-3', '2.5', 'abc', String(MAX_RETENTION_DAYS + 1)]) {
 
 for (const key of ['MONGO_URI', 'BACKUP_DIR']) {
     test(`requires ${key}`, () => {
-        assert.throws(() => readBackupConfig({ ...baseEnv, [key]: undefined }), { name: 'BackupConfigError', message: `${key} must be set` });
+        assert.throws(() => readBackupConfig({ ...baseEnv, [key]: undefined }), {
+            name: 'BackupConfigError',
+            message: `${key} must be set`,
+        });
         assert.throws(() => readBackupConfig({ ...baseEnv, [key]: '   ' }), BackupConfigError);
     });
 }

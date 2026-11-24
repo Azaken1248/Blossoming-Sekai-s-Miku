@@ -20,7 +20,8 @@ const withDatabase = async (uri, work) => {
 export const runBackup = async (env, log = console) => {
     const config = readBackupConfig(env);
     const { path: backupPath } = await withDatabase(config.mongoUri, (db) =>
-        createBackup(db, { directory: config.directory }));
+        createBackup(db, { directory: config.directory }),
+    );
     const verified = await verifyBackup(backupPath);
     const removed = await pruneBackups(config.directory, { retentionDays: config.retentionDays });
     log.info(`Backup written to ${backupPath} (${describeCounts(verified)})`);

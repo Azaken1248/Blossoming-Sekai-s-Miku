@@ -4,5 +4,6 @@
   "singleQuote": true,
   "trailingComma": "all",
   "endOfLine": "lf",
+  "embeddedLanguageFormatting": "off",
   "overrides": [{ "files": ["*.json", "*.yml", "*.yaml", "*.md"], "options": { "tabWidth": 2 } }]
 }
