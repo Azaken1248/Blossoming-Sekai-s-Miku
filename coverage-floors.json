@@ -5,12 +5,6 @@
     "functions": 7,
     "statements": 232
   },
-  "API/controllers/analyticsController.js": {
-    "lines": 80,
-    "branches": 0,
-    "functions": 4,
-    "statements": 80
-  },
   "API/controllers/assignmentController.js": {
     "lines": 86,
     "branches": 10,
@@ -22,12 +16,6 @@
     "branches": 11,
     "functions": 20,
     "statements": 524
-  },
-  "API/utils/queryBuilder.js": {
-    "lines": 95,
-    "branches": 0,
-    "functions": 7,
-    "statements": 95
   },
   "Utils/DiscordUtils/commands.js": {
     "lines": 2,
