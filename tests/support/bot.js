@@ -1,6 +1,6 @@
 import { mock } from 'node:test';
 
-export const loadBot = async (world, { silent = true } = {}) => {
+export const loadBot = async (world, { silent = true, login = (token) => Promise.resolve(token) } = {}) => {
     const discord = await import('discord.js');
     const handlers = { on: new Map(), once: new Map() };
     const restCalls = [];
@@ -25,7 +25,7 @@ export const loadBot = async (world, { silent = true } = {}) => {
 
         login(token) {
             this.token = token;
-            return Promise.resolve(token);
+            return login(token);
         }
     }
 
