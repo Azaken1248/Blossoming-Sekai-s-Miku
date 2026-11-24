@@ -1,7 +1,19 @@
-import { test } from 'node:test';
+import { before, mock, test } from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
-import connectDB from '../DB/db.js';
+
+let connectDB;
+let dotenvConfig;
+
+before(async () => {
+    dotenvConfig = mock.fn(() => ({ parsed: {} }));
+    mock.module('dotenv', { exports: { default: { config: dotenvConfig } } });
+    ({ default: connectDB } = await import('../DB/db.js'));
+});
+
+test('loads .env once when the module is first imported', () => {
+    assert.equal(dotenvConfig.mock.callCount(), 1);
+});
 
 test('connects with MONGO_URI and logs success', async (t) => {
     t.mock.method(console, 'log', () => {});
