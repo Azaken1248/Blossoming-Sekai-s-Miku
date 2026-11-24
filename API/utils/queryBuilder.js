@@ -41,7 +41,7 @@ const SORTABLE_FIELDS = new Set([
 const SORT_ALIASES = new Map([['createdAt', 'assignedAt']]);
 
 export const MAX_LIMIT = 200;
-export const DEFAULT_LIMIT = 50;
+export const DEFAULT_LIMIT = 100;
 
 /** Thrown for a malformed query so the caller can answer 400 rather than 500. */
 export class QueryError extends Error {

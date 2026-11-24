@@ -1,6 +1,6 @@
 import Assignment from '../../DB/Schemas/assignment.js';
 import User from '../../DB/Schemas/user.js';
-import QueryBuilder, { buildFilter, QueryError, MAX_LIMIT, DEFAULT_LIMIT } from '../utils/queryBuilder.js';
+import QueryBuilder, { buildFilter, QueryError, MAX_LIMIT } from '../utils/queryBuilder.js';
 
 /** Fields a caller may group statistics by. Anything else is rejected. */
 const GROUPABLE_FIELDS = new Set(['status', 'roleName', 'roleCategoryId', 'taskType', 'discordUserId', 'hasExtended']);
@@ -41,7 +41,7 @@ export const getUsersWithAssignments = async (req, res) => {
         // Previously returned every user with every assignment populated and no
         // limit. The dashboard only reads the scalar fields, so the payload is
         // now bounded and projected.
-        const limit = Math.min(Math.max(1, Number(req.query.limit) || DEFAULT_LIMIT), MAX_LIMIT);
+        const limit = Math.min(Math.max(1, Number(req.query.limit) || MAX_LIMIT), MAX_LIMIT);
         const page = Math.max(1, Number(req.query.page) || 1);
 
         const [users, total] = await Promise.all([
