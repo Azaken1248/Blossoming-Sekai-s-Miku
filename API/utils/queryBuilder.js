@@ -38,6 +38,8 @@ const SORTABLE_FIELDS = new Set([
     'extensionCount',
 ]);
 
+const SORT_ALIASES = new Map([['createdAt', 'assignedAt']]);
+
 export const MAX_LIMIT = 200;
 export const DEFAULT_LIMIT = 50;
 
@@ -142,7 +144,8 @@ export default class QueryBuilder {
             .filter(Boolean)
             .map((entry) => {
                 const descending = entry.startsWith('-');
-                const field = descending ? entry.slice(1) : entry;
+                const requestedField = descending ? entry.slice(1) : entry;
+                const field = SORT_ALIASES.get(requestedField) ?? requestedField;
                 if (!SORTABLE_FIELDS.has(field)) {
                     throw new QueryError(`Cannot sort by "${field}". Allowed: ${[...SORTABLE_FIELDS].join(', ')}`);
                 }
