@@ -1,24 +1,57 @@
 {
-  "name": "blossoming-sekai's-miku",
+  "name": "blossoming-sekai-miku",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
+  "description": "Discord bot and API that run task assignments, deadlines, reminders, strikes and hiatus for the Blossoming Sekai creative team",
+  "keywords": [
+    "discord-bot",
+    "task-management",
+    "express",
+    "mongodb"
+  ],
+  "homepage": "https://github.com/Azaken1248/Blossoming-Sekai-s-Miku#readme",
+  "bugs": {
+    "url": "https://github.com/Azaken1248/Blossoming-Sekai-s-Miku/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Azaken1248/Blossoming-Sekai-s-Miku.git"
+  },
+  "license": "MIT",
+  "author": "Azaken",
   "type": "module",
+  "main": "bot.js",
+  "files": [
+    "API/",
+    "DB/",
+    "Utils/",
+    "public/",
+    "scripts/",
+    "bot.js",
+    "config.js",
+    "README.md",
+    "PERMISSIONS.md",
+    "LICENSE",
+    "!**/.env",
+    "!**/.env.*",
+    "!configProd.js"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
+    "start:bot": "node bot.js",
+    "start:api": "node API/api.js",
     "test": "node --test --experimental-test-module-mocks \"tests/**/*.test.js\"",
     "coverage": "c8 npm test",
-    "backup": "node scripts/backupDatabase.js",
-    "restore": "node scripts/restoreDatabase.js",
-    "start:api": "node API/api.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "backup": "node scripts/backupDatabase.js",
+    "restore": "node scripts/restoreDatabase.js",
     "prepare": "node .husky/install.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "cors": "2.8.6",
     "discord.js": "14.28.1",
@@ -42,8 +75,5 @@
     "supertest": "7.3.2",
     "typescript": "6.0.3",
     "typescript-eslint": "8.74.0"
-  },
-  "engines": {
-    "node": ">=24"
   }
 }
