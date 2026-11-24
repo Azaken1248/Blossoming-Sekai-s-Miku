@@ -1,5 +1,5 @@
-import Assignment from '../../DB/Schemas/assignment.js';
-import User from '../../DB/Schemas/user.js';
+import Assignment from '../../DB/Schemas/assignment.ts';
+import User from '../../DB/Schemas/user.ts';
 import QueryBuilder, { buildFilter, QueryError, MAX_LIMIT } from '../utils/queryBuilder.js';
 
 /** Fields a caller may group statistics by. Anything else is rejected. */

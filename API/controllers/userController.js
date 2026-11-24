@@ -1,12 +1,13 @@
-import * as userUtils from '../../Utils/DBUtils/userUtils.js';
-import User from '../../DB/Schemas/user.js';
-import Assignment from '../../DB/Schemas/assignment.js';
+import * as records from '../../Utils/DBUtils/apiRecords.ts';
+import { members } from '../../Utils/DBUtils/index.ts';
+import User from '../../DB/Schemas/user.ts';
+import Assignment from '../../DB/Schemas/assignment.ts';
 import config from '../../config.js';
 import { importOptionalDefault } from '../optionalModule.js';
 import { buildRoleNames } from '../roleNames.js';
 import sharp from 'sharp';
 import { MAX_STRIKES } from '../../Utils/domain/strikes.js';
-import { SearchTooLongError } from '../../Utils/DBUtils/searchPattern.js';
+import { SearchTooLongError } from '../../Utils/DBUtils/searchPattern.ts';
 
 const configProd = await importOptionalDefault(new URL('../../configProd.js', import.meta.url));
 
@@ -264,7 +265,7 @@ const getMemberRoleNames = (guildMember, guildRoleMap) => {
 
 export const listUsers = async (req, res) => {
     try {
-        const users = await userUtils.listUsers({
+        const users = await records.listUsers({
             limit: req.query.limit,
             search: req.query.search,
         });
@@ -331,7 +332,7 @@ export const createUser = async (req, res) => {
             return res.status(400).json({ error: 'username must be between 1 and 100 characters' });
         }
 
-        const user = await userUtils.findOrCreateUser(String(discordId), String(username).trim());
+        const user = await records.findOrCreateUser(String(discordId), String(username).trim());
         res.status(201).json({ success: true, data: user });
     } catch (error) {
         console.error('[API] createUser failed:', error);
@@ -341,7 +342,7 @@ export const createUser = async (req, res) => {
 
 export const getUser = async (req, res) => {
     try {
-        const user = await userUtils.getUserProfile(req.params.discordId);
+        const user = await records.getUserProfile(req.params.discordId);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -354,7 +355,7 @@ export const getUser = async (req, res) => {
 
 export const addStrike = async (req, res) => {
     try {
-        const strikes = await userUtils.addStrikeByDiscordId(req.params.discordId);
+        const strikes = await members.addStrike(req.params.discordId);
         if (strikes === null) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -367,7 +368,7 @@ export const addStrike = async (req, res) => {
 
 export const removeStrike = async (req, res) => {
     try {
-        const strikes = await userUtils.removeStrikeByDiscordId(req.params.discordId);
+        const strikes = await members.removeStrike(req.params.discordId);
         // null means no such member. Previously this returned 200 with
         // strikes: 0, which was indistinguishable from a successful removal.
         if (strikes === null) {
@@ -474,7 +475,7 @@ export const getUserSummary = async (req, res) => {
 
 export const generateShareCard = async (req, res) => {
     try {
-        const user = await userUtils.getUserProfile(req.params.discordId);
+        const user = await records.getUserProfile(req.params.discordId);
         if (!user) {
             return res.status(404).send('User not found');
         }
@@ -526,7 +527,7 @@ export const generateShareCard = async (req, res) => {
 
 export const generateCardImage = async (req, res) => {
     try {
-        const user = await userUtils.getUserProfile(req.params.discordId);
+        const user = await records.getUserProfile(req.params.discordId);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }

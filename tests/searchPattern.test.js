@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { containsText, SearchTooLongError, MAX_SEARCH_LENGTH } from '../Utils/DBUtils/searchPattern.js';
+import { containsText, SearchTooLongError, MAX_SEARCH_LENGTH } from '../Utils/DBUtils/searchPattern.ts';
 
 const toRegExp = ({ $regex, $options }) => new RegExp($regex, $options);
 

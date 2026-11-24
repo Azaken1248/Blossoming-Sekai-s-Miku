@@ -3042,6 +3042,76 @@ exports[`POST /api/assignments/:taskId/extend > reports a missing task 1`] = `
 }
 `;
 
+exports[`POST /api/assignments/:taskId/extend > reports a task changed by another request 1`] = `
+{
+  "body": {
+    "error": "This assignment was changed by another request"
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 409,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
 exports[`POST /api/users > accepts a numeric-looking id as text 1`] = `
 {
   "body": {

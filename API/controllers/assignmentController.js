@@ -1,5 +1,5 @@
-import * as taskUtils from '../../Utils/DBUtils/taskUtils.js';
-import User from '../../DB/Schemas/user.js';
+import * as records from '../../Utils/DBUtils/apiRecords.ts';
+import User from '../../DB/Schemas/user.ts';
 import config from '../../config.js';
 
 const SNOWFLAKE = /^\d{17,20}$/;
@@ -56,7 +56,9 @@ export const createAssignment = async (req, res) => {
             return res.status(409).json({ error: 'User has been deboarded and cannot receive new assignments.' });
         }
 
-        const assignment = await taskUtils.createAssignment(userDoc, {
+        const assignment = await records.createAssignment({
+            memberId: userDoc._id.toString(),
+            discordUserId: userDoc.discordId,
             roleCategoryId,
             roleName: resolvedRoleName,
             taskType,
@@ -77,7 +79,7 @@ export const completeAssignment = async (req, res) => {
         // `userDbId` used to be required here but was never read by the util,
         // so callers had to send a field that did nothing. It is now optional
         // and ignored.
-        const task = await taskUtils.completeAssignment(req.params.taskId);
+        const task = await records.completeAssignment(req.params.taskId);
         if (!task) {
             return res.status(409).json({ error: 'Assignment not found, or already completed' });
         }
@@ -101,11 +103,14 @@ export const extendAssignment = async (req, res) => {
             });
         }
 
-        const task = await taskUtils.extendAssignment(req.params.taskId, hours * 60 * 60 * 1000);
+        const task = await records.extendAssignment(req.params.taskId, hours * 60 * 60 * 1000);
         res.json({ success: true, data: task });
     } catch (error) {
         if (error.message === 'ALREADY_EXTENDED') {
             return res.status(409).json({ error: 'This assignment has already used all of its extensions' });
+        }
+        if (error.message === 'TASK_CHANGED') {
+            return res.status(409).json({ error: 'This assignment was changed by another request' });
         }
         if (error.message === 'TASK_NOT_FOUND') {
             return res.status(404).json({ error: 'Assignment not found' });
@@ -120,7 +125,7 @@ export const extendAssignment = async (req, res) => {
 
 export const getPendingTask = async (req, res) => {
     try {
-        const task = await taskUtils.fetchPendingTask(req.params.discordUserId);
+        const task = await records.fetchPendingTask(req.params.discordUserId);
         if (!task) {
             return res.status(404).json({ error: 'No pending task found' });
         }
@@ -133,7 +138,7 @@ export const getPendingTask = async (req, res) => {
 
 export const getOverdueTasks = async (_req, res) => {
     try {
-        const tasks = await taskUtils.fetchOverdueTasks();
+        const tasks = await records.fetchOverdueTasks();
         res.json({ success: true, count: tasks.length, data: tasks });
     } catch (error) {
         console.error('[API] getOverdueTasks failed:', error);

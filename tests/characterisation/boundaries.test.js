@@ -429,6 +429,66 @@ describe('records that change mid-command', () => {
     });
 });
 
+describe('actions that lose a race', () => {
+    const complete = (task) =>
+        state.Assignment.collection.updateOne({ _id: task._id }, { $set: { status: 'COMPLETED' } });
+
+    test('the scheduler leaves a task alone that was approved after it was listed', async (t) => {
+        const task = await seedTask(state, state.cast.va, { taskName: 'Just done', deadline: new Date(NOW - HOUR) });
+        beforeQuery(t, state.Assignment, 'findOneAndUpdate', 1, () => complete(task));
+        await startUp();
+        t.assert.snapshot(await recording(state));
+    });
+
+    test('/removetask keeps a task approved after it was found', async (t) => {
+        const { owner, va } = state.cast;
+        const task = await seedTask(state, va, { taskName: 'Just done' });
+        beforeQuery(t, state.Assignment, 'findOneAndDelete', 1, () => complete(task));
+        await run(state, command('removetask', owner, { user: va, task: 'Just done' }));
+        t.assert.snapshot(await recording(state));
+    });
+
+    test('/removetask reports a task already removed by someone else', async (t) => {
+        const { owner, va } = state.cast;
+        const task = await seedTask(state, va, { taskName: 'Gone' });
+        beforeQuery(t, state.Assignment, 'findOneAndDelete', 1, () =>
+            state.Assignment.collection.deleteOne({ _id: task._id }),
+        );
+        await run(state, command('removetask', owner, { user: va, task: 'Gone' }));
+        t.assert.snapshot(await recording(state));
+    });
+
+    test('/deboard reports a member deboarded by someone else meanwhile', async (t) => {
+        const { owner, va } = state.cast;
+        beforeQuery(t, state.User, 'findOneAndUpdate', 1, () => setUser(state, va, { isDeboarded: true }));
+        await run(state, command('deboard', owner, { user: va }));
+        t.assert.snapshot(await recording(state));
+    });
+
+    test('/endhiatus reports a hiatus ended by someone else meanwhile', async (t) => {
+        const { va } = state.cast;
+        await setUser(state, va, { isOnHiatus: true });
+        await seedTask(state, va, { deadline: new Date('2099-12-31') });
+        beforeQuery(t, state.User, 'updateOne', 1, () =>
+            state.User.collection.updateOne({ discordId: va.id }, { $set: { isOnHiatus: false } }),
+        );
+        await run(state, command('endhiatus', va));
+        t.assert.snapshot(await recording(state));
+    });
+
+    test('a second extension approval that loses the race is told it was resolved', async (t) => {
+        const task = await seedTask(state, state.cast.va, { taskName: 'Contested' });
+        beforeQuery(t, state.Assignment, 'findOneAndUpdate', 1, () =>
+            state.Assignment.collection.updateOne(
+                { _id: task._id },
+                { $set: { extensionCount: 1, hasExtended: true } },
+            ),
+        );
+        await run(state, click(`extension_approve_${task._id}`, state.cast.manager));
+        t.assert.snapshot(await recording(state));
+    });
+});
+
 describe('unexpected failures', () => {
     test('an approval whose extension length is unusable reports an error', async (t) => {
         const rule = config.RULES[ROLE.EDITOR];
@@ -540,7 +600,7 @@ describe('unexpected failures', () => {
     });
 
     test('a hiatus approval that fails after deferring edits the reply with an error', async (t) => {
-        failOnce(t, state.User, 'findOneAndUpdate', 'write conflict');
+        failOnce(t, state.User, 'updateOne', 'write conflict');
         await run(
             state,
             click(`hiatus_approve_${state.cast.va.id}`, state.cast.owner, [

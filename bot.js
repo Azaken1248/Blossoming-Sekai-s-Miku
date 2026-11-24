@@ -4,12 +4,11 @@ import connectDB from './DB/db.js';
 import config from './config.js';
 
 import * as Commands from './Utils/DiscordUtils/commands.js';
-import * as TaskUtils from './Utils/DBUtils/taskUtils.js';
-import * as UserUtils from './Utils/DBUtils/userUtils.js';
+import { members, tasks as taskStore } from './Utils/DBUtils/index.ts';
 import * as Permissions from './Utils/permissions.js';
-import { resolveExtensionMs, ConfigError } from './Utils/domain/extensions.js';
+import { resolveExtensionMs, ConfigError } from './Utils/domain/extensions.ts';
 import { formatStrikes } from './Utils/domain/strikes.js';
-import { MAX_SEARCH_LENGTH } from './Utils/DBUtils/searchPattern.js';
+import { MAX_SEARCH_LENGTH } from './Utils/DBUtils/searchPattern.ts';
 
 dotenv.config();
 
@@ -18,14 +17,9 @@ dotenv.config();
 const OWNED_BUTTON_ACTIONS = new Set(['submit', 'extension', 'hiatus']);
 
 console.log('[STARTUP] Connecting to MongoDB...');
-connectDB()
-    .then(() => {
-        console.log('[STARTUP] ✅ MongoDB connected\n');
-    })
-    .catch((err) => {
-        console.error('[STARTUP] ❌ MongoDB connection failed:', err);
-        process.exit(1);
-    });
+connectDB().then(() => {
+    console.log('[STARTUP] ✅ MongoDB connected\n');
+});
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
@@ -48,8 +42,7 @@ async function runScheduler(isStartup = false) {
     }
 
     console.log('[REMINDERS] 📋 Fetching all pending tasks for analysis...');
-    const Assignment = (await import('./DB/Schemas/assignment.js')).default;
-    const allPendingTasks = await Assignment.find({ status: 'PENDING' });
+    const allPendingTasks = await taskStore.listPending();
     console.log(`[REMINDERS] Total pending tasks in DB: ${allPendingTasks.length}`);
 
     if (allPendingTasks.length > 0) {
@@ -71,7 +64,7 @@ async function runScheduler(isStartup = false) {
     console.log();
 
     console.log('[REMINDERS] 📋 Fetching tasks that need reminders...');
-    const tasksNeedingReminders = await TaskUtils.fetchTasksNeedingReminders(config);
+    const tasksNeedingReminders = await taskStore.listDueReminders(config.REMINDER_THRESHOLDS);
     console.log(`[REMINDERS] Found ${tasksNeedingReminders.length} task(s) needing reminders\n`);
 
     let remindersSent = 0;
@@ -82,7 +75,7 @@ async function runScheduler(isStartup = false) {
         console.log(`[REMINDER-CHECK]   Role: ${task.roleName} | Type: ${reminderType.toUpperCase()}`);
         console.log(`[REMINDER-CHECK]   Deadline: ${task.deadline.toISOString()}`);
 
-        const user = await UserUtils.getUserProfile(task.discordUserId);
+        const user = await members.findByDiscordId(task.discordUserId);
 
         if (user && user.isOnHiatus) {
             console.log(`[REMINDER-CHECK]   ⏸️  SKIPPED - User is on hiatus\n`);
@@ -97,7 +90,7 @@ async function runScheduler(isStartup = false) {
 
         console.log(`[REMINDER-CHECK]   ⏰ Time remaining: ${daysLeft}d ${hoursLeft}h ${minutesLeft}m`);
 
-        const timeString = daysLeft >= 1 ? `${daysLeft} day(s)` : `${hoursLeft} hour(s)`;
+        const timeString = `${daysLeft} day(s)`;
         const deadlineTs = Math.round(task.deadline.getTime() / 1000);
 
         const reminderEmoji = reminderType === 'final' ? '🚨' : '⏰';
@@ -120,7 +113,7 @@ async function runScheduler(isStartup = false) {
             console.log(`[REMINDER-CHECK]   ❌ ERROR - Reminder channel not found (${config.REMINDER_CHANNEL_ID})`);
         }
 
-        await TaskUtils.markReminderSent(task._id, reminderType);
+        await taskStore.markReminderSent(task.id, reminderType);
         console.log(`[REMINDER-CHECK]   💾 Marked ${reminderType} reminder as sent in DB\n`);
         remindersSent++;
     }
@@ -130,7 +123,7 @@ async function runScheduler(isStartup = false) {
     console.log('[REMINDERS] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     console.log('[OVERDUE] 📋 Fetching overdue tasks...');
-    const overdueTasks = await TaskUtils.fetchOverdueTasks();
+    const overdueTasks = await taskStore.listOverdue();
     console.log(`[OVERDUE] Found ${overdueTasks.length} overdue task(s)\n`);
 
     let overdueProcessed = 0;
@@ -141,7 +134,7 @@ async function runScheduler(isStartup = false) {
         console.log(`[OVERDUE-CHECK]   Role: ${task.roleName}`);
         console.log(`[OVERDUE-CHECK]   Deadline was: ${task.deadline.toISOString()}`);
 
-        const user = await UserUtils.getUserProfile(task.discordUserId);
+        const user = await members.findByDiscordId(task.discordUserId);
 
         if (user && user.isOnHiatus) {
             console.log(`[OVERDUE-CHECK]   ⏸️  SKIPPED - User is on hiatus\n`);
@@ -149,23 +142,24 @@ async function runScheduler(isStartup = false) {
             continue;
         }
 
-        // populate('userId') yields null when the referenced user no longer
-        // exists. Dereferencing it here used to throw inside the interval
-        // callback, which killed the process and produced a restart loop.
-        if (!task.userId) {
+        if (!task.member) {
             console.warn(
-                `[OVERDUE-CHECK]   ⚠️ SKIPPED - assignment ${task._id} references a user that no longer exists\n`,
+                `[OVERDUE-CHECK]   ⚠️ SKIPPED - assignment ${task.id} references a user that no longer exists\n`,
             );
             overdueSkipped++;
             continue;
         }
 
         console.log(`[OVERDUE-CHECK]   ⚠️  Processing overdue task...`);
-        task.status = 'LATE';
-        await task.save();
+        const result = await taskStore.markLateAndStrike(task.id);
+        if (result.outcome === 'skipped') {
+            console.log(`[OVERDUE-CHECK]   ⏸️  SKIPPED - Task changed since it was read\n`);
+            overdueSkipped++;
+            continue;
+        }
         console.log(`[OVERDUE-CHECK]   💾 Marked task as LATE in DB`);
 
-        const newStrikeCount = await UserUtils.addStrike(task.userId._id);
+        const newStrikeCount = result.strikes;
         if (newStrikeCount === null) {
             console.warn(`[OVERDUE-CHECK]   ⚠️ Could not apply strike - user record missing\n`);
             overdueSkipped++;
@@ -492,7 +486,7 @@ client.on('interactionCreate', async (interaction) => {
             console.log(`[BUTTON]   Action: ${action} | Type: ${type} | Task ID: ${taskId}`);
 
             if (action === 'submit' || action === 'extension') {
-                const task = await TaskUtils.fetchTaskById(taskId);
+                const task = await taskStore.findById(taskId);
                 if (!task) {
                     console.log(`[BUTTON]   ❌ Task not found: ${taskId}`);
                     return interaction.editReply({ content: '❌ Task not found.' });
@@ -514,10 +508,10 @@ client.on('interactionCreate', async (interaction) => {
                         // Conditional on status, so a double-click or a stale
                         // button cannot complete the task twice and remove two
                         // strikes for one piece of work.
-                        const completed = await TaskUtils.completeAssignment(task._id);
+                        const completed = await taskStore.completeAndForgive(task.id);
                         if (!completed) {
                             console.log(
-                                `[BUTTON]   ⚠️ Task ${task._id} was already resolved; ignoring duplicate approval`,
+                                `[BUTTON]   ⚠️ Task ${task.id} was already resolved; ignoring duplicate approval`,
                             );
                             return interaction.editReply({
                                 content: `⚠️ That task has already been resolved.`,
@@ -525,7 +519,7 @@ client.on('interactionCreate', async (interaction) => {
                                 components: [],
                             });
                         }
-                        const newCount = await UserUtils.removeStrike(completed.userId);
+                        const newCount = completed.strikes;
                         console.log(`[BUTTON]   Strike removed. New count: ${formatStrikes(newCount)}`);
                         await interaction.editReply({
                             content: `✅ Submission approved by <@${interaction.user.id}>`,
@@ -578,14 +572,16 @@ client.on('interactionCreate', async (interaction) => {
 
                         let updated;
                         try {
-                            updated = await TaskUtils.extendAssignment(task._id, extTime);
+                            updated = await taskStore.extend(task.id, extTime);
                         } catch (extendError) {
                             const reason =
                                 extendError.message === 'ALREADY_EXTENDED'
                                     ? '⚠️ That task has already used all of its extensions.'
                                     : extendError.message === 'TASK_NOT_FOUND'
                                       ? '⚠️ That task no longer exists.'
-                                      : null;
+                                      : extendError.message === 'TASK_CHANGED'
+                                        ? '⚠️ That task has already been resolved.'
+                                        : null;
                             if (!reason) throw extendError;
                             console.log(`[BUTTON]   ⚠️ Extension refused: ${extendError.message}`);
                             return interaction.editReply({
@@ -666,21 +662,8 @@ client.on('interactionCreate', async (interaction) => {
 
                 if (type === 'approve') {
                     console.log(`[BUTTON]   Approving hiatus...`);
-                    await UserUtils.setHiatus(userId, true);
-
-                    const Assignment = (await import('./DB/Schemas/assignment.js')).default;
-                    const pendingTasks = await Assignment.find({
-                        discordUserId: userId,
-                        status: 'PENDING',
-                    });
-
-                    console.log(`[BUTTON]   Found ${pendingTasks.length} pending tasks to pause`);
-                    for (const task of pendingTasks) {
-                        task.deadline = new Date('2099-12-31');
-                        task.firstReminderSent = true;
-                        task.finalReminderSent = true;
-                        await task.save();
-                    }
+                    const pausedCount = await members.startHiatus(userId);
+                    console.log(`[BUTTON]   Found ${pausedCount} pending tasks to pause`);
                     console.log(`[BUTTON]   Paused all deadlines`);
 
                     await interaction.editReply({
@@ -701,10 +684,10 @@ client.on('interactionCreate', async (interaction) => {
                     const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                     if (logChannel) {
                         logChannel.send(
-                            `🏖️ Hiatus approved for <@${userId}>. All ${pendingTasks.length} pending task(s) paused. Take the time you need!`,
+                            `🏖️ Hiatus approved for <@${userId}>. All ${pausedCount} pending task(s) paused. Take the time you need!`,
                         );
                     }
-                    console.log(`[BUTTON]   ✅ Hiatus approved successfully with ${pendingTasks.length} tasks paused`);
+                    console.log(`[BUTTON]   ✅ Hiatus approved successfully with ${pausedCount} tasks paused`);
                 } else if (type === 'deny') {
                     console.log(`[BUTTON]   Denying hiatus...`);
                     await interaction.editReply({

@@ -18,7 +18,7 @@ before(async () => {
     }
     database = await startDatabase('sekai_api_masking');
     ({ default: app } = await import('../../API/app.js'));
-    ({ default: User } = await import('../../DB/Schemas/user.js'));
+    ({ default: User } = await import('../../DB/Schemas/user.ts'));
     ({ generateCardImage } = await import('../../API/controllers/userController.js'));
 });
 

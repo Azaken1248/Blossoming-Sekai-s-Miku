@@ -33,8 +33,8 @@ before(async () => {
     });
     database = await startDatabase('sekai_char_api');
     ({ default: app } = await import('../../API/app.js'));
-    ({ default: User } = await import('../../DB/Schemas/user.js'));
-    ({ default: Assignment } = await import('../../DB/Schemas/assignment.js'));
+    ({ default: User } = await import('../../DB/Schemas/user.ts'));
+    ({ default: Assignment } = await import('../../DB/Schemas/assignment.ts'));
 });
 
 beforeEach(async () => {
@@ -230,6 +230,11 @@ describe('POST /api/assignments/:taskId/extend', () => {
     scenario('refuses a missing length', async () => send('post', `/api/assignments/${await seedTask()}/extend`));
     scenario('refuses a length over a year', async () => extend(await seedTask(), 8761));
     scenario('reports a missing task', () => extend(MISSING_ID, 24));
+    scenario('reports a task changed by another request', async (t) => {
+        const id = await seedTask();
+        t.mock.method(Assignment, 'findOneAndUpdate', () => ({ lean: async () => null }));
+        return extend(id, 24);
+    });
     scenario('refuses a malformed id', () => extend('nope', 24));
 });
 
