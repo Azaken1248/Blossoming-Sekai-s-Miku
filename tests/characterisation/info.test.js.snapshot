@@ -1,0 +1,1851 @@
+exports[`/help, /ping and /uptime > /help lists the commands 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferReply",
+      "target": "100000000000000003",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000003",
+      "payload": {
+        "embeds": [
+          {
+            "title": "🎤 Miku's Command Guide ♪",
+            "color": 3786171,
+            "description": "Yahallo~! ✨ I'm here to help make our SEKAI amazing! Here are all the ways we can work together~ Let's create something wonderful! ♪\\n\\n🎵 Use \`/\` to see every command",
+            "timestamp": "2026-06-15T12:00:00.000Z",
+            "fields": [
+              {
+                "name": "✨ Task Management",
+                "value": "\`/assign\` - Assign tasks (supports Custom tasks with duration_days & extension_days!)\\n\`/submit\` - Submit your amazing work! (needs approval~)\\n\`/extension\` - Need more time? Request with a reason (requires approval)\\n\`/tasks\` - See all your current assignments\\n\`/checkfree\` - See who is available or check a specific user! ♪",
+                "inline": false
+              },
+              {
+                "name": "🌟 User Management",
+                "value": "\`/onboard\` - Welcome new crew members!\\n\`/profile\` - Check your stats and achievements~\\n\`/card\` - View your ID card (like the website card!) or \`/card @user\` for someone else\\n\`/strike add/remove\` - Manage strikes (add requires reason)\\n\`/hiatus\` - Request a break with reason (needs approval)\\n\`/endhiatus\` - Come back from hiatus (leave blank for yourself!)",
+                "inline": false
+              },
+              {
+                "name": "📚 History & Tracking",
+                "value": "\`/history\` - View complete task history with filters\\n🔍 Filters: user, task name, status (PENDING/COMPLETED/LATE), role",
+                "inline": false
+              },
+              {
+                "name": "🔔 Special Features",
+                "value": "• **Custom Tasks**: Use \`task:Custom\` with \`duration_days\` & optional \`extension_days\`\\n• **Smart Reminders**: Get notified before deadlines!\\n• **Hiatus System**: Tasks pause during hiatus, fresh deadlines on return\\n• **Approval System**: Submissions, extensions, and hiatus need staff approval",
+                "inline": false
+              },
+              {
+                "name": "💡 Tips for Success~",
+                "value": "• Always specify which task when submitting if you have multiple!\\n• Extensions can only be used once per task\\n• Tasks on hiatus show \\"N/A\\" for deadline\\n• Reminders are sent at configured intervals\\n• Completing tasks removes a strike - keep up the good work! ♪",
+                "inline": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`/help, /ping and /uptime > /ping reports the response time 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferReply",
+      "target": "100000000000000003",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000003",
+      "payload": {
+        "content": "Checking connection... ♪"
+      }
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000003",
+      "payload": {
+        "embeds": [
+          {
+            "title": "🎤 Connection Check!",
+            "color": 3786171,
+            "description": "Looks like I'm responding just fine! Everything's working smoothly~",
+            "fields": [
+              {
+                "name": "Response Time",
+                "value": "0ms",
+                "inline": true
+              },
+              {
+                "name": "Status",
+                "value": "✨ Excellent!",
+                "inline": true
+              }
+            ],
+            "footer": {
+              "text": "Ready to help anytime!"
+            },
+            "timestamp": "2026-06-15T12:00:00.000Z"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`/help, /ping and /uptime > /uptime reports days, hours and minutes 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferReply",
+      "target": "100000000000000003",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000003",
+      "payload": {
+        "embeds": [
+          {
+            "title": "🎵 How Long Have I Been Here?",
+            "color": 3786171,
+            "description": "I've been working hard for this SEKAI! Let's keep the momentum going~",
+            "fields": [
+              {
+                "name": "Time Online",
+                "value": "**2** days, **3** hours, **25** minutes",
+                "inline": false
+              },
+              {
+                "name": "Status",
+                "value": "💚 Running strong!",
+                "inline": false
+              }
+            ],
+            "footer": {
+              "text": "Always here to support everyone's creative journey!"
+            },
+            "timestamp": "2026-06-15T12:00:00.000Z"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`/history > matches task text literally 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferReply",
+      "target": "100000000000000003",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000003",
+      "payload": {
+        "embeds": [
+          {
+            "title": "📚 Task History ♪",
+            "color": 3786171,
+            "footer": {
+              "text": "🎵 Page 1/1 | Total: 1 amazing task(s)!"
+            },
+            "timestamp": "2026-06-15T12:00:00.000Z",
+            "description": "Task: **a.b**",
+            "fields": [
+              {
+                "name": "🗒️ a.b test",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/12/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>",
+          "<id 5>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 7>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "a.b test",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      },
+      {
+        "_id": "<id 5>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "axb test",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`/history > pages through results with buttons, only for the requester 1`] = `
+{
+  "firstPage": {
+    "discord": [
+      {
+        "kind": "deferReply",
+        "target": "100000000000000001",
+        "payload": null
+      },
+      {
+        "kind": "editReply",
+        "target": "100000000000000001",
+        "payload": {
+          "embeds": [
+            {
+              "title": "📚 Task History ♪",
+              "color": 3786171,
+              "footer": {
+                "text": "🎵 Page 1/2 | Total: 8 amazing task(s)!"
+              },
+              "timestamp": "2026-06-15T12:00:00.000Z",
+              "fields": [
+                {
+                  "name": "🗒️ Skit 0",
+                  "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/14/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                  "inline": false
+                },
+                {
+                  "name": "🗒️ Skit 1",
+                  "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/13/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                  "inline": false
+                },
+                {
+                  "name": "🗒️ Skit 2",
+                  "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/12/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                  "inline": false
+                },
+                {
+                  "name": "🗒️ Skit 3",
+                  "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/11/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                  "inline": false
+                },
+                {
+                  "name": "🗒️ Skit 4",
+                  "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/10/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                  "inline": false
+                }
+              ]
+            }
+          ],
+          "components": [
+            {
+              "type": 1,
+              "components": [
+                {
+                  "type": 2,
+                  "custom_id": "history_prev",
+                  "label": "Previous",
+                  "style": 1,
+                  "disabled": true
+                },
+                {
+                  "type": 2,
+                  "custom_id": "history_next",
+                  "label": "Next",
+                  "style": 1
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "errors": [],
+    "timers": [],
+    "database": {
+      "users": [
+        {
+          "_id": "<id 1>",
+          "discordId": "100000000000000001",
+          "username": "owner.one",
+          "strikes": 0,
+          "isOnHiatus": false,
+          "isDeboarded": false,
+          "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+          "roles": [],
+          "joinedAt": "2026-01-10T00:00:00.000Z",
+          "deboarded_at": null,
+          "assignments": [],
+          "cardImage": null
+        },
+        {
+          "_id": "<id 2>",
+          "discordId": "100000000000000002",
+          "username": "manager.one",
+          "strikes": 0,
+          "isOnHiatus": false,
+          "isDeboarded": false,
+          "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+          "roles": [],
+          "joinedAt": "2026-01-10T00:00:00.000Z",
+          "deboarded_at": null,
+          "assignments": [],
+          "cardImage": null
+        },
+        {
+          "_id": "<id 3>",
+          "discordId": "100000000000000003",
+          "username": "va.one",
+          "strikes": 0,
+          "isOnHiatus": false,
+          "isDeboarded": false,
+          "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+          "roles": [],
+          "joinedAt": "2026-01-10T00:00:00.000Z",
+          "deboarded_at": null,
+          "assignments": [
+            "<id 4>",
+            "<id 5>",
+            "<id 6>",
+            "<id 7>",
+            "<id 8>",
+            "<id 9>",
+            "<id 10>"
+          ],
+          "cardImage": null
+        },
+        {
+          "_id": "<id 11>",
+          "discordId": "100000000000000004",
+          "username": "editor.one",
+          "strikes": 0,
+          "isOnHiatus": false,
+          "isDeboarded": false,
+          "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+          "roles": [],
+          "joinedAt": "2026-01-10T00:00:00.000Z",
+          "deboarded_at": null,
+          "assignments": [
+            "<id 12>"
+          ],
+          "cardImage": null
+        },
+        {
+          "_id": "<id 13>",
+          "discordId": "100000000000000006",
+          "username": "quiet.one",
+          "strikes": 0,
+          "isOnHiatus": false,
+          "isDeboarded": false,
+          "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+          "roles": [],
+          "joinedAt": "2026-01-10T00:00:00.000Z",
+          "deboarded_at": null,
+          "assignments": [],
+          "cardImage": null
+        }
+      ],
+      "assignments": [
+        {
+          "_id": "<id 10>",
+          "userId": "<id 3>",
+          "discordUserId": "100000000000000003",
+          "roleCategoryId": "1449411540351713503",
+          "roleName": "VA",
+          "taskType": "skit",
+          "taskName": "Skit 6",
+          "description": "",
+          "assignedAt": "2026-06-08T12:00:00.000Z",
+          "deadline": "2026-06-26T12:00:00.000Z",
+          "hasExtended": false,
+          "extensionCount": 0,
+          "customExtension": null,
+          "submissionChannelId": null,
+          "firstReminderSent": false,
+          "finalReminderSent": false,
+          "status": "PENDING",
+          "completedAt": null
+        },
+        {
+          "_id": "<id 9>",
+          "userId": "<id 3>",
+          "discordUserId": "100000000000000003",
+          "roleCategoryId": "1449411540351713503",
+          "roleName": "VA",
+          "taskType": "skit",
+          "taskName": "Skit 5",
+          "description": "",
+          "assignedAt": "2026-06-09T12:00:00.000Z",
+          "deadline": "2026-06-26T12:00:00.000Z",
+          "hasExtended": false,
+          "extensionCount": 0,
+          "customExtension": null,
+          "submissionChannelId": null,
+          "firstReminderSent": false,
+          "finalReminderSent": false,
+          "status": "PENDING",
+          "completedAt": null
+        },
+        {
+          "_id": "<id 8>",
+          "userId": "<id 3>",
+          "discordUserId": "100000000000000003",
+          "roleCategoryId": "1449411540351713503",
+          "roleName": "VA",
+          "taskType": "skit",
+          "taskName": "Skit 4",
+          "description": "",
+          "assignedAt": "2026-06-10T12:00:00.000Z",
+          "deadline": "2026-06-26T12:00:00.000Z",
+          "hasExtended": false,
+          "extensionCount": 0,
+          "customExtension": null,
+          "submissionChannelId": null,
+          "firstReminderSent": false,
+          "finalReminderSent": false,
+          "status": "PENDING",
+          "completedAt": null
+        },
+        {
+          "_id": "<id 7>",
+          "userId": "<id 3>",
+          "discordUserId": "100000000000000003",
+          "roleCategoryId": "1449411540351713503",
+          "roleName": "VA",
+          "taskType": "skit",
+          "taskName": "Skit 3",
+          "description": "",
+          "assignedAt": "2026-06-11T12:00:00.000Z",
+          "deadline": "2026-06-26T12:00:00.000Z",
+          "hasExtended": false,
+          "extensionCount": 0,
+          "customExtension": null,
+          "submissionChannelId": null,
+          "firstReminderSent": false,
+          "finalReminderSent": false,
+          "status": "PENDING",
+          "completedAt": null
+        },
+        {
+          "_id": "<id 6>",
+          "userId": "<id 3>",
+          "discordUserId": "100000000000000003",
+          "roleCategoryId": "1449411540351713503",
+          "roleName": "VA",
+          "taskType": "skit",
+          "taskName": "Skit 2",
+          "description": "",
+          "assignedAt": "2026-06-12T12:00:00.000Z",
+          "deadline": "2026-06-26T12:00:00.000Z",
+          "hasExtended": false,
+          "extensionCount": 0,
+          "customExtension": null,
+          "submissionChannelId": null,
+          "firstReminderSent": false,
+          "finalReminderSent": false,
+          "status": "PENDING",
+          "completedAt": null
+        },
+        {
+          "_id": "<id 5>",
+          "userId": "<id 3>",
+          "discordUserId": "100000000000000003",
+          "roleCategoryId": "1449411540351713503",
+          "roleName": "VA",
+          "taskType": "skit",
+          "taskName": "Skit 1",
+          "description": "",
+          "assignedAt": "2026-06-13T12:00:00.000Z",
+          "deadline": "2026-06-26T12:00:00.000Z",
+          "hasExtended": false,
+          "extensionCount": 0,
+          "customExtension": null,
+          "submissionChannelId": null,
+          "firstReminderSent": false,
+          "finalReminderSent": false,
+          "status": "PENDING",
+          "completedAt": null
+        },
+        {
+          "_id": "<id 4>",
+          "userId": "<id 3>",
+          "discordUserId": "100000000000000003",
+          "roleCategoryId": "1449411540351713503",
+          "roleName": "VA",
+          "taskType": "skit",
+          "taskName": "Skit 0",
+          "description": "",
+          "assignedAt": "2026-06-14T12:00:00.000Z",
+          "deadline": "2026-06-26T12:00:00.000Z",
+          "hasExtended": false,
+          "extensionCount": 0,
+          "customExtension": null,
+          "submissionChannelId": null,
+          "firstReminderSent": false,
+          "finalReminderSent": false,
+          "status": "PENDING",
+          "completedAt": null
+        },
+        {
+          "_id": "<id 12>",
+          "userId": "<id 11>",
+          "discordUserId": "100000000000000004",
+          "roleCategoryId": "1449416050457186425",
+          "roleName": "editor",
+          "taskType": "color_mv",
+          "taskName": "Editor job",
+          "description": "",
+          "assignedAt": "2026-05-16T12:00:00.000Z",
+          "deadline": "2026-06-26T12:00:00.000Z",
+          "hasExtended": false,
+          "extensionCount": 0,
+          "customExtension": null,
+          "submissionChannelId": null,
+          "firstReminderSent": false,
+          "finalReminderSent": false,
+          "status": "PENDING",
+          "completedAt": null
+        }
+      ]
+    }
+  },
+  "collectorTime": 300000,
+  "allowed": {
+    "owner": true,
+    "other": false
+  },
+  "secondPage": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "embeds": [
+          {
+            "title": "📚 Task History ♪",
+            "color": 3786171,
+            "footer": {
+              "text": "🎵 Page 2/2 | Total: 8 amazing task(s)!"
+            },
+            "timestamp": "2026-06-15T12:00:00.000Z",
+            "fields": [
+              {
+                "name": "🗒️ Skit 5",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/9/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "🗒️ Skit 6",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/8/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "🗒️ Editor job",
+                "value": "**User:** editor.one\\n**Role:** editor\\n**Type:** color_mv\\n**Status:** PENDING\\n**Assigned:** 5/16/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "type": 1,
+            "components": [
+              {
+                "type": 2,
+                "custom_id": "history_prev",
+                "label": "Previous",
+                "style": 1,
+                "disabled": false
+              },
+              {
+                "type": 2,
+                "custom_id": "history_next",
+                "label": "Next",
+                "style": 1,
+                "disabled": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "pastTheEnd": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "embeds": [
+          {
+            "title": "📚 Task History ♪",
+            "color": 3786171,
+            "footer": {
+              "text": "🎵 Page 2/2 | Total: 8 amazing task(s)!"
+            },
+            "timestamp": "2026-06-15T12:00:00.000Z",
+            "fields": [
+              {
+                "name": "🗒️ Skit 5",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/9/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "🗒️ Skit 6",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/8/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "🗒️ Editor job",
+                "value": "**User:** editor.one\\n**Role:** editor\\n**Type:** color_mv\\n**Status:** PENDING\\n**Assigned:** 5/16/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "type": 1,
+            "components": [
+              {
+                "type": 2,
+                "custom_id": "history_prev",
+                "label": "Previous",
+                "style": 1,
+                "disabled": false
+              },
+              {
+                "type": 2,
+                "custom_id": "history_next",
+                "label": "Next",
+                "style": 1,
+                "disabled": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "backToFirst": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "embeds": [
+          {
+            "title": "📚 Task History ♪",
+            "color": 3786171,
+            "footer": {
+              "text": "🎵 Page 1/2 | Total: 8 amazing task(s)!"
+            },
+            "timestamp": "2026-06-15T12:00:00.000Z",
+            "fields": [
+              {
+                "name": "🗒️ Skit 0",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/14/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "🗒️ Skit 1",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/13/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "🗒️ Skit 2",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/12/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "🗒️ Skit 3",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/11/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "🗒️ Skit 4",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/10/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "type": 1,
+            "components": [
+              {
+                "type": 2,
+                "custom_id": "history_prev",
+                "label": "Previous",
+                "style": 1,
+                "disabled": true
+              },
+              {
+                "type": 2,
+                "custom_id": "history_next",
+                "label": "Next",
+                "style": 1,
+                "disabled": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "ended": [
+    {
+      "kind": "messageEdit",
+      "target": "700000000000000001/1",
+      "payload": {
+        "components": [
+          {
+            "type": 1,
+            "components": [
+              {
+                "type": 2,
+                "custom_id": "history_prev",
+                "label": "Previous",
+                "style": 1,
+                "disabled": true
+              },
+              {
+                "type": 2,
+                "custom_id": "history_next",
+                "label": "Next",
+                "style": 1,
+                "disabled": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+`;
+
+exports[`/history > reports no matching tasks 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferReply",
+      "target": "100000000000000003",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000003",
+      "payload": {
+        "content": "No tasks found matching the criteria.",
+        "components": []
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`/history > shows every status icon 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferReply",
+      "target": "100000000000000003",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000003",
+      "payload": {
+        "embeds": [
+          {
+            "title": "📚 Task History ♪",
+            "color": 3786171,
+            "footer": {
+              "text": "🎵 Page 1/1 | Total: 4 amazing task(s)!"
+            },
+            "timestamp": "2026-06-15T12:00:00.000Z",
+            "fields": [
+              {
+                "name": "🗒️ Task PENDING",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING\\n**Assigned:** 6/14/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "✅ Task COMPLETED",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** COMPLETED\\n**Assigned:** 6/13/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "❌ Task LATE",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** LATE\\n**Assigned:** 6/12/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              },
+              {
+                "name": "ℹ️ Task EXCUSED",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** EXCUSED\\n**Assigned:** 6/11/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>",
+                "inline": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>",
+          "<id 5>",
+          "<id 6>",
+          "<id 7>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 8>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 9>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 7>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Task EXCUSED",
+        "description": "",
+        "assignedAt": "2026-06-11T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "EXCUSED",
+        "completedAt": null
+      },
+      {
+        "_id": "<id 6>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Task LATE",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "LATE",
+        "completedAt": null
+      },
+      {
+        "_id": "<id 5>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Task COMPLETED",
+        "description": "",
+        "assignedAt": "2026-06-13T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "COMPLETED",
+        "completedAt": null
+      },
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Task PENDING",
+        "description": "",
+        "assignedAt": "2026-06-14T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`/history > shows one page with every filter described 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferReply",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "embeds": [
+          {
+            "title": "📚 Task History ♪",
+            "color": 3786171,
+            "footer": {
+              "text": "🎵 Page 1/1 | Total: 1 amazing task(s)!"
+            },
+            "timestamp": "2026-06-15T12:00:00.000Z",
+            "description": "User: **va.one** | Task: **morning** | Status: **pending** | Role: **va**",
+            "fields": [
+              {
+                "name": "🗒️ Morning skit",
+                "value": "**User:** va.one\\n**Role:** VA\\n**Type:** skit\\n**Status:** PENDING [Extended]\\n**Assigned:** 6/12/2026, 12:00:00 PM\\n**Deadline:** <t:1782475200:F>\\n**Description:** Short one",
+                "inline": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 4>",
+          "<id 5>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 6>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [
+          "<id 7>"
+        ],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 8>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": [
+      {
+        "_id": "<id 4>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Morning skit",
+        "description": "Short one",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": true,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      },
+      {
+        "_id": "<id 5>",
+        "userId": "<id 3>",
+        "discordUserId": "100000000000000003",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "story",
+        "taskName": "Morning story",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "COMPLETED",
+        "completedAt": null
+      },
+      {
+        "_id": "<id 7>",
+        "userId": "<id 6>",
+        "discordUserId": "100000000000000004",
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "taskType": "skit",
+        "taskName": "Morning skit",
+        "description": "",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "hasExtended": false,
+        "extensionCount": 0,
+        "customExtension": null,
+        "submissionChannelId": null,
+        "firstReminderSent": false,
+        "finalReminderSent": false,
+        "status": "PENDING",
+        "completedAt": null
+      }
+    ]
+  }
+}
+`;
+
+exports[`failures > a command that throws before deferring replies ephemerally 1`] = `
+{
+  "discord": [
+    {
+      "kind": "reply",
+      "target": "100000000000000007",
+      "payload": {
+        "content": "❌ Something went wrong running that command.",
+        "flags": 64
+      }
+    }
+  ],
+  "errors": [
+    [
+      "[COMMAND] ❌ Error in /bulkassign:",
+      "Error: Unknown Member"
+    ]
+  ],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`failures > a command that throws tells the member something went wrong 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferReply",
+      "target": "100000000000000007",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000007",
+      "payload": {
+        "content": "❌ Something went wrong running that command."
+      }
+    }
+  ],
+  "errors": [
+    [
+      "[COMMAND] ❌ Error in /assign:",
+      "Error: Unknown Member"
+    ]
+  ],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;
+
+exports[`failures > an unknown command is logged as completed and does nothing 1`] = `
+{
+  "discord": [],
+  "errors": [],
+  "timers": [],
+  "database": {
+    "users": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000001",
+        "username": "owner.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000002",
+        "username": "manager.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 3>",
+        "discordId": "100000000000000003",
+        "username": "va.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 4>",
+        "discordId": "100000000000000004",
+        "username": "editor.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      },
+      {
+        "_id": "<id 5>",
+        "discordId": "100000000000000006",
+        "username": "quiet.one",
+        "strikes": 0,
+        "isOnHiatus": false,
+        "isDeboarded": false,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "roles": [],
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "deboarded_at": null,
+        "assignments": [],
+        "cardImage": null
+      }
+    ],
+    "assignments": []
+  }
+}
+`;

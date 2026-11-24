@@ -42,6 +42,17 @@ export class DiscordWorld extends EventEmitter {
         };
     }
 
+    reset() {
+        this.log = [];
+        this.collectors = [];
+        this.nextMessageId = 1;
+        this.users.clear();
+        this.channels.clear();
+        this.roles.clear();
+        this.guild.members.cache.clear();
+        this.client.uptime = 0;
+    }
+
     record(kind, target, payload) {
         const entry = { kind, target, payload: normalizePayload(payload) };
         this.log.push(entry);
