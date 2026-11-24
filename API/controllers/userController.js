@@ -4,6 +4,8 @@ import Assignment from '../../DB/Schemas/assignment.js';
 import config from '../../config.js';
 import configProd from '../../configProd.js';
 import sharp from 'sharp';
+import { MAX_STRIKES } from '../../Utils/domain/strikes.js';
+import { SearchTooLongError } from '../../Utils/DBUtils/searchPattern.js';
 
 const DISCORD_API = 'https://discord.com/api/v10';
 const roleCache = {
@@ -27,6 +29,17 @@ const escapeXml = (unsafe) => {
             case '"': return '&quot;'; default: return c;
         }
     });
+};
+
+/** HTML-context escaping. &#039; rather than &apos; so it is safe in HTML4 too. */
+const escapeHtml = (unsafe) => {
+    if (unsafe === null || unsafe === undefined) return '';
+    return String(unsafe)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 };
 
 const fetchAsBase64 = async (url) => {
@@ -295,20 +308,36 @@ export const listUsers = async (req, res) => {
 
         return res.json({ success: true, count: data.length, data });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        if (error instanceof SearchTooLongError) {
+            return res.status(400).json({ error: error.message });
+        }
+        console.error('[API] listUsers failed:', error);
+        res.status(500).json({ error: 'Failed to list users' });
     }
 };
 
+const SNOWFLAKE = /^\d{17,20}$/;
+
 export const createUser = async (req, res) => {
     try {
-        const { discordId, username } = req.body;
+        const { discordId, username } = req.body ?? {};
         if (!discordId || !username) {
             return res.status(400).json({ error: 'discordId and username are required' });
         }
-        const user = await userUtils.findOrCreateUser(discordId, username);
+        // Without this the endpoint accepted any string as a user id, so a typo
+        // or a stray request left a permanent junk record in the roster.
+        if (!SNOWFLAKE.test(String(discordId))) {
+            return res.status(400).json({ error: 'discordId must be a Discord snowflake (17-20 digits)' });
+        }
+        if (String(username).trim().length === 0 || String(username).length > 100) {
+            return res.status(400).json({ error: 'username must be between 1 and 100 characters' });
+        }
+
+        const user = await userUtils.findOrCreateUser(String(discordId), String(username).trim());
         res.status(201).json({ success: true, data: user });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[API] createUser failed:', error);
+        res.status(500).json({ error: 'Failed to create user' });
     }
 };
 
@@ -320,7 +349,8 @@ export const getUser = async (req, res) => {
         }
         res.json({ success: true, data: user });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[API] getUser failed:', error);
+        res.status(500).json({ error: 'Failed to fetch user' });
     }
 };
 
@@ -332,99 +362,120 @@ export const addStrike = async (req, res) => {
         }
         res.json({ success: true, strikes });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[API] addStrike failed:', error);
+        res.status(500).json({ error: 'Failed to add strike' });
     }
 };
 
 export const removeStrike = async (req, res) => {
     try {
         const strikes = await userUtils.removeStrikeByDiscordId(req.params.discordId);
+        // null means no such member. Previously this returned 200 with
+        // strikes: 0, which was indistinguishable from a successful removal.
+        if (strikes === null) {
+            return res.status(404).json({ error: 'User not found' });
+        }
         res.json({ success: true, strikes });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[API] removeStrike failed:', error);
+        res.status(500).json({ error: 'Failed to remove strike' });
     }
+};
+
+/**
+ * Build the computed profile summary for a member.
+ *
+ * Extracted from the route handler so other parts of the API can call it
+ * directly. It used to be reachable only over HTTP, which meant the server made
+ * a network request to itself - a round trip, plus an SSRF because the URL was
+ * built from the client-supplied Host header.
+ *
+ * Returns null when the member has no record, or `{ notInGuild: true }` when a
+ * guild is configured and they are not in it.
+ */
+export const buildUserSummary = async (discordId) => {
+    const user = await User.findOne({ discordId })
+        .select('discordId username strikes isOnHiatus isDeboarded roles joinedAt')
+        .lean();
+
+    if (!user) return null;
+
+    const assignments = await Assignment.find({ discordUserId: discordId })
+        .select('status roleName')
+        .lean();
+
+    const tasksCompleted = assignments.filter(a => a.status === 'COMPLETED').length;
+    const taskRoleCounts = assignments.reduce((accumulator, assignment) => {
+        const role = assignment.roleName || 'Unknown';
+        accumulator[role] = (accumulator[role] || 0) + 1;
+        return accumulator;
+    }, {});
+
+    const topTaskRoles = Object.entries(taskRoleCounts)
+        .sort((left, right) => right[1] - left[1])
+        .slice(0, 3)
+        .map(([role]) => role);
+
+    const discordData = await getDiscordProfileAndRoles(discordId);
+    const mappedStoredRoles = mapStoredRolesToNames(Array.isArray(user.roles) ? user.roles : []);
+    const { botToken, guildId } = getDiscordAuth();
+
+    let guildMember = null;
+    let guildRoleMap = new Map();
+    if (botToken && guildId) {
+        const [membersMap, rolesMap] = await Promise.all([
+            getGuildMembersMap(guildId, botToken),
+            getGuildRoleMap(guildId, botToken)
+        ]);
+        guildMember = membersMap.get(discordId) || null;
+        guildRoleMap = rolesMap;
+    }
+
+    const guildRoles = getMemberRoleNames(guildMember, guildRoleMap);
+    const actualRoles = guildRoles.length > 0
+        ? guildRoles
+        : (mappedStoredRoles.length > 0 ? mappedStoredRoles : topTaskRoles);
+
+    const derivedWorkRoles = topTaskRoles.length > 0
+        ? topTaskRoles
+        : actualRoles.slice(0, 3);
+
+    const avatarUrl = buildAvatarFromGuildMember(guildMember) || discordData.avatarUrl;
+    const username = getDisplayUsername(user, guildMember);
+    const mikuDescription = buildMikuDescription({
+        username,
+        strikes: user.strikes || 0,
+        isOnHiatus: !!user.isOnHiatus,
+        tasksCompleted,
+        topTaskRoles: derivedWorkRoles
+    });
+
+    return {
+        ...user,
+        username,
+        avatarUrl,
+        storedRoles: mappedStoredRoles,
+        actualRoles,
+        totalAssignments: assignments.length,
+        tasksCompleted,
+        topTaskRoles: derivedWorkRoles,
+        mikuDescription,
+        // Membership is reported rather than being a 404, so a member who left
+        // the server still has a readable profile and share card.
+        isGuildMember: Boolean(guildMember)
+    };
 };
 
 export const getUserSummary = async (req, res) => {
     try {
-        const user = await User.findOne({ discordId: req.params.discordId })
-            .select('discordId username strikes isOnHiatus roles joinedAt')
-            .lean();
-
-        if (!user) {
+        const summary = await buildUserSummary(req.params.discordId);
+        if (!summary) {
             return res.status(404).json({ error: 'User not found' });
         }
-
-        const assignments = await Assignment.find({ discordUserId: req.params.discordId })
-            .select('status roleName')
-            .lean();
-
-        const tasksCompleted = assignments.filter(a => a.status === 'COMPLETED').length;
-        const taskRoleCounts = assignments.reduce((accumulator, assignment) => {
-            const role = assignment.roleName || 'Unknown';
-            accumulator[role] = (accumulator[role] || 0) + 1;
-            return accumulator;
-        }, {});
-
-        const topTaskRoles = Object.entries(taskRoleCounts)
-            .sort((left, right) => right[1] - left[1])
-            .slice(0, 3)
-            .map(([role]) => role);
-
-        const discordData = await getDiscordProfileAndRoles(req.params.discordId);
-        const mappedStoredRoles = mapStoredRolesToNames(Array.isArray(user.roles) ? user.roles : []);
-        const { botToken, guildId } = getDiscordAuth();
-
-        let guildMember = null;
-        let guildRoleMap = new Map();
-        if (botToken && guildId) {
-            const [membersMap, rolesMap] = await Promise.all([
-                getGuildMembersMap(guildId, botToken),
-                getGuildRoleMap(guildId, botToken)
-            ]);
-            guildMember = membersMap.get(req.params.discordId) || null;
-            guildRoleMap = rolesMap;
-        }
-
-        if (botToken && guildId && !guildMember) {
-            return res.status(404).json({ error: 'User is not a member of the configured Discord guild' });
-        }
-
-        const guildRoles = getMemberRoleNames(guildMember, guildRoleMap);
-        const actualRoles = guildRoles.length > 0
-            ? guildRoles
-            : (mappedStoredRoles.length > 0 ? mappedStoredRoles : topTaskRoles);
-
-        const derivedWorkRoles = topTaskRoles.length > 0
-            ? topTaskRoles
-            : actualRoles.slice(0, 3);
-
-        const avatarUrl = buildAvatarFromGuildMember(guildMember) || discordData.avatarUrl;
-        const username = getDisplayUsername(user, guildMember);
-        const mikuDescription = buildMikuDescription({
-            username,
-            strikes: user.strikes || 0,
-            isOnHiatus: !!user.isOnHiatus,
-            tasksCompleted,
-            topTaskRoles: derivedWorkRoles
-        });
-
-        return res.json({
-            success: true,
-            data: {
-                ...user,
-                username,
-                avatarUrl,
-                storedRoles: mappedStoredRoles,
-                actualRoles,
-                totalAssignments: assignments.length,
-                tasksCompleted,
-                topTaskRoles: derivedWorkRoles,
-                mikuDescription
-            }
-        });
+        return res.json({ success: true, data: summary });
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        console.error('[API] getUserSummary failed:', error);
+        return res.status(500).json({ error: 'Failed to build user summary' });
     }
 };
 
@@ -439,26 +490,36 @@ export const generateShareCard = async (req, res) => {
         const statusText = user.isOnHiatus ? "💤 On Hiatus" : "✨ Active Member";
         const rolesText = user.roles && user.roles.length ? user.roles.join(', ') : 'Crew Member';
 
-        const FRONTEND_URL = 'https://sekai.azaken.com'
+        // Every interpolation below goes through escapeHtml. Usernames and role
+        // names come from Discord and may contain quotes or angle brackets,
+        // which previously broke out of the meta tag attributes.
+        const safeUsername = escapeHtml(user.username || 'Sekai User');
+        const safeRoles = escapeHtml(rolesText);
+        const safeStatus = escapeHtml(statusText);
+        const safeStrikes = escapeHtml(String(user.strikes ?? 0));
+        const safeCompleted = escapeHtml(String(user.tasksCompleted || 0));
+        const safeDiscordId = encodeURIComponent(user.discordId);
+
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'https://sekai.azaken.com'
 
         const html = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <title>${user.username}'s Sekai Profile</title>
-            
-            <meta property="og:title" content="🌸 ${user.username}'s Sekai ID Card" />
+            <title>${safeUsername}'s Sekai Profile</title>
+
+            <meta property="og:title" content="🌸 ${safeUsername}'s Sekai ID Card" />
             <meta property="og:type" content="profile" />
-            <meta property="og:description" content="Roles: ${rolesText}\\nStatus: ${statusText}\\nTasks Completed: ${user.tasksCompleted || 0}\\nStrikes: ${user.strikes}/3" />
+            <meta property="og:description" content="Roles: ${safeRoles}&#10;Status: ${safeStatus}&#10;Tasks Completed: ${safeCompleted}&#10;Strikes: ${safeStrikes}/${MAX_STRIKES}" />
             <meta name="theme-color" content="${embedColor}">
             <meta name="twitter:card" content="summary">
-            
-            <meta http-equiv="refresh" content="0; url='${FRONTEND_URL}/profile.html?discordId=${user.discordId}'" />
+
+            <meta http-equiv="refresh" content="0; url=${escapeHtml(`${FRONTEND_URL}/profile.html?discordId=${safeDiscordId}`)}" />
         </head>
         <body style="background-color: #1e1e2e; color: #cdd6f4; font-family: sans-serif; text-align: center; padding: 50px;">
-            <h2>Redirecting to ${user.username}'s profile...</h2>
-            <p>If you are not redirected, <a href="${FRONTEND_URL}/profile.html?discordId=${user.discordId}" style="color: #94e2d5;">click here</a>.</p>
+            <h2>Redirecting to ${safeUsername}'s profile...</h2>
+            <p>If you are not redirected, <a href="${escapeHtml(`${FRONTEND_URL}/profile.html?discordId=${safeDiscordId}`)}" style="color: #94e2d5;">click here</a>.</p>
         </body>
         </html>
         `;
@@ -491,7 +552,7 @@ export const generateCardImage = async (req, res) => {
         });
     } catch (error) {
         console.error("Error generating card image:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to generate card image' });
     }
 };
 

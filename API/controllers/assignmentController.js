@@ -1,66 +1,122 @@
 import * as taskUtils from '../../Utils/DBUtils/taskUtils.js';
 import * as userUtils from '../../Utils/DBUtils/userUtils.js';
+import User from '../../DB/Schemas/user.js';
+import config from '../../config.js';
+
+const SNOWFLAKE = /^\d{17,20}$/;
+const MAX_DEADLINE_HOURS = 24 * 365;
+const MAX_EXTENSION_HOURS = 24 * 365;
+
+/** Parse a positive, finite number of hours. Returns null when invalid. */
+const parseHours = (value, max) => {
+    const hours = Number(value);
+    if (!Number.isFinite(hours) || hours <= 0 || hours > max) return null;
+    return hours;
+};
 
 export const createAssignment = async (req, res) => {
     try {
-        const { discordId, roleCategoryId, taskType, deadlineHours } = req.body;
-        
-        if (!discordId || !roleCategoryId || !taskType || !deadlineHours) {
-            return res.status(400).json({ 
-                error: 'discordId, roleCategoryId, taskType, and deadlineHours are required' 
+        const { discordId, roleCategoryId, roleName, taskType, taskName, description, deadlineHours } = req.body ?? {};
+
+        const missing = ['discordId', 'roleCategoryId', 'taskType']
+            .filter((field) => !req.body?.[field]);
+        if (missing.length) {
+            return res.status(400).json({ error: `Missing required field(s): ${missing.join(', ')}` });
+        }
+
+        if (!SNOWFLAKE.test(String(discordId))) {
+            return res.status(400).json({ error: 'discordId must be a Discord snowflake (17-20 digits)' });
+        }
+
+        const hours = parseHours(deadlineHours, MAX_DEADLINE_HOURS);
+        if (hours === null) {
+            return res.status(400).json({
+                error: `deadlineHours must be a number greater than 0 and at most ${MAX_DEADLINE_HOURS}`
             });
         }
 
-        const userDoc = await userUtils.getUserProfile(discordId);
+        const rule = config.RULES[roleCategoryId];
+        if (!rule) {
+            return res.status(400).json({ error: `Unknown roleCategoryId: ${roleCategoryId}` });
+        }
+
+        // roleName is required by the schema. It was never sent before, so every
+        // call to this endpoint failed validation and returned 500. Fall back to
+        // the configured name for the role rather than rejecting the request.
+        const resolvedRoleName = roleName || rule.name;
+        if (!resolvedRoleName) {
+            return res.status(400).json({ error: 'roleName is required and could not be derived from roleCategoryId' });
+        }
+
+        // Only the fields needed to create the task - avoids loading the whole
+        // populated assignment history just to check the user exists.
+        const userDoc = await User.findOne({ discordId }).select('_id discordId isDeboarded').lean();
         if (!userDoc) {
             return res.status(404).json({ error: 'User not found. Create user first.' });
         }
+        if (userDoc.isDeboarded) {
+            return res.status(409).json({ error: 'User has been deboarded and cannot receive new assignments.' });
+        }
 
-        const deadline = new Date(Date.now() + deadlineHours * 60 * 60 * 1000);
-        
         const assignment = await taskUtils.createAssignment(userDoc, {
             roleCategoryId,
+            roleName: resolvedRoleName,
             taskType,
-            deadline
+            taskName: taskName ?? '',
+            description: description ?? '',
+            deadline: new Date(Date.now() + hours * 60 * 60 * 1000)
         });
-        
+
         res.status(201).json({ success: true, data: assignment });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[API] createAssignment failed:', error);
+        res.status(500).json({ error: 'Failed to create assignment' });
     }
 };
 
 export const completeAssignment = async (req, res) => {
     try {
-        const { userDbId } = req.body;
-        if (!userDbId) {
-            return res.status(400).json({ error: 'userDbId is required' });
-        }
-        
-        const task = await taskUtils.completeAssignment(req.params.taskId, userDbId);
+        // `userDbId` used to be required here but was never read by the util,
+        // so callers had to send a field that did nothing. It is now optional
+        // and ignored.
+        const task = await taskUtils.completeAssignment(req.params.taskId);
         if (!task) {
-            return res.status(404).json({ error: 'Assignment not found' });
+            return res.status(409).json({ error: 'Assignment not found, or already completed' });
         }
-        
+
         res.json({ success: true, data: task });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        if (error.name === 'CastError') {
+            return res.status(400).json({ error: 'Invalid assignment id' });
+        }
+        console.error('[API] completeAssignment failed:', error);
+        res.status(500).json({ error: 'Failed to complete assignment' });
     }
 };
 
 export const extendAssignment = async (req, res) => {
     try {
-        const { extensionHours } = req.body;
-        if (!extensionHours) {
-            return res.status(400).json({ error: 'extensionHours is required' });
+        const hours = parseHours(req.body?.extensionHours, MAX_EXTENSION_HOURS);
+        if (hours === null) {
+            return res.status(400).json({
+                error: `extensionHours must be a number greater than 0 and at most ${MAX_EXTENSION_HOURS}`
+            });
         }
-        
-        const extensionMs = extensionHours * 60 * 60 * 1000;
-        const task = await taskUtils.extendAssignment(req.params.taskId, extensionMs);
-        
+
+        const task = await taskUtils.extendAssignment(req.params.taskId, hours * 60 * 60 * 1000);
         res.json({ success: true, data: task });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        if (error.message === 'ALREADY_EXTENDED') {
+            return res.status(409).json({ error: 'This assignment has already used all of its extensions' });
+        }
+        if (error.message === 'TASK_NOT_FOUND') {
+            return res.status(404).json({ error: 'Assignment not found' });
+        }
+        if (error.name === 'CastError') {
+            return res.status(400).json({ error: 'Invalid assignment id' });
+        }
+        console.error('[API] extendAssignment failed:', error);
+        res.status(500).json({ error: 'Failed to extend assignment' });
     }
 };
 
@@ -72,15 +128,17 @@ export const getPendingTask = async (req, res) => {
         }
         res.json({ success: true, data: task });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[API] getPendingTask failed:', error);
+        res.status(500).json({ error: 'Failed to fetch pending task' });
     }
 };
 
 export const getOverdueTasks = async (_req, res) => {
     try {
         const tasks = await taskUtils.fetchOverdueTasks();
-        res.json({ success: true, data: tasks });
+        res.json({ success: true, count: tasks.length, data: tasks });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[API] getOverdueTasks failed:', error);
+        res.status(500).json({ error: 'Failed to fetch overdue tasks' });
     }
 };
