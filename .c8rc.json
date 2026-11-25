@@ -1,6 +1,6 @@
 {
   "all": true,
-  "include": ["bot.js", "API/**", "DB/**", "Utils/**", "scripts/**", "tools/**"],
+  "include": ["bot.js", "API/**", "DB/**", "Services/**", "Utils/**", "scripts/**", "tools/**"],
   "exclude": ["Utils/DBUtils/types.ts"],
   "reporter": ["text", "lcov", "json-summary"],
   "check-coverage": false

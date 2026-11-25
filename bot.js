@@ -4,6 +4,7 @@ import connectDB from './DB/db.js';
 import config from './config.js';
 
 import * as Commands from './Utils/DiscordUtils/commands.js';
+import { hiatusService } from './Services/index.ts';
 import { members, tasks as taskStore } from './Utils/DBUtils/index.ts';
 import { isManagerOrOwner as canManage, isOwner as canOwn } from './Utils/DiscordUtils/access.js';
 import { taskTitle } from './Utils/domain/assignments.ts';
@@ -662,7 +663,7 @@ client.on('interactionCreate', async (interaction) => {
 
                 if (type === 'approve') {
                     console.log(`[BUTTON]   Approving hiatus...`);
-                    const pausedCount = await members.startHiatus(userId);
+                    const { pausedCount } = await hiatusService.start(userId);
                     console.log(`[BUTTON]   Found ${pausedCount} pending tasks to pause`);
                     console.log(`[BUTTON]   Paused all deadlines`);
 
