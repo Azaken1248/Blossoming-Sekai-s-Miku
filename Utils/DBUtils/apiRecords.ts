@@ -2,7 +2,8 @@ import Assignment from '../../DB/Schemas/assignment.ts';
 import User from '../../DB/Schemas/user.ts';
 import { members, tasks } from './index.ts';
 import { containsText } from './searchPattern.ts';
-import { type NewTask, TASK_STATUS } from './types.ts';
+import { TASK_STATUS } from '../domain/model.ts';
+import type { NewTask } from './types.ts';
 
 const DEFAULT_LIST_LIMIT = 100;
 const MAX_LIST_LIMIT = 500;

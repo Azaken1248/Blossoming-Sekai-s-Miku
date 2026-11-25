@@ -1,6 +1,6 @@
 import type { ClientSession, FilterQuery, Model } from 'mongoose';
 import type { StoredMember } from '../../DB/Schemas/user.ts';
-import { MAX_STRIKES } from '../domain/strikes.js';
+import { MAX_STRIKES } from '../domain/strikes.ts';
 
 type Filter = FilterQuery<StoredMember>;
 

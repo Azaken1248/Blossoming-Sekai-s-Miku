@@ -3,14 +3,13 @@ import type { StoredMember } from '../../DB/Schemas/user.ts';
 import { type Populated, toMember, toTask } from './mappers.ts';
 import { decrementStrikes, incrementStrikes } from './strikeUpdates.ts';
 import type { RepositoryDependencies } from './taskRepository.ts';
-import { type MemberRepository, TASK_STATUS, type Task } from './types.ts';
+import { isCompleted, isOpen } from '../domain/assignments.ts';
+import { TASK_STATUS, type Task } from '../domain/model.ts';
+import type { MemberRepository } from './types.ts';
 
 type MemberAndTasks = Populated<StoredMember, 'assignments', StoredTask[] | undefined>;
 
 const PAUSED_DEADLINE = new Date('2099-12-31');
-
-const isOpen = ({ status }: Task) => status === TASK_STATUS.Pending || status === TASK_STATUS.Late;
-const isCompleted = ({ status }: Task) => status === TASK_STATUS.Completed;
 
 export const createMemberRepository = ({
     tasks,

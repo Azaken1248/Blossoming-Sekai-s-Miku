@@ -9,11 +9,21 @@ import {
 } from 'discord.js';
 import config from '../../config.js';
 import { members, tasks as taskStore } from '../DBUtils/index.ts';
-import { isAdmin, isOwner, isManager, isManagerOrOwner } from '../permissions.js';
+import { isManagerOrOwner, isOwner, roleIdsOf } from './access.js';
+import {
+    freshDeadline,
+    isCompleted,
+    isLate,
+    isOpen,
+    isPending,
+    planAssignment,
+    taskTitle,
+} from '../domain/assignments.ts';
+import { MINUTE } from '../domain/durations.ts';
+import { DomainError } from '../domain/errors.ts';
+import { crewRoleNames, heldCrewRoles } from '../domain/roles.ts';
 import { resolveExtensionMs, canExtend, msToDays, ConfigError, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.ts';
-import { MAX_STRIKES, shouldDemote, formatStrikes } from '../domain/strikes.js';
-
-export { isAdmin, isOwner, isManager, isManagerOrOwner };
+import { MAX_STRIKES, shouldDemote, formatStrikes } from '../domain/strikes.ts';
 
 // A deboarded member keeps their record but is no longer active, so an
 // existence check is not enough on its own.
@@ -40,10 +50,10 @@ export const checkDemotion = async (guild, discordId, currentStrikes) => {
     // Only act if they still hold at least one crew role, so a repeat call
     // (or a strike applied while already at the cap) is a no-op rather than a
     // duplicate demotion DM.
-    const heldCrewRoles = config.CREW_ROLE_IDS.filter((roleId) => member.roles.cache.has(roleId));
-    if (heldCrewRoles.length === 0) return;
+    const crewRoles = heldCrewRoles(roleIdsOf(member), config.CREW_ROLE_IDS);
+    if (crewRoles.length === 0) return;
 
-    await member.roles.remove(heldCrewRoles).catch(() => {});
+    await member.roles.remove(crewRoles).catch(() => {});
     await member
         .send(
             `🚨 **Important Notice:** You've reached ${MAX_STRIKES} strikes and your crew roles have been removed. Don't give up though - you can always make a comeback! ♪`,
@@ -54,6 +64,20 @@ export const checkDemotion = async (guild, discordId, currentStrikes) => {
         channel.send(
             `🚨 **Demotion Notice** - <@${discordId}> has reached ${MAX_STRIKES} strikes and crew roles have been removed.`,
         );
+};
+
+const ASSIGNMENT_REFUSALS = {
+    CUSTOM_DURATION_REQUIRED: () => '\u274c For custom tasks, you must specify duration_days (greater than 0).',
+    CUSTOM_FIELDS_NOT_ALLOWED: () =>
+        '\u274c duration_days and extension_days are only for Custom tasks. For standard tasks, duration is automatically set based on the task type.',
+    ROLE_MISSING: ({ roleName }) => `\u274c User doesn't have the '${roleName}' role.`,
+    TASK_TYPE_INVALID: ({ taskType, roleName, validTasks }) =>
+        `\u274c Task type '${taskType}' is not valid for role '${roleName}'.\nValid tasks: ${validTasks.join(', ')}`,
+};
+
+const assignmentRefusal = (error) => {
+    if (!(error instanceof DomainError)) throw error;
+    return ASSIGNMENT_REFUSALS[error.code](error.details);
 };
 
 const coreAssign = async (
@@ -71,58 +95,21 @@ const coreAssign = async (
     const member = await guild.members.fetch(targetUser.id).catch(() => null);
     if (!member) return { content: '\u274c User not found in server.' };
 
-    let selectedRule = null;
-    let roleIdFound = null;
-    let hasRole = false;
-    let deadline;
-
-    if (taskType === 'custom') {
-        if (!customDurationDays || customDurationDays <= 0) {
-            return { content: '\u274c For custom tasks, you must specify duration_days (greater than 0).' };
-        }
-
-        for (const [roleId, rule] of Object.entries(config.RULES)) {
-            if (rule.name === roleName && member.roles.cache.has(roleId)) {
-                hasRole = true;
-                roleIdFound = roleId;
-                selectedRule = {
-                    name: rule.name,
-                    extension: customExtensionDays ? customExtensionDays * 24 * 60 * 60 * 1000 : rule.extension,
-                };
-                break;
-            }
-        }
-
-        if (!hasRole) return { content: `\u274c User doesn't have the '${roleName}' role.` };
-
-        deadline = new Date(Date.now() + customDurationDays * 24 * 60 * 60 * 1000);
-    } else {
-        if (customDurationDays || customExtensionDays) {
-            return {
-                content:
-                    '\u274c duration_days and extension_days are only for Custom tasks. For standard tasks, duration is automatically set based on the task type.',
-            };
-        }
-        for (const [roleId, rule] of Object.entries(config.RULES)) {
-            if (rule.name === roleName) {
-                if (member.roles.cache.has(roleId)) {
-                    hasRole = true;
-                    if (rule.tasks[taskType]) {
-                        selectedRule = rule;
-                        roleIdFound = roleId;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (!hasRole) return { content: `\u274c User doesn't have the '${roleName}' role.` };
-        if (!selectedRule)
-            return {
-                content: `\u274c Task type '${taskType}' is not valid for role '${roleName}'.\nValid tasks: ${Object.keys(config.RULES[Object.keys(config.RULES).find((id) => config.RULES[id].name === roleName)].tasks).join(', ')}`,
-            };
-
-        deadline = new Date(Date.now() + selectedRule.tasks[taskType]);
+    let plan;
+    try {
+        plan = planAssignment(
+            {
+                taskType,
+                roleName,
+                roleIds: roleIdsOf(member),
+                durationDays: customDurationDays,
+                extensionDays: customExtensionDays,
+            },
+            config.RULES,
+            new Date(),
+        );
+    } catch (error) {
+        return { content: assignmentRefusal(error) };
     }
 
     const { member: record } = await members.findOrCreate(targetUser.id, targetUser.username);
@@ -130,14 +117,13 @@ const coreAssign = async (
     await taskStore.create({
         memberId: record.id,
         discordUserId: record.discordId,
-        roleCategoryId: roleIdFound,
-        roleName: selectedRule.name,
+        roleCategoryId: plan.roleCategoryId,
+        roleName: plan.roleName,
         taskType: taskType,
         taskName: taskName,
         description: description,
-        deadline: deadline,
-        customExtension:
-            taskType === 'custom' && customExtensionDays ? customExtensionDays * 24 * 60 * 60 * 1000 : null,
+        deadline: plan.deadline,
+        customExtension: plan.customExtension,
     });
 
     if (!suppressLog) {
@@ -147,7 +133,7 @@ const coreAssign = async (
             author,
         );
     }
-    const ts = Math.round(deadline.getTime() / 1000);
+    const ts = Math.round(plan.deadline.getTime() / 1000);
     return {
         content: `✨ Assigned **${taskType}** to <@${targetUser.id}>! Let's create something wonderful together!\n📅 Deadline: <t:${ts}:F> (<t:${ts}:R>)`,
     };
@@ -159,7 +145,7 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
         return { content: '⚠️ No pending assignments found for this user.' };
     }
 
-    const pendingTasks = profile.assignments.filter((a) => a.status === 'PENDING' || a.status === 'LATE');
+    const pendingTasks = profile.assignments.filter(isOpen);
     if (pendingTasks.length === 0) {
         return { content: '⚠️ No pending assignments found for this user.' };
     }
@@ -188,7 +174,7 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
                 .setMaxValues(Math.min(pendingTasks.length, 25))
                 .addOptions(
                     pendingTasks.map((t) => {
-                        const name = (t.taskName || t.taskType).substring(0, 90);
+                        const name = taskTitle(t).substring(0, 90);
                         const deadlineStr = new Date(t.deadline).toLocaleDateString();
                         const isLate = t.status === 'LATE' ? ' [LATE]' : '';
                         return {
@@ -217,7 +203,7 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
                 : `Yay! <@${targetUser.id}> has finished their task and it's ready to shine! Let's take a look at this amazing work~ 🎉`,
         )
         .addFields(
-            { name: 'Task', value: task.taskName || task.taskType, inline: true },
+            { name: 'Task', value: taskTitle(task), inline: true },
             { name: 'Role', value: task.roleName, inline: true },
             { name: 'Type', value: task.taskType, inline: true },
         )
@@ -243,7 +229,7 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
     }
 
     return {
-        content: `✅ Yay! Your submission for **${task.taskName || task.taskType}** has been sent for review! Keep up the amazing work~ ♪`,
+        content: `✅ Yay! Your submission for **${taskTitle(task)}** has been sent for review! Keep up the amazing work~ ♪`,
     };
 };
 
@@ -253,7 +239,7 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
         return { content: '⚠️ No pending assignments found.' };
     }
 
-    const pendingTasks = profile.assignments.filter((a) => a.status === 'PENDING');
+    const pendingTasks = profile.assignments.filter(isPending);
     if (pendingTasks.length === 0) {
         return { content: '⚠️ No pending assignments found.' };
     }
@@ -272,7 +258,7 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
         }
     } else {
         if (pendingTasks.length > 1) {
-            const taskList = pendingTasks.map((t) => `• **${t.taskName || t.taskType}** (${t.roleName})`).join('\n');
+            const taskList = pendingTasks.map((t) => `• **${taskTitle(t)}** (${t.roleName})`).join('\n');
             return {
                 content: `⚠️ Please specify which task:\n${taskList}\n\nUse: \`/extension task:<task_name> reason:<reason>\``,
             };
@@ -310,7 +296,7 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
             `<@${targetUser.id}> needs a bit more time to make something truly special! Everyone deserves the time to do their best~ ✨`,
         )
         .addFields(
-            { name: 'Task', value: task.taskName || task.taskType, inline: true },
+            { name: 'Task', value: taskTitle(task), inline: true },
             { name: 'Role', value: task.roleName, inline: true },
             { name: 'Extension', value: `${extDays} days`, inline: true },
             { name: 'Current Deadline', value: `<t:${Math.round(task.deadline.getTime() / 1000)}:F>`, inline: false },
@@ -332,7 +318,7 @@ const coreExtension = async (guild, author, targetUser, taskName = '', reason = 
     }
 
     return {
-        content: `✅ Extension request sent for **${task.taskName || task.taskType}**! Don't worry, everyone needs extra time sometimes~ ♪`,
+        content: `✅ Extension request sent for **${taskTitle(task)}**! Don't worry, everyone needs extra time sometimes~ ♪`,
     };
 };
 
@@ -372,7 +358,7 @@ const coreProfile = async (targetUser, guild = null) => {
     // Handle deboarded users - show archived profile
     if (profile.isDeboarded) {
         const allAssignments = profile.assignments;
-        const completed = allAssignments.filter((a) => a.status === 'COMPLETED');
+        const completed = allAssignments.filter(isCompleted);
 
         const embed = new EmbedBuilder()
             .setTitle(`✨ ${profile.deboardedMessage}`)
@@ -399,7 +385,7 @@ const coreProfile = async (targetUser, guild = null) => {
                 .slice(-5)
                 .reverse()
                 .map((a) => {
-                    const name = a.taskName || a.taskType;
+                    const name = taskTitle(a);
                     return `• ${name} (${a.roleName})`;
                 })
                 .join('\n');
@@ -410,9 +396,9 @@ const coreProfile = async (targetUser, guild = null) => {
     }
 
     const allAssignments = profile.assignments;
-    const pending = allAssignments.filter((a) => a.status === 'PENDING');
-    const completed = allAssignments.filter((a) => a.status === 'COMPLETED');
-    const late = allAssignments.filter((a) => a.status === 'LATE');
+    const pending = allAssignments.filter(isPending);
+    const completed = allAssignments.filter(isCompleted);
+    const late = allAssignments.filter(isLate);
     const total = allAssignments.length;
 
     let color = 0x89b4fa;
@@ -449,9 +435,7 @@ const coreProfile = async (targetUser, guild = null) => {
     if (guild) {
         const member = await guild.members.fetch(targetUser.id).catch(() => null);
         if (member) {
-            const userRoleIds = member.roles.cache.map((r) => r.id);
-            const crewRoles = config.CREW_ROLE_IDS.filter((roleId) => userRoleIds.includes(roleId));
-            const roleNames = crewRoles.map((roleId) => config.RULES[roleId]?.name).filter(Boolean);
+            const roleNames = crewRoleNames(roleIdsOf(member), config.CREW_ROLE_IDS, config.RULES);
 
             if (roleNames.length > 0) {
                 embed.addFields({
@@ -474,7 +458,7 @@ const coreProfile = async (targetUser, guild = null) => {
             .slice(0, 5)
             .map((a) => {
                 const ts = Math.round(new Date(a.deadline).getTime() / 1000);
-                const name = a.taskName || a.taskType;
+                const name = taskTitle(a);
                 const ext = a.hasExtended ? ' [Ext]' : '';
                 return `• **${name}** (${a.roleName}) - <t:${ts}:R>${ext}`;
             })
@@ -488,7 +472,7 @@ const coreProfile = async (targetUser, guild = null) => {
             .slice(-3)
             .reverse()
             .map((a) => {
-                const name = a.taskName || a.taskType;
+                const name = taskTitle(a);
                 return `• ${name} (${a.roleName})`;
             })
             .join('\n');
@@ -557,10 +541,10 @@ const coreRemoveTask = async (guild, author, targetUser, taskIdentifier) => {
     };
     if (!task) return missing;
 
-    const taskTitle = task.taskName || task.taskType;
+    const title = taskTitle(task);
 
     const permanent = {
-        content: `❌ Cannot delete **${taskTitle}** - this task has been completed and is now part of the permanent record! Their work will be remembered~ 🌸`,
+        content: `❌ Cannot delete **${title}** - this task has been completed and is now part of the permanent record! Their work will be remembered~ 🌸`,
     };
     if (task.status === 'COMPLETED') return permanent;
 
@@ -568,9 +552,9 @@ const coreRemoveTask = async (guild, author, targetUser, taskIdentifier) => {
     if (outcome === 'completed') return permanent;
     if (outcome === 'missing') return missing;
 
-    await logAction(guild, `🗑️ Removed task **${taskTitle}** from <@${targetUser.id}>`, author);
+    await logAction(guild, `🗑️ Removed task **${title}** from <@${targetUser.id}>`, author);
     return {
-        content: `✅ Task **${taskTitle}** has been removed for <@${targetUser.id}>. Their work remains in the archives~ 🌸`,
+        content: `✅ Task **${title}** has been removed for <@${targetUser.id}>. Their work remains in the archives~ 🌸`,
     };
 };
 
@@ -690,7 +674,7 @@ const coreTasks = async (targetUser) => {
         return { content: `<@${targetUser.id}> has no tasks.` };
     }
 
-    const activeTasks = profile.assignments.filter((a) => a.status === 'PENDING' || a.status === 'LATE');
+    const activeTasks = profile.assignments.filter(isOpen);
 
     if (activeTasks.length === 0) {
         return { content: `<@${targetUser.id}> has no active tasks.` };
@@ -705,7 +689,7 @@ const coreTasks = async (targetUser) => {
         const ts = Math.round(new Date(task.deadline).getTime() / 1000);
         const extStatus = task.hasExtended ? ' [Extended]' : '';
         const lateStatus = task.status === 'LATE' ? ' ⚠️ [LATE]' : '';
-        const taskTitle = task.taskName || task.taskType;
+        const title = taskTitle(task);
 
         const deadlineText = profile.isOnHiatus ? 'N/A (On Hiatus)' : `<t:${ts}:F> (<t:${ts}:R>)`;
         let fieldValue = `**Type:** ${task.taskType}\n**Role:** ${task.roleName || 'N/A'}\n**Deadline:** ${deadlineText}${extStatus}${lateStatus}`;
@@ -714,7 +698,7 @@ const coreTasks = async (targetUser) => {
             fieldValue += `\n**Description:** ${task.description}`;
         }
 
-        embed.addFields({ name: taskTitle, value: fieldValue, inline: false });
+        embed.addFields({ name: title, value: fieldValue, inline: false });
     }
 
     return { embeds: [embed] };
@@ -759,7 +743,7 @@ const coreHistory = async (filters = {}, page = 0) => {
                   : task.status === 'LATE'
                     ? '\u274c'
                     : '\u2139\ufe0f';
-        const taskTitle = `${statusIcon} ${task.taskName || task.taskType}`;
+        const title = `${statusIcon} ${taskTitle(task)}`;
         const username = task.member?.username || 'Unknown';
         const assignedDate = new Date(task.assignedAt).toLocaleString();
         const deadlineTs = Math.round(new Date(task.deadline).getTime() / 1000);
@@ -771,7 +755,7 @@ const coreHistory = async (filters = {}, page = 0) => {
             fieldValue += `\n**Description:** ${task.description}`;
         }
 
-        embed.addFields({ name: taskTitle, value: fieldValue, inline: false });
+        embed.addFields({ name: title, value: fieldValue, inline: false });
     }
 
     return { embeds: [embed], page: currentPage, totalPages: totalPages, filters: filters };
@@ -886,10 +870,7 @@ const coreHiatusEnd = async (guild, author, targetUser) => {
     if (!existing) return { content: '❌ User not found.' };
 
     const ended = existing.isOnHiatus
-        ? await members.endHiatus(targetUser.id, (task) => {
-              const duration = config.RULES[task.roleCategoryId]?.tasks?.[task.taskType];
-              return duration ? new Date(Date.now() + duration) : null;
-          })
+        ? await members.endHiatus(targetUser.id, (task) => freshDeadline(task, config.RULES, new Date()))
         : null;
     if (!ended) {
         return {
@@ -897,9 +878,8 @@ const coreHiatusEnd = async (guild, author, targetUser) => {
         };
     }
 
-    const titleOf = (task) => task.taskName || task.taskType;
-    const restored = ended.restored.map(titleOf);
-    const skipped = ended.skipped.map(titleOf);
+    const restored = ended.restored.map(taskTitle);
+    const skipped = ended.skipped.map(taskTitle);
 
     if (restored.length === 0 && skipped.length === 0) {
         await logAction(guild, `🌸 Welcome back! Ended hiatus for <@${targetUser.id}>`, author);
@@ -1269,7 +1249,7 @@ const coreCheckFree = async (_guild, targetUser = null) => {
             if (!userStatus.isFree && userStatus.activeTask) {
                 embed.addFields({
                     name: 'Current Task',
-                    value: `**${userStatus.activeTask.taskName || userStatus.activeTask.taskType}**\nRole: ${userStatus.activeTask.roleName}\nDeadline: <t:${Math.floor(new Date(userStatus.activeTask.deadline).getTime() / 1000)}:R>`,
+                    value: `**${taskTitle(userStatus.activeTask)}**\nRole: ${userStatus.activeTask.roleName}\nDeadline: <t:${Math.floor(new Date(userStatus.activeTask.deadline).getTime() / 1000)}:R>`,
                     inline: false,
                 });
             } else if (userStatus.isFree) {
@@ -1293,7 +1273,7 @@ const coreCheckFree = async (_guild, targetUser = null) => {
 
                 embed.addFields({
                     name: 'Last Completed Task',
-                    value: `**${userStatus.lastTask.taskName || userStatus.lastTask.taskType}**\n${whenLine}`,
+                    value: `**${taskTitle(userStatus.lastTask)}**\n${whenLine}`,
                     inline: false,
                 });
             } else {
@@ -1325,9 +1305,7 @@ const coreCheckFree = async (_guild, targetUser = null) => {
 
             if (activeFree.length > 0) {
                 const activeList = activeFree.map((u) => {
-                    const lastTaskInfo = u.lastTask
-                        ? `Last: *${u.lastTask.taskName || u.lastTask.taskType}*`
-                        : 'No prior tasks';
+                    const lastTaskInfo = u.lastTask ? `Last: *${taskTitle(u.lastTask)}*` : 'No prior tasks';
                     return `• <@${u.discordId}> - ${lastTaskInfo}`;
                 });
 
@@ -1357,9 +1335,7 @@ const coreCheckFree = async (_guild, targetUser = null) => {
 
             if (hiatusFree.length > 0) {
                 const hiatusList = hiatusFree.map((u) => {
-                    const lastTaskInfo = u.lastTask
-                        ? `Last: *${u.lastTask.taskName || u.lastTask.taskType}*`
-                        : 'No prior tasks';
+                    const lastTaskInfo = u.lastTask ? `Last: *${taskTitle(u.lastTask)}*` : 'No prior tasks';
                     return `• <@${u.discordId}> - ${lastTaskInfo}`;
                 });
 
@@ -1522,12 +1498,9 @@ export const handleBulkAssignSlash = async (interaction) => {
         extensionDays,
     });
 
-    setTimeout(
-        () => {
-            bulkAssignCache.delete(operationId);
-        },
-        15 * 60 * 1000,
-    );
+    setTimeout(() => {
+        bulkAssignCache.delete(operationId);
+    }, 15 * MINUTE);
 
     const select = new UserSelectMenuBuilder()
         .setCustomId(`bulkassign_select_${operationId}`)

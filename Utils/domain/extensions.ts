@@ -1,4 +1,5 @@
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { DAY } from './durations.ts';
+import { DomainError } from './errors.ts';
 
 export const MAX_EXTENSIONS_PER_TASK = 2;
 
@@ -25,11 +26,10 @@ interface ExtensionConfig {
     readonly RULES: Readonly<Record<string, RoleRule | undefined>>;
 }
 
-export class ConfigError extends Error {
-    readonly code = 'CONFIG_MISSING_ROLE';
-
+export class ConfigError extends DomainError<'CONFIG_MISSING_ROLE'> {
     constructor(message: string) {
-        super(message);
+        super('CONFIG_MISSING_ROLE');
+        this.message = message;
         this.name = 'ConfigError';
     }
 }
@@ -61,4 +61,4 @@ export const resolveExtensionMs = (task: ExtendableTask, config: ExtensionConfig
     return rule.extension_mv;
 };
 
-export const msToDays = (ms: number): number => Math.floor(ms / DAY_MS);
+export const msToDays = (ms: number): number => Math.floor(ms / DAY);

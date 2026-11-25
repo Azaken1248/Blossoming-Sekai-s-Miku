@@ -5,9 +5,11 @@ import config from './config.js';
 
 import * as Commands from './Utils/DiscordUtils/commands.js';
 import { members, tasks as taskStore } from './Utils/DBUtils/index.ts';
-import * as Permissions from './Utils/permissions.js';
+import { isManagerOrOwner as canManage, isOwner as canOwn } from './Utils/DiscordUtils/access.js';
+import { taskTitle } from './Utils/domain/assignments.ts';
+import { DAY, HOUR, MINUTE } from './Utils/domain/durations.ts';
 import { resolveExtensionMs, ConfigError } from './Utils/domain/extensions.ts';
-import { formatStrikes } from './Utils/domain/strikes.js';
+import { formatStrikes } from './Utils/domain/strikes.ts';
 import { MAX_SEARCH_LENGTH } from './Utils/DBUtils/searchPattern.ts';
 
 dotenv.config();
@@ -51,12 +53,12 @@ async function runScheduler(isStartup = false) {
         for (const t of allPendingTasks) {
             const timeLeft = t.deadline.getTime() - now;
             const duration = t.deadline.getTime() - t.assignedAt.getTime();
-            console.log(`[REMINDERS]   - "${t.taskName || t.taskType}" | User: ${t.discordUserId}`);
+            console.log(`[REMINDERS]   - "${taskTitle(t)}" | User: ${t.discordUserId}`);
             console.log(
                 `[REMINDERS]     Time until deadline: ${Math.round(timeLeft / 1000)}s (${Math.round(timeLeft / 60000)}m)`,
             );
             console.log(
-                `[REMINDERS]     Task duration: ${Math.round(duration / 1000)}s (${Math.round(duration / (24 * 60 * 60 * 1000))}d)`,
+                `[REMINDERS]     Task duration: ${Math.round(duration / 1000)}s (${Math.round(duration / DAY)}d)`,
             );
             console.log(`[REMINDERS]     First reminder sent: ${t.firstReminderSent}, Final: ${t.finalReminderSent}`);
         }
@@ -71,7 +73,7 @@ async function runScheduler(isStartup = false) {
     let remindersSkipped = 0;
 
     for (const { task, reminderType } of tasksNeedingReminders) {
-        console.log(`[REMINDER-CHECK] Task: "${task.taskName || task.taskType}" | User: ${task.discordUserId}`);
+        console.log(`[REMINDER-CHECK] Task: "${taskTitle(task)}" | User: ${task.discordUserId}`);
         console.log(`[REMINDER-CHECK]   Role: ${task.roleName} | Type: ${reminderType.toUpperCase()}`);
         console.log(`[REMINDER-CHECK]   Deadline: ${task.deadline.toISOString()}`);
 
@@ -84,9 +86,9 @@ async function runScheduler(isStartup = false) {
         }
 
         const timeUntilDeadline = task.deadline.getTime() - Date.now();
-        const daysLeft = Math.ceil(timeUntilDeadline / (24 * 60 * 60 * 1000));
-        const hoursLeft = Math.ceil(timeUntilDeadline / (60 * 60 * 1000));
-        const minutesLeft = Math.ceil(timeUntilDeadline / (60 * 1000));
+        const daysLeft = Math.ceil(timeUntilDeadline / DAY);
+        const hoursLeft = Math.ceil(timeUntilDeadline / HOUR);
+        const minutesLeft = Math.ceil(timeUntilDeadline / MINUTE);
 
         console.log(`[REMINDER-CHECK]   ⏰ Time remaining: ${daysLeft}d ${hoursLeft}h ${minutesLeft}m`);
 
@@ -106,7 +108,7 @@ async function runScheduler(isStartup = false) {
                 `[REMINDER-CHECK]   📤 Sending ${reminderType} reminder to channel ${config.REMINDER_CHANNEL_ID}...`,
             );
             await reminderChannel.send(
-                `${reminderEmoji} ${reminderLabel}\n<@${task.discordUserId}> Your task **${task.taskName || task.taskType}** (${task.roleName}) is due in **${timeString}**!\n${encouragement}\n📅 Deadline: <t:${deadlineTs}:F> (<t:${deadlineTs}:R>)`,
+                `${reminderEmoji} ${reminderLabel}\n<@${task.discordUserId}> Your task **${taskTitle(task)}** (${task.roleName}) is due in **${timeString}**!\n${encouragement}\n📅 Deadline: <t:${deadlineTs}:F> (<t:${deadlineTs}:R>)`,
             );
             console.log(`[REMINDER-CHECK]   ✅ Reminder sent successfully`);
         } else {
@@ -130,7 +132,7 @@ async function runScheduler(isStartup = false) {
     let overdueSkipped = 0;
 
     for (const task of overdueTasks) {
-        console.log(`[OVERDUE-CHECK] Task: "${task.taskName || task.taskType}" | User: ${task.discordUserId}`);
+        console.log(`[OVERDUE-CHECK] Task: "${taskTitle(task)}" | User: ${task.discordUserId}`);
         console.log(`[OVERDUE-CHECK]   Role: ${task.roleName}`);
         console.log(`[OVERDUE-CHECK]   Deadline was: ${task.deadline.toISOString()}`);
 
@@ -171,7 +173,7 @@ async function runScheduler(isStartup = false) {
         if (logChannel) {
             console.log(`[OVERDUE-CHECK]   📤 Sending overdue notification to log channel...`);
             await logChannel.send(
-                `💔 **Oh no... Deadline Missed**\n<@${task.discordUserId}> The deadline for **${task.taskName || task.taskType}** has passed...\nStrike added. Total: ${newStrikeCount}/3\nLet's work together to stay on track next time, okay? ♪`,
+                `💔 **Oh no... Deadline Missed**\n<@${task.discordUserId}> The deadline for **${taskTitle(task)}** has passed...\nStrike added. Total: ${newStrikeCount}/3\nLet's work together to stay on track next time, okay? ♪`,
             );
             console.log(`[OVERDUE-CHECK]   ✅ Notification sent`);
         } else {
@@ -410,7 +412,7 @@ client.once('clientReady', async () => {
     }
 
     console.log('[STARTUP] Setting up scheduler...');
-    const intervalMs = config.SCHEDULER_INTERVAL_MINUTES * 60 * 1000;
+    const intervalMs = config.SCHEDULER_INTERVAL_MINUTES * MINUTE;
     // runScheduler is async: handing it straight to setInterval drops the
     // returned promise, so any rejection inside it became an unhandled
     // rejection and terminated the process.
@@ -480,8 +482,8 @@ client.on('interactionCreate', async (interaction) => {
             console.log(`[BUTTON]   Interaction deferred`);
 
             const member = await interaction.guild.members.fetch(interaction.user.id);
-            const isOwner = Permissions.isOwner(member);
-            const isManagerOrOwner = Permissions.isManagerOrOwner(member);
+            const isOwner = canOwn(member);
+            const isManagerOrOwner = canManage(member);
 
             console.log(`[BUTTON]   Action: ${action} | Type: ${type} | Task ID: ${taskId}`);
 
@@ -492,9 +494,7 @@ client.on('interactionCreate', async (interaction) => {
                     return interaction.editReply({ content: '❌ Task not found.' });
                 }
 
-                console.log(
-                    `[BUTTON]   Task found: "${task.taskName || task.taskType}" for user ${task.discordUserId}`,
-                );
+                console.log(`[BUTTON]   Task found: "${taskTitle(task)}" for user ${task.discordUserId}`);
 
                 if (type === 'approve') {
                     if (action === 'submit') {
@@ -531,7 +531,7 @@ client.on('interactionCreate', async (interaction) => {
                             const submissionChannel = interaction.guild.channels.cache.get(task.submissionChannelId);
                             if (submissionChannel) {
                                 submissionChannel.send(
-                                    `✨ Congratulations <@${task.discordUserId}>! Your submission for **${task.taskName || task.taskType}** has been approved! Amazing work~ ♪`,
+                                    `✨ Congratulations <@${task.discordUserId}>! Your submission for **${taskTitle(task)}** has been approved! Amazing work~ ♪`,
                                 );
                             }
                         }
@@ -539,7 +539,7 @@ client.on('interactionCreate', async (interaction) => {
                         const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                         if (logChannel) {
                             logChannel.send(
-                                `✅ **${task.taskName || task.taskType}** completed by <@${task.discordUserId}>! Amazing work~ Strike removed. Current: ${formatStrikes(newCount)} ♪`,
+                                `✅ **${taskTitle(task)}** completed by <@${task.discordUserId}>! Amazing work~ Strike removed. Current: ${formatStrikes(newCount)} ♪`,
                             );
                         }
                         console.log(`[BUTTON]   ✅ Submission approved successfully`);
@@ -568,22 +568,22 @@ client.on('interactionCreate', async (interaction) => {
                             }
                             throw configError;
                         }
-                        console.log(`[BUTTON]   Extension duration: ${extTime / (24 * 60 * 60 * 1000)} days`);
+                        console.log(`[BUTTON]   Extension duration: ${extTime / DAY} days`);
 
                         let updated;
                         try {
                             updated = await taskStore.extend(task.id, extTime);
                         } catch (extendError) {
                             const reason =
-                                extendError.message === 'ALREADY_EXTENDED'
+                                extendError.code === 'ALREADY_EXTENDED'
                                     ? '⚠️ That task has already used all of its extensions.'
-                                    : extendError.message === 'TASK_NOT_FOUND'
+                                    : extendError.code === 'TASK_NOT_FOUND'
                                       ? '⚠️ That task no longer exists.'
-                                      : extendError.message === 'TASK_CHANGED'
+                                      : extendError.code === 'TASK_CHANGED'
                                         ? '⚠️ That task has already been resolved.'
                                         : null;
                             if (!reason) throw extendError;
-                            console.log(`[BUTTON]   ⚠️ Extension refused: ${extendError.message}`);
+                            console.log(`[BUTTON]   ⚠️ Extension refused: ${extendError.code}`);
                             return interaction.editReply({
                                 content: reason,
                                 embeds: interaction.message.embeds,
@@ -602,7 +602,7 @@ client.on('interactionCreate', async (interaction) => {
                             const submissionChannel = interaction.guild.channels.cache.get(task.submissionChannelId);
                             if (submissionChannel) {
                                 submissionChannel.send(
-                                    `✨ Good news <@${task.discordUserId}>! Your extension request for **${task.taskName || task.taskType}** has been approved! New deadline: <t:${ts}:F> ♪`,
+                                    `✨ Good news <@${task.discordUserId}>! Your extension request for **${taskTitle(task)}** has been approved! New deadline: <t:${ts}:F> ♪`,
                                 );
                             }
                         }
@@ -610,7 +610,7 @@ client.on('interactionCreate', async (interaction) => {
                         const logChannel = interaction.guild.channels.cache.get(config.LOG_CHANNEL_ID);
                         if (logChannel) {
                             logChannel.send(
-                                `⏰ Extension granted for <@${task.discordUserId}> - **${task.taskName || task.taskType}**! New deadline: <t:${ts}:F> ♪`,
+                                `⏰ Extension granted for <@${task.discordUserId}> - **${taskTitle(task)}**! New deadline: <t:${ts}:F> ♪`,
                             );
                         }
                         console.log(`[BUTTON]   ✅ Extension approved successfully`);
@@ -641,7 +641,7 @@ client.on('interactionCreate', async (interaction) => {
                         if (submissionChannel) {
                             const actionText = action === 'submit' ? 'submission' : 'extension request';
                             submissionChannel.send(
-                                `<@${task.discordUserId}> Your ${actionText} for **${task.taskName || task.taskType}** was not approved. Please check with staff for feedback! 💖`,
+                                `<@${task.discordUserId}> Your ${actionText} for **${taskTitle(task)}** was not approved. Please check with staff for feedback! 💖`,
                             );
                         }
                     }

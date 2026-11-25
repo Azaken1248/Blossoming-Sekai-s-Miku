@@ -2,19 +2,14 @@ import type { Model } from 'mongoose';
 import type { StoredTask } from '../../DB/Schemas/assignment.ts';
 import type { StoredMember } from '../../DB/Schemas/user.ts';
 import { MAX_EXTENSIONS_PER_TASK, countExtensionsUsed } from '../domain/extensions.ts';
+import { DomainError } from '../domain/errors.ts';
+import { type ReminderType, TASK_STATUS } from '../domain/model.ts';
+import { dueReminder } from '../domain/reminders.ts';
 import { type Populated, toTask, toTaskWithMember } from './mappers.ts';
 import { containsText } from './searchPattern.ts';
 import { decrementStrikes, incrementStrikes } from './strikeUpdates.ts';
 import type { RunTransaction } from './transaction.ts';
-import {
-    type Clock,
-    type DueReminder,
-    type ReminderThresholds,
-    type ReminderType,
-    TASK_STATUS,
-    type Task,
-    type TaskRepository,
-} from './types.ts';
+import type { Clock, TaskRepository } from './types.ts';
 
 export interface RepositoryDependencies {
     readonly tasks: Model<StoredTask>;
@@ -27,21 +22,6 @@ type TaskAndStoredMember = Populated<StoredTask, 'userId', StoredMember | null>;
 
 const DEFAULT_HISTORY_LIMIT = 50;
 const OPEN_STATUSES = [TASK_STATUS.Pending, TASK_STATUS.Late];
-
-const thresholdFor = (task: Task, thresholds: ReminderThresholds) => {
-    const duration = task.deadline.getTime() - task.assignedAt.getTime();
-    if (duration <= thresholds.SHORT_TASK.duration) return thresholds.SHORT_TASK;
-    if (duration <= thresholds.MEDIUM_TASK.duration) return thresholds.MEDIUM_TASK;
-    return thresholds.LONG_TASK;
-};
-
-const dueReminder = (task: Task, thresholds: ReminderThresholds, now: Date): DueReminder | null => {
-    const remaining = task.deadline.getTime() - now.getTime();
-    const { firstReminder, finalReminder } = thresholdFor(task, thresholds);
-    if (!task.firstReminderSent && remaining <= firstReminder) return { task, reminderType: 'first' };
-    if (!task.finalReminderSent && remaining <= finalReminder) return { task, reminderType: 'final' };
-    return null;
-};
 
 const REMINDER_FIELDS: Record<ReminderType, Partial<StoredTask>> = {
     first: { firstReminderSent: true },
@@ -74,7 +54,7 @@ export const createTaskRepository = ({
                 { $push: { assignments: document._id } },
                 { session },
             );
-            if (matchedCount === 0) throw new Error('MEMBER_NOT_FOUND');
+            if (matchedCount === 0) throw new DomainError('MEMBER_NOT_FOUND');
             return toTask(document.toObject());
         }),
 
@@ -163,9 +143,9 @@ export const createTaskRepository = ({
     extend: async (id, extensionMs) => {
         if (!Number.isFinite(extensionMs) || extensionMs <= 0) throw new Error('INVALID_EXTENSION');
         const current = await tasks.findById(id).lean<StoredTask>();
-        if (!current) throw new Error('TASK_NOT_FOUND');
+        if (!current) throw new DomainError('TASK_NOT_FOUND');
         const used = countExtensionsUsed(current);
-        if (used >= MAX_EXTENSIONS_PER_TASK) throw new Error('ALREADY_EXTENDED');
+        if (used >= MAX_EXTENSIONS_PER_TASK) throw new DomainError('ALREADY_EXTENDED');
         const updated = await tasks
             .findOneAndUpdate(
                 { _id: id, deadline: current.deadline, extensionCount: current.extensionCount ?? null },
@@ -178,7 +158,7 @@ export const createTaskRepository = ({
             )
             .lean<StoredTask>();
         if (updated) return toTask(updated);
-        throw new Error((await tasks.exists({ _id: id })) ? 'TASK_CHANGED' : 'TASK_NOT_FOUND');
+        throw new DomainError((await tasks.exists({ _id: id })) ? 'TASK_CHANGED' : 'TASK_NOT_FOUND');
     },
 
     markLateAndStrike: (id) =>
