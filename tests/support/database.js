@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 
+const NO_HEARTBEATS = 60 * 60 * 1000;
+
 export const startDatabase = async (name = 'sekai_test') => {
     const server = await MongoMemoryReplSet.create({
         replSet: { count: 1, storageEngine: 'wiredTiger' },
@@ -8,7 +10,7 @@ export const startDatabase = async (name = 'sekai_test') => {
     });
     const uri = server.getUri(name);
     process.env.MONGO_URI = uri;
-    await mongoose.connect(uri);
+    await mongoose.connect(uri, { heartbeatFrequencyMS: NO_HEARTBEATS });
     return {
         uri,
         db: () => mongoose.connection.db,

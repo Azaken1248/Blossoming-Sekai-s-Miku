@@ -8,27 +8,27 @@ import {
     UserSelectMenuBuilder,
 } from 'discord.js';
 import config from '../../config.js';
-import { members, tasks as taskStore } from '../DBUtils/index.ts';
-import { isManagerOrOwner, isOwner, roleIdsOf } from './access.js';
 import {
-    freshDeadline,
-    isCompleted,
-    isLate,
-    isOpen,
-    isPending,
-    planAssignment,
-    taskTitle,
-} from '../domain/assignments.ts';
+    assignmentService,
+    cardService,
+    extensionService,
+    hiatusService,
+    memberService,
+    strikeService,
+    submissionService,
+} from '../../Services/index.ts';
+import { isManagerOrOwner, isOwner, roleIdsOf } from './access.js';
+import { taskTitle } from '../domain/assignments.ts';
 import { MINUTE } from '../domain/durations.ts';
 import { DomainError } from '../domain/errors.ts';
 import { crewRoleNames, heldCrewRoles } from '../domain/roles.ts';
-import { resolveExtensionMs, canExtend, msToDays, ConfigError, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.ts';
+import { msToDays, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.ts';
 import { MAX_STRIKES, shouldDemote, formatStrikes } from '../domain/strikes.ts';
 
 // A deboarded member keeps their record but is no longer active, so an
 // existence check is not enough on its own.
 const isOnboarded = async (userId) => {
-    return await members.isActive(userId);
+    return await memberService.isOnboarded(userId);
 };
 
 const logAction = async (guild, content, executorUser) => {
@@ -66,141 +66,87 @@ export const checkDemotion = async (guild, discordId, currentStrikes) => {
         );
 };
 
-const ASSIGNMENT_REFUSALS = {
+const refusalFor = (error, wording) => {
+    if (!(error instanceof DomainError) || !(error.code in wording)) throw error;
+    return { content: wording[error.code](error.details, error) };
+};
+
+const ASSIGN_REFUSALS = {
     CUSTOM_DURATION_REQUIRED: () => '\u274c For custom tasks, you must specify duration_days (greater than 0).',
     CUSTOM_FIELDS_NOT_ALLOWED: () =>
         '\u274c duration_days and extension_days are only for Custom tasks. For standard tasks, duration is automatically set based on the task type.',
+    MEMBER_NOT_IN_GUILD: () => '\u274c User not found in server.',
     ROLE_MISSING: ({ roleName }) => `\u274c User doesn't have the '${roleName}' role.`,
     TASK_TYPE_INVALID: ({ taskType, roleName, validTasks }) =>
         `\u274c Task type '${taskType}' is not valid for role '${roleName}'.\nValid tasks: ${validTasks.join(', ')}`,
 };
 
-const assignmentRefusal = (error) => {
-    if (!(error instanceof DomainError)) throw error;
-    return ASSIGNMENT_REFUSALS[error.code](error.details);
+const assignTo = async (guild, targetUser, request) => {
+    const member = await guild.members.fetch(targetUser.id).catch(() => null);
+    if (!member) throw new DomainError('MEMBER_NOT_IN_GUILD');
+    return assignmentService.assign({
+        ...request,
+        target: { discordId: targetUser.id, username: targetUser.username },
+        roleIds: roleIdsOf(member),
+    });
 };
 
-const coreAssign = async (
-    guild,
-    author,
-    targetUser,
-    taskType,
-    roleName,
-    taskName = '',
-    description = '',
-    customDurationDays = null,
-    customExtensionDays = null,
-    suppressLog = false,
-) => {
-    const member = await guild.members.fetch(targetUser.id).catch(() => null);
-    if (!member) return { content: '\u274c User not found in server.' };
-
-    let plan;
+const coreAssign = async (guild, author, targetUser, request) => {
+    let task;
     try {
-        plan = planAssignment(
-            {
-                taskType,
-                roleName,
-                roleIds: roleIdsOf(member),
-                durationDays: customDurationDays,
-                extensionDays: customExtensionDays,
-            },
-            config.RULES,
-            new Date(),
-        );
+        task = await assignTo(guild, targetUser, request);
     } catch (error) {
-        return { content: assignmentRefusal(error) };
+        return refusalFor(error, ASSIGN_REFUSALS);
     }
 
-    const { member: record } = await members.findOrCreate(targetUser.id, targetUser.username);
-
-    await taskStore.create({
-        memberId: record.id,
-        discordUserId: record.discordId,
-        roleCategoryId: plan.roleCategoryId,
-        roleName: plan.roleName,
-        taskType: taskType,
-        taskName: taskName,
-        description: description,
-        deadline: plan.deadline,
-        customExtension: plan.customExtension,
-    });
-
-    if (!suppressLog) {
-        await logAction(
-            guild,
-            `✨ Assigned **${taskType}** to <@${targetUser.id}> - Let's create something wonderful!`,
-            author,
-        );
-    }
-    const ts = Math.round(plan.deadline.getTime() / 1000);
+    await logAction(
+        guild,
+        `✨ Assigned **${task.taskType}** to <@${targetUser.id}> - Let's create something wonderful!`,
+        author,
+    );
+    const ts = Math.round(task.deadline.getTime() / 1000);
     return {
-        content: `✨ Assigned **${taskType}** to <@${targetUser.id}>! Let's create something wonderful together!\n📅 Deadline: <t:${ts}:F> (<t:${ts}:R>)`,
+        content: `✨ Assigned **${task.taskType}** to <@${targetUser.id}>! Let's create something wonderful together!\n📅 Deadline: <t:${ts}:F> (<t:${ts}:R>)`,
     };
 };
 
-const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = null, taskId = null) => {
-    const profile = await members.findProfile(targetUser.id);
-    if (!profile || profile.assignments.length === 0) {
-        return { content: '⚠️ No pending assignments found for this user.' };
-    }
-
-    const pendingTasks = profile.assignments.filter(isOpen);
-    if (pendingTasks.length === 0) {
-        return { content: '⚠️ No pending assignments found for this user.' };
-    }
-
-    let task;
-    if (taskId) {
-        task = pendingTasks.find((t) => t.id === taskId);
-        if (!task) return { content: '⚠️ Task not found. It might have been already submitted or removed.' };
-    } else if (taskName) {
-        task = pendingTasks.find(
-            (t) =>
-                (t.taskName && t.taskName.toLowerCase() === taskName.toLowerCase()) ||
-                t.taskType.toLowerCase() === taskName.toLowerCase(),
+const submitPicker = (discordId, tasks) => {
+    const select = new StringSelectMenuBuilder()
+        .setCustomId(`submit_select_${discordId}`)
+        .setPlaceholder('Select task(s) to submit...')
+        .setMinValues(1)
+        .setMaxValues(Math.min(tasks.length, 25))
+        .addOptions(
+            tasks.map((t) => {
+                const name = taskTitle(t).substring(0, 90);
+                const deadlineStr = new Date(t.deadline).toLocaleDateString();
+                const isLate = t.status === 'LATE' ? ' [LATE]' : '';
+                return {
+                    label: `${name}${isLate}`,
+                    description: `Role: ${t.roleName} | Due: ${deadlineStr}`,
+                    value: t.id,
+                };
+            }),
         );
-        if (!task) {
-            return { content: `⚠️ Task '${taskName}' not found. Use \`/tasks\` to see available tasks.` };
-        }
-    } else {
-        if (pendingTasks.length === 1) {
-            task = pendingTasks[0];
-        } else {
-            const select = new StringSelectMenuBuilder()
-                .setCustomId(`submit_select_${targetUser.id}`)
-                .setPlaceholder('Select task(s) to submit...')
-                .setMinValues(1)
-                .setMaxValues(Math.min(pendingTasks.length, 25))
-                .addOptions(
-                    pendingTasks.map((t) => {
-                        const name = taskTitle(t).substring(0, 90);
-                        const deadlineStr = new Date(t.deadline).toLocaleDateString();
-                        const isLate = t.status === 'LATE' ? ' [LATE]' : '';
-                        return {
-                            label: `${name}${isLate}`,
-                            description: `Role: ${t.roleName} | Due: ${deadlineStr}`,
-                            value: t.id,
-                        };
-                    }),
-                );
-            const row = new ActionRowBuilder().addComponents(select);
-            return { content: `✨ Please select the task(s) you want to submit:`, components: [row] };
-        }
-    }
+    const row = new ActionRowBuilder().addComponents(select);
+    return { content: `✨ Please select the task(s) you want to submit:`, components: [row] };
+};
 
-    if (channelId) {
-        await taskStore.setSubmissionChannel(task.id, channelId);
-    }
+const SUBMIT_REFUSALS = {
+    NO_PENDING_TASKS: () => '⚠️ No pending assignments found for this user.',
+    TASK_GONE: () => '⚠️ Task not found. It might have been already submitted or removed.',
+    TASK_NAME_UNKNOWN: ({ taskName }) => `⚠️ Task '${taskName}' not found. Use \`/tasks\` to see available tasks.`,
+};
 
+const sendForReview = async (guild, discordId, task) => {
     const isLate = task.status === 'LATE';
     const embed = new EmbedBuilder()
         .setTitle(isLate ? '⚠️ Late Submission Ready for Review! ♪' : '✨ Submission Ready for Review! ♪')
         .setColor(isLate ? 0xfab387 : 0x39c5bb)
         .setDescription(
             isLate
-                ? `<@${targetUser.id}> has finished their task, although it was submitted after the deadline. Let's take a look~ 🎉`
-                : `Yay! <@${targetUser.id}> has finished their task and it's ready to shine! Let's take a look at this amazing work~ 🎉`,
+                ? `<@${discordId}> has finished their task, although it was submitted after the deadline. Let's take a look~ 🎉`
+                : `Yay! <@${discordId}> has finished their task and it's ready to shine! Let's take a look at this amazing work~ 🎉`,
         )
         .addFields(
             { name: 'Task', value: taskTitle(task), inline: true },
@@ -227,73 +173,56 @@ const coreSubmit = async (guild, author, targetUser, taskName = '', channelId = 
     if (approvalChannel) {
         await approvalChannel.send({ embeds: [embed], components: [row] });
     }
+};
 
+const coreSubmit = async (guild, request) => {
+    let outcome;
+    try {
+        outcome = await submissionService.request(request);
+    } catch (error) {
+        return refusalFor(error, SUBMIT_REFUSALS);
+    }
+    if (outcome.kind === 'choose') return submitPicker(request.discordId, outcome.tasks);
+
+    await sendForReview(guild, request.discordId, outcome.task);
     return {
-        content: `✅ Yay! Your submission for **${taskTitle(task)}** has been sent for review! Keep up the amazing work~ ♪`,
+        content: `✅ Yay! Your submission for **${taskTitle(outcome.task)}** has been sent for review! Keep up the amazing work~ ♪`,
     };
 };
 
-const coreExtension = async (guild, author, targetUser, taskName = '', reason = '', channelId = null) => {
-    const profile = await members.findProfile(targetUser.id);
-    if (!profile || profile.assignments.length === 0) {
-        return { content: '⚠️ No pending assignments found.' };
-    }
+const EXTENSION_REFUSALS = {
+    ALREADY_EXTENDED: () =>
+        `⚠️ This task has already been extended the maximum number of times (${MAX_EXTENSIONS_PER_TASK}).`,
+    CONFIG_MISSING_ROLE: (_details, { message }) => {
+        console.error('[EXTENSION] Configuration problem:', message);
+        return `⚠️ Configuration error: ${message}. Please contact an admin.`;
+    },
+    NO_PENDING_TASKS: () => '⚠️ No pending assignments found.',
+    REASON_REQUIRED: () => '⚠️ Please provide a reason for the extension request.',
+    TASK_AMBIGUOUS: ({ tasks }) => {
+        const taskList = tasks.map((task) => `• **${taskTitle(task)}** (${task.roleName})`).join('\n');
+        return `⚠️ Please specify which task:\n${taskList}\n\nUse: \`/extension task:<task_name> reason:<reason>\``;
+    },
+    TASK_NAME_UNKNOWN: ({ taskName }) => `⚠️ Task '${taskName}' not found.`,
+};
 
-    const pendingTasks = profile.assignments.filter(isPending);
-    if (pendingTasks.length === 0) {
-        return { content: '⚠️ No pending assignments found.' };
-    }
-
-    if (!reason || reason.trim().length === 0) {
-        return { content: '⚠️ Please provide a reason for the extension request.' };
-    }
-
-    let task;
-    if (taskName) {
-        task = pendingTasks.find(
-            (t) => (t.taskName && t.taskName.toLowerCase() === taskName.toLowerCase()) || t.taskType === taskName,
-        );
-        if (!task) {
-            return { content: `⚠️ Task '${taskName}' not found.` };
-        }
-    } else {
-        if (pendingTasks.length > 1) {
-            const taskList = pendingTasks.map((t) => `• **${taskTitle(t)}** (${t.roleName})`).join('\n');
-            return {
-                content: `⚠️ Please specify which task:\n${taskList}\n\nUse: \`/extension task:<task_name> reason:<reason>\``,
-            };
-        }
-        task = pendingTasks[0];
-    }
-
-    if (!canExtend(task)) {
-        return {
-            content: `⚠️ This task has already been extended the maximum number of times (${MAX_EXTENSIONS_PER_TASK}).`,
-        };
-    }
-
-    let extTime;
+const coreExtension = async (guild, request) => {
+    const { discordId, reason } = request;
+    let outcome;
     try {
-        extTime = resolveExtensionMs(task, config);
+        outcome = await extensionService.request(request);
     } catch (error) {
-        if (error instanceof ConfigError) {
-            console.error('[EXTENSION] Configuration problem:', error.message);
-            return { content: `⚠️ Configuration error: ${error.message}. Please contact an admin.` };
-        }
-        throw error;
+        return refusalFor(error, EXTENSION_REFUSALS);
     }
 
-    if (channelId) {
-        await taskStore.setSubmissionChannel(task.id, channelId);
-    }
-
-    const extDays = msToDays(extTime);
+    const { task, extensionMs } = outcome;
+    const extDays = msToDays(extensionMs);
 
     const embed = new EmbedBuilder()
         .setTitle('🌸 Extension Request ♪')
         .setColor(0x39c5bb)
         .setDescription(
-            `<@${targetUser.id}> needs a bit more time to make something truly special! Everyone deserves the time to do their best~ ✨`,
+            `<@${discordId}> needs a bit more time to make something truly special! Everyone deserves the time to do their best~ ✨`,
         )
         .addFields(
             { name: 'Task', value: taskTitle(task), inline: true },
@@ -352,14 +281,15 @@ const coreProfile = async (targetUser, guild = null) => {
         return { embeds: [embed] };
     }
 
-    const profile = await members.findProfile(targetUser.id);
-    if (!profile) return { content: 'User not found.' };
+    let summary;
+    try {
+        summary = await memberService.profile(targetUser.id);
+    } catch (error) {
+        return refusalFor(error, { MEMBER_NOT_FOUND: () => 'User not found.' });
+    }
+    const { member: profile, total, pending, completed, late } = summary;
 
-    // Handle deboarded users - show archived profile
     if (profile.isDeboarded) {
-        const allAssignments = profile.assignments;
-        const completed = allAssignments.filter(isCompleted);
-
         const embed = new EmbedBuilder()
             .setTitle(`✨ ${profile.deboardedMessage}`)
             .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
@@ -394,12 +324,6 @@ const coreProfile = async (targetUser, guild = null) => {
 
         return { embeds: [embed] };
     }
-
-    const allAssignments = profile.assignments;
-    const pending = allAssignments.filter(isPending);
-    const completed = allAssignments.filter(isCompleted);
-    const late = allAssignments.filter(isLate);
-    const total = allAssignments.length;
 
     let color = 0x89b4fa;
     if (profile.isOnHiatus) color = 0xf9e2af;
@@ -492,32 +416,21 @@ const coreProfile = async (targetUser, guild = null) => {
 
 const coreCard = async (targetUser, _guild = null) => {
     try {
-        // Check if user is deboarded
-        const userRecord = await members.findByDiscordId(targetUser.id);
+        const card = await cardService.get(targetUser.id);
 
-        if (userRecord && userRecord.isDeboarded) {
+        if (card.kind === 'deboarded') {
             const embed = new EmbedBuilder()
-                .setTitle(`✨ ${userRecord.deboardedMessage}`)
+                .setTitle(`✨ ${card.member.deboardedMessage}`)
                 .setColor(0xb9e2f0)
                 .setDescription('This member has completed their journey in the SEKAI~ 🌸')
                 .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
-                .setFooter({ text: `Deboarded: ${new Date(userRecord.deboardedAt).toLocaleDateString()}` })
+                .setFooter({ text: `Deboarded: ${new Date(card.member.deboardedAt).toLocaleDateString()}` })
                 .setTimestamp();
 
             return { embeds: [embed] };
         }
 
-        const cardUrl = `https://sekaicard.azaken.com/api/card/${targetUser.id}`;
-        const cardResponse = await fetch(cardUrl);
-
-        if (!cardResponse.ok) {
-            return { content: 'Card not found. Have you joined the Sekai?' };
-        }
-
-        // API returns the image directly as binary data
-        const arrayBuffer = await cardResponse.arrayBuffer();
-        const imageBuffer = Buffer.from(arrayBuffer);
-        const attachment = new AttachmentBuilder(imageBuffer, { name: 'card.png' });
+        const attachment = new AttachmentBuilder(card.image, { name: 'card.png' });
 
         const embed = new EmbedBuilder()
             .setTitle(`Card for ${targetUser.username}`)
@@ -528,29 +441,25 @@ const coreCard = async (targetUser, _guild = null) => {
 
         return { embeds: [embed], files: [attachment] };
     } catch (error) {
+        if (error.code === 'CARD_NOT_FOUND') return { content: 'Card not found. Have you joined the Sekai?' };
         console.error('Error fetching card data:', error);
         return { content: 'Failed to load card. Please try again.' };
     }
 };
 
 const coreRemoveTask = async (guild, author, targetUser, taskIdentifier) => {
-    const task = await taskStore.findByIdentifier(targetUser.id, taskIdentifier);
-
-    const missing = {
-        content: `❌ Task not found for <@${targetUser.id}>. Use \`/tasks @user\` to see available tasks.`,
-    };
-    if (!task) return missing;
-
-    const title = taskTitle(task);
-
-    const permanent = {
-        content: `❌ Cannot delete **${title}** - this task has been completed and is now part of the permanent record! Their work will be remembered~ 🌸`,
-    };
-    if (task.status === 'COMPLETED') return permanent;
-
-    const outcome = await taskStore.remove(task.id);
-    if (outcome === 'completed') return permanent;
-    if (outcome === 'missing') return missing;
+    let removed;
+    try {
+        removed = await assignmentService.remove(targetUser.id, taskIdentifier);
+    } catch (error) {
+        return refusalFor(error, {
+            TASK_NOT_FOUND: () =>
+                `❌ Task not found for <@${targetUser.id}>. Use \`/tasks @user\` to see available tasks.`,
+            TASK_IS_PERMANENT: ({ title }) =>
+                `❌ Cannot delete **${title}** - this task has been completed and is now part of the permanent record! Their work will be remembered~ 🌸`,
+        });
+    }
+    const { title } = removed;
 
     await logAction(guild, `🗑️ Removed task **${title}** from <@${targetUser.id}>`, author);
     return {
@@ -558,37 +467,43 @@ const coreRemoveTask = async (guild, author, targetUser, taskIdentifier) => {
     };
 };
 
+const STRIKE_REFUSALS = (targetUser) => ({
+    MEMBER_NOT_FOUND: () => `❌ Could not find a record for <@${targetUser.id}>.`,
+});
+
+const coreStrikeAdd = async (guild, author, targetUser, reason) => {
+    const { strikes } = await strikeService.add({ discordId: targetUser.id, username: targetUser.username });
+
+    await logAction(guild, `⚡ Added strike to <@${targetUser.id}>. Reason: ${reason}`, author);
+    await checkDemotion(guild, targetUser.id, strikes);
+
+    const capped = strikes >= MAX_STRIKES ? `\n*(already at the maximum of ${MAX_STRIKES})*` : '';
+    return {
+        content: `⛔ Strike added to <@${targetUser.id}>.\nReason: **${reason}**\nTotal: **${formatStrikes(strikes)}**${capped}`,
+    };
+};
+
+const coreStrikeRemove = async (guild, author, targetUser) => {
+    const { strikes } = await strikeService.remove({ discordId: targetUser.id, username: targetUser.username });
+
+    await logAction(guild, `✨ Removed strike from <@${targetUser.id}> - Great improvement!`, author);
+    return { content: `✅ Strike removed for <@${targetUser.id}>.\nTotal: **${formatStrikes(strikes)}**` };
+};
+
 const coreStrike = async (guild, author, targetUser, action, reason) => {
-    await members.findOrCreate(targetUser.id, targetUser.username);
-
-    if (action === 'add') {
-        const newCount = await members.addStrike(targetUser.id);
-        if (newCount === null) return { content: `❌ Could not find a record for <@${targetUser.id}>.` };
-
-        await logAction(guild, `⚡ Added strike to <@${targetUser.id}>. Reason: ${reason}`, author);
-        await checkDemotion(guild, targetUser.id, newCount);
-
-        const capped = newCount >= MAX_STRIKES ? `\n*(already at the maximum of ${MAX_STRIKES})*` : '';
-        return {
-            content: `⛔ Strike added to <@${targetUser.id}>.\nReason: **${reason}**\nTotal: **${formatStrikes(newCount)}**${capped}`,
-        };
+    try {
+        if (action === 'add') return await coreStrikeAdd(guild, author, targetUser, reason);
+        if (action === 'remove') return await coreStrikeRemove(guild, author, targetUser);
+    } catch (error) {
+        return refusalFor(error, STRIKE_REFUSALS(targetUser));
     }
-
-    if (action === 'remove') {
-        const newCount = await members.removeStrike(targetUser.id);
-        if (newCount === null) return { content: `❌ Could not find a record for <@${targetUser.id}>.` };
-
-        await logAction(guild, `✨ Removed strike from <@${targetUser.id}> - Great improvement!`, author);
-        return { content: `✅ Strike removed for <@${targetUser.id}>.\nTotal: **${formatStrikes(newCount)}**` };
-    }
-
     return { content: '⚠️ Unknown strike action. Use `add`, `remove` or `list`.' };
 };
 
 const coreStrikeList = async (_guild, _author) => {
-    const usersWithStrikes = await members.listWithStrikes();
+    const usersWithStrikes = await strikeService.list();
 
-    if (!usersWithStrikes || usersWithStrikes.length === 0) {
+    if (usersWithStrikes.length === 0) {
         return { content: '✨ Wonderful news! No one currently has any strikes. Everyone is doing amazing work! ♪' };
     }
 
@@ -611,42 +526,36 @@ const coreStrikeList = async (_guild, _author) => {
 };
 
 const coreOnboard = async (guild, author, targetUser) => {
-    const { member: user, created } = await members.findOrCreate(targetUser.id, targetUser.username);
+    const { status, strikes } = await memberService.onboard(targetUser.id, targetUser.username);
 
-    // Onboarding a previously deboarded member brings them back rather than
-    // leaving them archived while telling them they are welcome.
-    if (!created && user.isDeboarded) {
-        const restored = await members.reactivate(targetUser.id, targetUser.username);
+    if (status === 'restored') {
         await logAction(guild, `🌸 Re-onboarded <@${targetUser.id}> - welcome back!`, author);
         return {
-            content: `🌸 Welcome back to our SEKAI, <@${targetUser.id}>! Your record has been restored~ ♪\nStrikes: **${formatStrikes(restored?.strikes ?? user.strikes)}**`,
+            content: `🌸 Welcome back to our SEKAI, <@${targetUser.id}>! Your record has been restored~ ♪\nStrikes: **${formatStrikes(strikes)}**`,
         };
     }
 
-    if (!created) {
+    if (status === 'existing') {
         return {
-            content: `✨ <@${targetUser.id}> is already part of our SEKAI!\nStrikes: **${formatStrikes(user.strikes)}**`,
+            content: `✨ <@${targetUser.id}> is already part of our SEKAI!\nStrikes: **${formatStrikes(strikes)}**`,
         };
     }
 
     await logAction(guild, `🎉 Welcomed <@${targetUser.id}> to our SEKAI!`, author);
     return {
-        content: `🎉 Welcome to our SEKAI, <@${targetUser.id}>! I'm so excited to create amazing things with you~ ♪\nStrikes: **${formatStrikes(user.strikes)}**`,
+        content: `🎉 Welcome to our SEKAI, <@${targetUser.id}>! I'm so excited to create amazing things with you~ ♪\nStrikes: **${formatStrikes(strikes)}**`,
     };
 };
 
 const coreDeboard = async (guild, author, targetUser, customMessage = null) => {
-    const user = await members.findByDiscordId(targetUser.id);
-
-    if (!user) {
-        return { content: 'User not found in the database.' };
-    }
-
-    const deboarded = user.isDeboarded
-        ? null
-        : await members.deboard(targetUser.id, customMessage || '✨ ~Scouted in a different SEKAI~ ✨');
-    if (!deboarded) {
-        return { content: `<@${targetUser.id}> has already been deboarded.` };
+    let deboarded;
+    try {
+        deboarded = await memberService.deboard(targetUser.id, customMessage);
+    } catch (error) {
+        return refusalFor(error, {
+            MEMBER_NOT_FOUND: () => 'User not found in the database.',
+            MEMBER_ALREADY_DEBOARDED: () => `<@${targetUser.id}> has already been deboarded.`,
+        });
     }
 
     await logAction(
@@ -655,30 +564,24 @@ const coreDeboard = async (guild, author, targetUser, customMessage = null) => {
         author,
     );
     return {
-        content: `👋 <@${targetUser.id}> has been safely deboarded. Their completed tasks will remain in our records as a memory of their time with us~ ✨\n✨ Status: ${deboarded.deboardedMessage}`,
+        content: `👋 <@${targetUser.id}> has been safely deboarded. Their completed tasks will remain in our records as a memory of their time with us~ ✨\n✨ Status: ${deboarded.statusMessage}`,
     };
 };
 
 const coreTasks = async (targetUser) => {
-    const profile = await members.findProfile(targetUser.id);
-    if (!profile) return { content: 'User not found.' };
-
-    // Handle deboarded users
-    if (profile.isDeboarded) {
-        return {
-            content: `This member has been deboarded and is no longer part of the active SEKAI. Their completed tasks are archived for remembrance~ ✨`,
-        };
+    let active;
+    try {
+        active = await memberService.activeTasks(targetUser.id);
+    } catch (error) {
+        return refusalFor(error, {
+            MEMBER_NOT_FOUND: () => 'User not found.',
+            MEMBER_DEBOARDED: () =>
+                `This member has been deboarded and is no longer part of the active SEKAI. Their completed tasks are archived for remembrance~ ✨`,
+            NO_TASKS: () => `<@${targetUser.id}> has no tasks.`,
+            NO_ACTIVE_TASKS: () => `<@${targetUser.id}> has no active tasks.`,
+        });
     }
-
-    if (profile.assignments.length === 0) {
-        return { content: `<@${targetUser.id}> has no tasks.` };
-    }
-
-    const activeTasks = profile.assignments.filter(isOpen);
-
-    if (activeTasks.length === 0) {
-        return { content: `<@${targetUser.id}> has no active tasks.` };
-    }
+    const { member: profile, tasks: activeTasks } = active;
 
     const embed = new EmbedBuilder()
         .setTitle(`🎶 ${profile.username}'s Active Tasks ♪`)
@@ -705,23 +608,21 @@ const coreTasks = async (targetUser) => {
 };
 
 const coreHistory = async (filters = {}, page = 0) => {
-    const tasks = await taskStore.listHistory(filters);
+    const {
+        tasks: pageTasks,
+        page: currentPage,
+        totalPages,
+        total,
+    } = await assignmentService.historyPage(filters, page);
 
-    if (!tasks || tasks.length === 0) {
+    if (total === 0) {
         return { content: 'No tasks found matching the criteria.', components: [] };
     }
-
-    const tasksPerPage = 5;
-    const totalPages = Math.ceil(tasks.length / tasksPerPage);
-    const currentPage = Math.max(0, Math.min(page, totalPages - 1));
-    const startIdx = currentPage * tasksPerPage;
-    const endIdx = startIdx + tasksPerPage;
-    const pageTasks = tasks.slice(startIdx, endIdx);
 
     const embed = new EmbedBuilder()
         .setTitle('📚 Task History ♪')
         .setColor(0x39c5bb)
-        .setFooter({ text: `🎵 Page ${currentPage + 1}/${totalPages} | Total: ${tasks.length} amazing task(s)!` })
+        .setFooter({ text: `🎵 Page ${currentPage + 1}/${totalPages} | Total: ${total} amazing task(s)!` })
         .setTimestamp();
 
     const filterDescs = [];
@@ -809,7 +710,7 @@ const coreHiatus = async (guild, author, targetUser, reason, channelId = null, i
     }
 
     if (isDirect) {
-        const pausedCount = await members.startHiatus(targetUser.id);
+        const { pausedCount } = await hiatusService.start(targetUser.id);
 
         await logAction(
             guild,
@@ -866,20 +767,17 @@ const coreHiatus = async (guild, author, targetUser, reason, channelId = null, i
 };
 
 const coreHiatusEnd = async (guild, author, targetUser) => {
-    const existing = await members.findByDiscordId(targetUser.id);
-    if (!existing) return { content: '❌ User not found.' };
-
-    const ended = existing.isOnHiatus
-        ? await members.endHiatus(targetUser.id, (task) => freshDeadline(task, config.RULES, new Date()))
-        : null;
-    if (!ended) {
-        return {
-            content: `⚠️ <@${targetUser.id}> is not currently on hiatus, so there are no paused deadlines to restore.`,
-        };
+    let ended;
+    try {
+        ended = await hiatusService.end(targetUser.id);
+    } catch (error) {
+        return refusalFor(error, {
+            MEMBER_NOT_FOUND: () => '❌ User not found.',
+            NOT_ON_HIATUS: () =>
+                `⚠️ <@${targetUser.id}> is not currently on hiatus, so there are no paused deadlines to restore.`,
+        });
     }
-
-    const restored = ended.restored.map(taskTitle);
-    const skipped = ended.skipped.map(taskTitle);
+    const { restored, skipped } = ended;
 
     if (restored.length === 0 && skipped.length === 0) {
         await logAction(guild, `🌸 Welcome back! Ended hiatus for <@${targetUser.id}>`, author);
@@ -908,22 +806,14 @@ export const handleAssignSlash = async (interaction) => {
             content: 'Sorry, but only owners can assign tasks! If you need something assigned, reach out to them~ ♪',
         });
     }
-    const roleName = interaction.options.getString('role');
-    const taskName = interaction.options.getString('name') || '';
-    const description = interaction.options.getString('description') || '';
-    const durationDays = interaction.options.getInteger('duration_days');
-    const extensionDays = interaction.options.getInteger('extension_days');
-    const result = await coreAssign(
-        interaction.guild,
-        interaction.user,
-        interaction.options.getUser('user'),
-        interaction.options.getString('task'),
-        roleName,
-        taskName,
-        description,
-        durationDays,
-        extensionDays,
-    );
+    const result = await coreAssign(interaction.guild, interaction.user, interaction.options.getUser('user'), {
+        taskType: interaction.options.getString('task'),
+        roleName: interaction.options.getString('role'),
+        taskName: interaction.options.getString('name') || '',
+        description: interaction.options.getString('description') || '',
+        durationDays: interaction.options.getInteger('duration_days'),
+        extensionDays: interaction.options.getInteger('extension_days'),
+    });
     return interaction.editReply(result);
 };
 
@@ -943,7 +833,11 @@ export const handleSubmitSlash = async (interaction) => {
     }
 
     const taskName = interaction.options.getString('task') || '';
-    const result = await coreSubmit(interaction.guild, interaction.user, user, taskName, interaction.channelId);
+    const result = await coreSubmit(interaction.guild, {
+        discordId: user.id,
+        taskName,
+        channelId: interaction.channelId,
+    });
     return interaction.editReply(result);
 };
 
@@ -968,14 +862,12 @@ export const handleExtensionSlash = async (interaction) => {
 
     const taskName = interaction.options.getString('task') || '';
     const reason = interaction.options.getString('reason') || '';
-    const result = await coreExtension(
-        interaction.guild,
-        interaction.user,
-        user,
+    const result = await coreExtension(interaction.guild, {
+        discordId: user.id,
         taskName,
         reason,
-        interaction.channelId,
-    );
+        channelId: interaction.channelId,
+    });
     return interaction.editReply(result);
 };
 
@@ -1224,13 +1116,7 @@ export const handleHistorySlash = async (interaction) => {
 const coreCheckFree = async (_guild, targetUser = null) => {
     try {
         if (targetUser) {
-            const userStatus = await members.findAvailability(targetUser.id);
-
-            if (!userStatus) {
-                return {
-                    content: `I couldn't find any profile for <@${targetUser.id}>. Maybe they haven't joined the team yet?`,
-                };
-            }
+            const userStatus = await memberService.availability(targetUser.id);
 
             const embed = new EmbedBuilder()
                 .setTitle(`🎵 Availability Check: ${targetUser.username}`)
@@ -1285,10 +1171,9 @@ const coreCheckFree = async (_guild, targetUser = null) => {
             });
             return { embeds: [embed] };
         } else {
-            // List all free users
-            const freeUsers = await members.listFree();
+            const { active: activeFree, onHiatus: hiatusFree } = await memberService.freeMembers();
 
-            if (!freeUsers || freeUsers.length === 0) {
+            if (activeFree.length === 0 && hiatusFree.length === 0) {
                 return {
                     content: 'Everyone seems to be busy with their tasks right now! Just like hard-working idols! ♪',
                 };
@@ -1299,9 +1184,6 @@ const coreCheckFree = async (_guild, targetUser = null) => {
                 .setColor(0x39c5bb)
                 .setDescription('Here are the users with no active tasks~ Time to make some music! 🎤')
                 .setTimestamp();
-
-            const activeFree = freeUsers.filter((u) => !u.isOnHiatus);
-            const hiatusFree = freeUsers.filter((u) => u.isOnHiatus);
 
             if (activeFree.length > 0) {
                 const activeList = activeFree.map((u) => {
@@ -1366,6 +1248,11 @@ const coreCheckFree = async (_guild, targetUser = null) => {
             return { embeds: [embed] };
         }
     } catch (error) {
+        if (error.code === 'MEMBER_NOT_FOUND') {
+            return {
+                content: `I couldn't find any profile for <@${targetUser.id}>. Maybe they haven't joined the team yet?`,
+            };
+        }
         console.error('Error in coreCheckFree:', error);
         return { content: 'O-Oh no! Something went wrong while checking for available users... 😢' };
     }
@@ -1438,6 +1325,17 @@ export const handleHelpSlash = async (interaction) => {
     return interaction.editReply(result);
 };
 
+const submitPicked = async (interaction, discordId, taskId) => {
+    try {
+        const { task } = await submissionService.request({ discordId, taskId, channelId: interaction.channelId });
+        await sendForReview(interaction.guild, discordId, task);
+        return true;
+    } catch (error) {
+        refusalFor(error, SUBMIT_REFUSALS);
+        return false;
+    }
+};
+
 export const handleSelectSubmit = async (interaction) => {
     const targetUserId = interaction.customId.split('_')[2];
 
@@ -1453,15 +1351,8 @@ export const handleSelectSubmit = async (interaction) => {
 
     let successCount = 0;
     for (const taskId of interaction.values) {
-        const result = await coreSubmit(
-            interaction.guild,
-            interaction.user,
-            { id: targetUserId },
-            null,
-            interaction.channelId,
-            taskId,
-        );
-        if (result.content.includes('✅')) successCount++;
+        const sent = await submitPicked(interaction, targetUserId, taskId);
+        if (sent) successCount++;
     }
 
     return interaction.editReply({
@@ -1490,12 +1381,7 @@ export const handleBulkAssignSlash = async (interaction) => {
 
     bulkAssignCache.set(operationId, {
         authorId: interaction.user.id,
-        roleName,
-        taskType,
-        taskName,
-        description,
-        durationDays,
-        extensionDays,
+        request: { roleName, taskType, taskName, description, durationDays, extensionDays },
     });
 
     setTimeout(() => {
@@ -1543,26 +1429,14 @@ export const handleBulkAssignSelect = async (interaction) => {
     const failedUsers = [];
 
     for (const [, user] of selectedUsers) {
-        const result = await coreAssign(
-            interaction.guild,
-            interaction.user,
-            user,
-            data.taskType,
-            data.roleName,
-            data.taskName,
-            data.description,
-            data.durationDays,
-            data.extensionDays,
-            true,
-        );
-
-        if (result.content.includes('\u274c') || result.content.includes('⚠️')) {
-            failedUsers.push({ user, reason: result.content });
-        } else {
+        try {
+            await assignTo(interaction.guild, user, data.request);
             successUsers.push(user);
             user.send(
-                `✨ **You've been assigned a new task!**\n**Type:** ${data.taskType}\n**Role:** ${data.roleName}${data.taskName ? `\n**Name:** ${data.taskName}` : ''}${data.description ? `\n**Description:** ${data.description}` : ''}\nLet's do our best! ♪`,
+                `✨ **You've been assigned a new task!**\n**Type:** ${data.request.taskType}\n**Role:** ${data.request.roleName}${data.request.taskName ? `\n**Name:** ${data.request.taskName}` : ''}${data.request.description ? `\n**Description:** ${data.request.description}` : ''}\nLet's do our best! ♪`,
             ).catch(() => {});
+        } catch (error) {
+            failedUsers.push({ user, reason: refusalFor(error, ASSIGN_REFUSALS).content });
         }
     }
 
@@ -1573,7 +1447,7 @@ export const handleBulkAssignSelect = async (interaction) => {
         const mentions = successUsers.map((u) => `<@${u.id}>`).join(', ');
         await logAction(
             interaction.guild,
-            `✨ **Bulk Assigned ${data.taskType} (${data.roleName})** to: ${mentions}`,
+            `✨ **Bulk Assigned ${data.request.taskType} (${data.request.roleName})** to: ${mentions}`,
             interaction.user,
         );
     }
