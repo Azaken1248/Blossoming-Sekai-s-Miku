@@ -6,7 +6,8 @@ import config from '../../config.js';
 import { importOptionalDefault } from '../optionalModule.js';
 import { buildRoleNames } from '../roleNames.js';
 import sharp from 'sharp';
-import { MAX_STRIKES } from '../../Utils/domain/strikes.js';
+import { MINUTE } from '../../Utils/domain/durations.ts';
+import { MAX_STRIKES } from '../../Utils/domain/strikes.ts';
 import { SearchTooLongError } from '../../Utils/DBUtils/searchPattern.ts';
 
 const configProd = await importOptionalDefault(new URL('../../configProd.js', import.meta.url));
@@ -130,7 +131,7 @@ const getGuildRoleMap = async (guildId, botToken) => {
 
     const map = new Map(roles.map((role) => [role.id, role.name]));
     roleCache.guildId = guildId;
-    roleCache.expiresAt = now + 10 * 60 * 1000;
+    roleCache.expiresAt = now + 10 * MINUTE;
     roleCache.roleMap = map;
     return map;
 };
@@ -170,7 +171,7 @@ const getGuildMembersMap = async (guildId, botToken) => {
     const map = new Map(allMembers.filter((member) => member?.user?.id).map((member) => [member.user.id, member]));
 
     memberCache.guildId = guildId;
-    memberCache.expiresAt = now + 2 * 60 * 1000;
+    memberCache.expiresAt = now + 2 * MINUTE;
     memberCache.memberMap = map;
     return map;
 };

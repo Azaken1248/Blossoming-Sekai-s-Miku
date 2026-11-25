@@ -1,6 +1,7 @@
 import type { StoredTask } from '../../DB/Schemas/assignment.ts';
 import { DEFAULT_DEBOARDED_MESSAGE, type StoredMember } from '../../DB/Schemas/user.ts';
-import type { Member, Task, TaskWithMember } from './types.ts';
+import type { Member, Task } from '../domain/model.ts';
+import type { TaskWithMember } from './types.ts';
 
 export type Populated<Document, Key extends keyof Document, Value> = Omit<Document, Key> & Record<Key, Value>;
 

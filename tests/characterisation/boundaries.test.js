@@ -504,6 +504,23 @@ describe('unexpected failures', () => {
         t.assert.snapshot(await recording(state));
     });
 
+    test('a broken role rule during /assign reaches the generic command error', async (t) => {
+        withConfig(t, () => {
+            Object.defineProperty(config.RULES, '999999999999999998', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                    throw new TypeError('rule table corrupted');
+                },
+            });
+            return () => {
+                delete config.RULES['999999999999999998'];
+            };
+        });
+        await run(state, command('assign', state.cast.owner, { user: state.cast.va, role: 'Nobody', task: 'skit' }));
+        t.assert.snapshot(await recording(state));
+    });
+
     test('a broken role rule during /extension reaches the generic command error', async (t) => {
         await seedTask(state, state.cast.va, { roleCategoryId: '999999999999999998', roleName: 'Broken' });
         withConfig(t, () => {

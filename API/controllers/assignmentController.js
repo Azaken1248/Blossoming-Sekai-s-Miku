@@ -1,6 +1,7 @@
 import * as records from '../../Utils/DBUtils/apiRecords.ts';
 import User from '../../DB/Schemas/user.ts';
 import config from '../../config.js';
+import { HOUR } from '../../Utils/domain/durations.ts';
 
 const SNOWFLAKE = /^\d{17,20}$/;
 const MAX_DEADLINE_HOURS = 24 * 365;
@@ -64,7 +65,7 @@ export const createAssignment = async (req, res) => {
             taskType,
             taskName: taskName ?? '',
             description: description ?? '',
-            deadline: new Date(Date.now() + hours * 60 * 60 * 1000),
+            deadline: new Date(Date.now() + hours * HOUR),
         });
 
         res.status(201).json({ success: true, data: assignment });
@@ -103,16 +104,16 @@ export const extendAssignment = async (req, res) => {
             });
         }
 
-        const task = await records.extendAssignment(req.params.taskId, hours * 60 * 60 * 1000);
+        const task = await records.extendAssignment(req.params.taskId, hours * HOUR);
         res.json({ success: true, data: task });
     } catch (error) {
-        if (error.message === 'ALREADY_EXTENDED') {
+        if (error.code === 'ALREADY_EXTENDED') {
             return res.status(409).json({ error: 'This assignment has already used all of its extensions' });
         }
-        if (error.message === 'TASK_CHANGED') {
+        if (error.code === 'TASK_CHANGED') {
             return res.status(409).json({ error: 'This assignment was changed by another request' });
         }
-        if (error.message === 'TASK_NOT_FOUND') {
+        if (error.code === 'TASK_NOT_FOUND') {
             return res.status(404).json({ error: 'Assignment not found' });
         }
         if (error.name === 'CastError') {

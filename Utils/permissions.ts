@@ -1,54 +1,31 @@
-import config from '../config.js';
+export interface Actor {
+    readonly id: string;
+    readonly roleIds: readonly string[];
+}
 
-/**
- * Single source of truth for "who is allowed to do what".
- *
- * Every command handler consults this module, so a permission is enforced in
- * one place.
- */
+export type PermissionLevel = 'anyone' | 'selfOrOwner' | 'managerOrOwner' | 'owner';
 
-export const isAdmin = (userId) => config.ADMIN_USER_IDS.includes(userId);
+export interface CommandPolicy {
+    readonly permission: PermissionLevel;
+    readonly requiresOnboarding?: boolean;
+    readonly denial?: string;
+}
 
-export const isOwner = (member) =>
-    Boolean(member) && (isAdmin(member.id) || member.roles.cache.has(config.OWNER_ROLE_ID));
+export interface AccessConfig {
+    readonly OWNER_ROLE_ID: string;
+    readonly MANAGER_ROLE_IDS: readonly string[];
+    readonly ADMIN_USER_IDS: readonly string[];
+}
 
-export const isManager = (member) =>
-    Boolean(member) && (isAdmin(member.id) || config.MANAGER_ROLE_IDS.some((roleId) => member.roles.cache.has(roleId)));
+export interface PermissionContext {
+    readonly actorId?: string;
+    readonly targetId?: string;
+}
 
-export const isManagerOrOwner = (member) => isOwner(member) || isManager(member);
+export type PermissionCheck =
+    { readonly allowed: true; readonly policy: CommandPolicy } | { readonly allowed: false; readonly reason: string };
 
-/**
- * Evaluate a permission level against a guild member.
- *
- * @param {import('discord.js').GuildMember|null} member - the member invoking the command
- * @param {'anyone'|'selfOrOwner'|'managerOrOwner'|'owner'} level
- * @param {{ actorId?: string, targetId?: string }} [context]
- *        For 'selfOrOwner': the command is allowed when the target is the actor
- *        themselves, or when the actor is an owner acting on someone else.
- */
-export const hasPermission = (member, level, { actorId, targetId } = {}) => {
-    switch (level) {
-        case 'anyone':
-            return true;
-        case 'selfOrOwner':
-            return (targetId !== undefined && targetId === actorId) || isOwner(member);
-        case 'managerOrOwner':
-            return isManagerOrOwner(member);
-        case 'owner':
-            return isOwner(member);
-        default:
-            // Unknown level: deny. A typo in the policy table must never grant access.
-            return false;
-    }
-};
-
-/**
- * Command policy. `permission` is the role requirement; `requiresOnboarding`
- * means the *target* must have an active (non-deboarded) profile.
- *
- * `denial` preserves the existing user-facing wording so behaviour is unchanged.
- */
-export const COMMAND_POLICY = {
+export const COMMAND_POLICY: Record<string, CommandPolicy> = {
     assign: {
         permission: 'owner',
         denial: 'Sorry, but only owners can assign tasks! If you need something assigned, reach out to them~ ♪',
@@ -104,27 +81,6 @@ export const COMMAND_POLICY = {
     uptime: { permission: 'anyone' },
 };
 
-export const NOT_ONBOARDED_MESSAGE = 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪';
-export const UNKNOWN_COMMAND_MESSAGE = "❔ I don't recognise that command. Try `/help` to see what I can do! ♪";
-
-/**
- * Check a command against the policy table.
- *
- * Returns `{ allowed: true }` or `{ allowed: false, reason }` where `reason` is
- * the message to show the user. Commands absent from the table are denied.
- */
-export const checkCommandPermission = (commandName, member, { actorId, targetId } = {}) => {
-    const policy = COMMAND_POLICY[commandName];
-    if (!policy) {
-        return { allowed: false, reason: UNKNOWN_COMMAND_MESSAGE };
-    }
-    if (!hasPermission(member, policy.permission, { actorId, targetId })) {
-        return { allowed: false, reason: policy.denial ?? "You don't have permission to do that." };
-    }
-    return { allowed: true, policy };
-};
-
-/** Button interactions carry their own approval requirements. */
 export const APPROVAL_POLICY = {
     submit: {
         permission: 'owner',
@@ -143,3 +99,55 @@ export const APPROVAL_POLICY = {
         denyDenial: 'Hiatus requests are handled by managers and owners! Thanks for looking out for everyone though~ ♪',
     },
 };
+
+export const NOT_ONBOARDED_MESSAGE = 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪';
+export const UNKNOWN_COMMAND_MESSAGE = "❔ I don't recognise that command. Try `/help` to see what I can do! ♪";
+
+export const createPermissions = (access: AccessConfig) => {
+    const isAdmin = (userId: string): boolean => access.ADMIN_USER_IDS.includes(userId);
+
+    const isOwner = (actor: Actor | null): boolean =>
+        actor !== null && (isAdmin(actor.id) || actor.roleIds.includes(access.OWNER_ROLE_ID));
+
+    const isManager = (actor: Actor | null): boolean =>
+        actor !== null &&
+        (isAdmin(actor.id) || access.MANAGER_ROLE_IDS.some((roleId) => actor.roleIds.includes(roleId)));
+
+    const isManagerOrOwner = (actor: Actor | null): boolean => isOwner(actor) || isManager(actor);
+
+    const hasPermission = (
+        actor: Actor | null,
+        level: PermissionLevel,
+        { actorId, targetId }: PermissionContext = {},
+    ): boolean => {
+        switch (level) {
+            case 'anyone':
+                return true;
+            case 'selfOrOwner':
+                return (targetId !== undefined && targetId === actorId) || isOwner(actor);
+            case 'managerOrOwner':
+                return isManagerOrOwner(actor);
+            case 'owner':
+                return isOwner(actor);
+            default:
+                return false;
+        }
+    };
+
+    const checkCommandPermission = (
+        commandName: string,
+        actor: Actor | null,
+        context: PermissionContext = {},
+    ): PermissionCheck => {
+        const policy = Object.hasOwn(COMMAND_POLICY, commandName) ? COMMAND_POLICY[commandName] : undefined;
+        if (!policy) return { allowed: false, reason: UNKNOWN_COMMAND_MESSAGE };
+        if (!hasPermission(actor, policy.permission, context)) {
+            return { allowed: false, reason: policy.denial ?? "You don't have permission to do that." };
+        }
+        return { allowed: true, policy };
+    };
+
+    return { isAdmin, isOwner, isManager, isManagerOrOwner, hasPermission, checkCommandPermission };
+};
+
+export type Permissions = ReturnType<typeof createPermissions>;
