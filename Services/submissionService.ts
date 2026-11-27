@@ -21,8 +21,7 @@ export type SubmissionOutcome =
 
 const sameText = (left: string, right: string) => left.toLowerCase() === right.toLowerCase();
 
-const isCalled = (wanted: string) => (task: Task) =>
-    (task.taskName !== '' && sameText(task.taskName, wanted)) || sameText(task.taskType, wanted);
+const isCalled = (wanted: string) => (task: Task) => sameText(task.taskName, wanted) || sameText(task.taskType, wanted);
 
 export const createSubmissionService = ({ tasks, members }: Dependencies) => {
     const choose = (open: NonEmpty<Task>, { taskId, taskName }: SubmissionRequest): Task | null => {

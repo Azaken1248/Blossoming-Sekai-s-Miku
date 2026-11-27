@@ -280,6 +280,8 @@ npm run coverage
 
 The characterisation suite in `tests/characterisation/` records everything the bot says and stores for each command, button, menu and scheduler run. Regenerate its recordings with `--test-update-snapshots` only when a change is meant to alter behaviour.
 
+`npm run mutation` runs Stryker over `Utils/domain/` and `Services/` against their unit tests and fails below a 95% mutation score. The HTML report goes to `reports/mutation/`. CI runs it on pull requests that touch that code and every night.
+
 ## Permission Roles
 
 ### Owner

@@ -54,7 +54,8 @@
     "backup": "node scripts/backupDatabase.js",
     "restore": "node scripts/restoreDatabase.js",
     "prepare": "node .husky/install.mjs",
-    "coverage:update": "c8 npm test && node tools/check-coverage.js --update"
+    "coverage:update": "c8 npm test && node tools/check-coverage.js --update",
+    "mutation": "stryker run"
   },
   "dependencies": {
     "cors": "2.8.6",
@@ -67,6 +68,8 @@
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
     "@eslint/js": "10.0.1",
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/tap-runner": "10.1.1",
     "@types/node": "26.6.11",
     "c8": "12.0.0",
     "eslint": "10.16.0",
