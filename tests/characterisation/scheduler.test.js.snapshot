@@ -1,3 +1,96 @@
+exports[`scheduler pass > a failed hourly run is logged and does not stop the bot 1`] = `
+{
+  "discord": [],
+  "errors": [
+    [
+      "[SCHEDULER] ❌ Run failed:",
+      "Error: database unavailable"
+    ]
+  ],
+  "timers": [
+    {
+      "kind": "setInterval",
+      "ms": 3600000
+    }
+  ],
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000001",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "owner.one"
+      },
+      {
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000002",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "manager.one"
+      },
+      {
+        "_id": "<id 3>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "editor.one"
+      },
+      {
+        "_id": "<id 5>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000006",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "quiet.one"
+      }
+    ]
+  }
+}
+`;
+
 exports[`scheduler pass > carries on when the reminder and log channels are missing 1`] = `
 {
   "discord": [],

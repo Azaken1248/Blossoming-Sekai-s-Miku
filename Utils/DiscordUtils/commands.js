@@ -21,49 +21,15 @@ import { isManagerOrOwner, isOwner, roleIdsOf } from './access.js';
 import { taskTitle } from '../domain/assignments.ts';
 import { MINUTE } from '../domain/durations.ts';
 import { DomainError } from '../domain/errors.ts';
-import { crewRoleNames, heldCrewRoles } from '../domain/roles.ts';
+import { crewRoleNames } from '../domain/roles.ts';
 import { msToDays, MAX_EXTENSIONS_PER_TASK } from '../domain/extensions.ts';
-import { MAX_STRIKES, shouldDemote, formatStrikes } from '../domain/strikes.ts';
+import { MAX_STRIKES, formatStrikes } from '../domain/strikes.ts';
+import { checkDemotion, logAction } from '../../Discord/notifier.ts';
 
 // A deboarded member keeps their record but is no longer active, so an
 // existence check is not enough on its own.
 const isOnboarded = async (userId) => {
     return await memberService.isOnboarded(userId);
-};
-
-const logAction = async (guild, content, executorUser) => {
-    const channel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
-    if (channel) {
-        const timestamp = new Date().toLocaleTimeString();
-        await channel.send(`\`[${timestamp}]\` 🎵 **${executorUser.username}**: ${content}`).catch(console.error);
-    } else {
-        console.warn(`[LOG-ACTION] ⚠️ Log channel ${config.LOG_CHANNEL_ID} not found! Content: ${content}`);
-    }
-};
-
-export const checkDemotion = async (guild, discordId, currentStrikes) => {
-    if (!shouldDemote(currentStrikes)) return;
-
-    const member = await guild.members.fetch(discordId).catch(() => null);
-    if (!member) return;
-
-    // Only act if they still hold at least one crew role, so a repeat call
-    // (or a strike applied while already at the cap) is a no-op rather than a
-    // duplicate demotion DM.
-    const crewRoles = heldCrewRoles(roleIdsOf(member), config.CREW_ROLE_IDS);
-    if (crewRoles.length === 0) return;
-
-    await member.roles.remove(crewRoles).catch(() => {});
-    await member
-        .send(
-            `🚨 **Important Notice:** You've reached ${MAX_STRIKES} strikes and your crew roles have been removed. Don't give up though - you can always make a comeback! ♪`,
-        )
-        .catch(() => {});
-    const channel = guild.channels.cache.get(config.LOG_CHANNEL_ID);
-    if (channel)
-        channel.send(
-            `🚨 **Demotion Notice** - <@${discordId}> has reached ${MAX_STRIKES} strikes and crew roles have been removed.`,
-        );
 };
 
 const refusalFor = (error, wording) => {
@@ -847,7 +813,6 @@ export const handleExtensionSlash = async (interaction) => {
     const user = interaction.options.getUser('user') || interaction.user;
 
     if (user.id !== interaction.user.id && !isOwner(member)) {
-        console.log('Is Owner:', isOwner(member));
         return interaction.editReply({
             content:
                 'You can only request extensions for your own tasks! If someone else needs help, they should ask directly~ ♪',

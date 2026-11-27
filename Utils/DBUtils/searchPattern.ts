@@ -1,4 +1,6 @@
-export const MAX_SEARCH_LENGTH = 100;
+import { MAX_SEARCH_LENGTH } from '../domain/search.ts';
+
+export { MAX_SEARCH_LENGTH };
 
 export class SearchTooLongError extends RangeError {
     readonly maxLength: number;
