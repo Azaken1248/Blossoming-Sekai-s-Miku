@@ -4,3 +4,5 @@ export const shouldDemote = (strikeCount: number): boolean => strikeCount >= MAX
 
 export const formatStrikes = (strikeCount: number | null | undefined): string =>
     `${String(strikeCount ?? 0)}/${String(MAX_STRIKES)}`;
+
+export const strikesLeft = (strikes: number): number => (strikes >= MAX_STRIKES ? 0 : MAX_STRIKES - strikes);
