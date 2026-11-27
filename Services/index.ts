@@ -1,16 +1,19 @@
 import config from '../config.js';
 import { DEFAULT_DEBOARDED_MESSAGE, members, tasks } from '../Utils/DBUtils/index.ts';
+import { createApprovalService } from './approvalService.ts';
 import { createAssignmentService } from './assignmentService.ts';
 import { createCardService, readCardServiceUrl } from './cardService.ts';
 import { createExtensionService } from './extensionService.ts';
 import { createHiatusService } from './hiatusService.ts';
 import { createMemberService } from './memberService.ts';
+import { createReminderService } from './reminderService.ts';
 import { createStrikeService } from './strikeService.ts';
 import { createSubmissionService } from './submissionService.ts';
 
 const rules = config.RULES;
 const clock = { now: () => new Date() };
 
+export const approvalService = createApprovalService({ tasks, rules });
 export const assignmentService = createAssignmentService({ tasks, members, rules, clock });
 export const cardService = createCardService({
     members,
@@ -20,5 +23,6 @@ export const cardService = createCardService({
 export const extensionService = createExtensionService({ tasks, members, rules });
 export const hiatusService = createHiatusService({ members, rules, clock });
 export const memberService = createMemberService({ members, defaultFarewell: DEFAULT_DEBOARDED_MESSAGE });
+export const reminderService = createReminderService({ tasks, members, thresholds: config.REMINDER_THRESHOLDS });
 export const strikeService = createStrikeService({ members });
 export const submissionService = createSubmissionService({ tasks, members });

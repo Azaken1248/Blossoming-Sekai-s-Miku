@@ -32,6 +32,17 @@ describe('submission buttons', () => {
         t.assert.snapshot(await recording(state));
     });
 
+    test('report a button with no task id as a task that no longer exists', async (t) => {
+        await run(state, click('submit_approve', state.cast.owner));
+        t.assert.snapshot(await recording(state));
+    });
+
+    test('ignore a decision that is neither approve nor deny', async (t) => {
+        const task = await pendingTask(state.cast.va);
+        await run(state, click(`submit_maybe_${task._id}`, state.cast.owner));
+        t.assert.snapshot(await recording(state));
+    });
+
     test('refuse approval by a non-owner', async (t) => {
         const task = await pendingTask(state.cast.va);
         await run(state, click(`submit_approve_${task._id}`, state.cast.manager));

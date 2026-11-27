@@ -141,6 +141,21 @@ describe('scheduler pass', () => {
         t.assert.snapshot(await recording(state));
     });
 
+    test('a failed hourly run is logged and does not stop the bot', async (t) => {
+        await startUp();
+        const [interval] = state.timers.filter(({ kind }) => kind === 'setInterval');
+        state.world.take();
+        t.mock.method(state.Assignment, 'find', () => {
+            throw new Error('database unavailable');
+        });
+        interval.callback();
+        for (let attempt = 0; attempt < 50 && state.bot.consoleErrors.length === 0; attempt += 1) {
+            await new Promise((resolve) => setImmediate(resolve));
+        }
+        t.mock.restoreAll();
+        t.assert.snapshot(await recording(state));
+    });
+
     test('the hourly run does the same work as the startup run', async (t) => {
         await startUp();
         const [interval] = state.timers.filter(({ kind }) => kind === 'setInterval');

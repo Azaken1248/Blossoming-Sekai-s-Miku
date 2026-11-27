@@ -167,6 +167,13 @@ describe('actions that lose a race', () => {
 });
 
 describe('unexpected failures', () => {
+    test('a database failure while approving a submission reaches the generic button error', async (t) => {
+        const task = await seedTask(state, state.cast.va);
+        failOnce(t, state.Assignment, 'findOneAndUpdate', 'database unavailable');
+        await run(state, click(`submit_approve_${task._id}`, state.cast.owner));
+        t.assert.snapshot(await recording(state));
+    });
+
     test('an approval whose extension length is unusable reports an error', async (t) => {
         const rule = config.RULES[ROLE.EDITOR];
         withConfig(t, () => {

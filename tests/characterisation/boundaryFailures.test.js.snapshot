@@ -4366,6 +4366,130 @@ exports[`unexpected failures > a command error that cannot be reported is logged
 }
 `;
 
+exports[`unexpected failures > a database failure while approving a submission reaches the generic button error 1`] = `
+{
+  "discord": [
+    {
+      "kind": "deferUpdate",
+      "target": "100000000000000001",
+      "payload": null
+    },
+    {
+      "kind": "editReply",
+      "target": "100000000000000001",
+      "payload": {
+        "content": "❌ Error processing request."
+      }
+    }
+  ],
+  "errors": [
+    [
+      "[BUTTON] ❌ Error processing submit_approve_<id 1>:",
+      "Error: database unavailable"
+    ]
+  ],
+  "timers": [],
+  "database": {
+    "assignments": [
+      {
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "_id": "<id 3>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000001",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "owner.one"
+      },
+      {
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000002",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "manager.one"
+      },
+      {
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "_id": "<id 5>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "editor.one"
+      },
+      {
+        "_id": "<id 6>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000006",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "quiet.one"
+      }
+    ]
+  }
+}
+`;
+
 exports[`unexpected failures > a failed first scheduler run is logged and the hourly run is still scheduled 1`] = `
 {
   "discord": [],

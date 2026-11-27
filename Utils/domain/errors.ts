@@ -22,6 +22,7 @@ export interface DomainErrorDetails {
     TASK_IS_PERMANENT: { readonly title: string };
     TASK_NAME_UNKNOWN: { readonly taskName: string };
     TASK_NOT_FOUND: undefined;
+    TASK_RESOLVED: undefined;
     TASK_TYPE_INVALID: {
         readonly taskType: string;
         readonly roleName: string;

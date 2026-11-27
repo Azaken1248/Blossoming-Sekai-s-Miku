@@ -1,7 +1,7 @@
 {
   "all": true,
-  "include": ["bot.js", "API/**", "DB/**", "Services/**", "Utils/**", "scripts/**", "tools/**"],
-  "exclude": ["Utils/DBUtils/types.ts"],
+  "include": ["bot.js", "API/**", "Discord/**", "DB/**", "Services/**", "Utils/**", "scripts/**", "tools/**"],
+  "exclude": ["Utils/DBUtils/types.ts", "Discord/ports.ts"],
   "reporter": ["text", "lcov", "json-summary"],
   "check-coverage": false
 }
