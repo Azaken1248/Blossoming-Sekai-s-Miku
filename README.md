@@ -290,6 +290,8 @@ CI also fails on:
 
 CodeQL scans every pull request with the `security-extended` queries and reports what it finds as a code scanning check on the PR.
 
+Dependabot opens weekly update PRs for npm packages and GitHub Actions. It holds back major versions of Express, TypeScript and `@types/node`, which move with the API rewrite, typescript-eslint support and the Node runtime.
+
 ## Permission Roles
 
 ### Owner
