@@ -48,9 +48,8 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=moderate
 
-      - name: Audit all dependencies (report only)
-        run: npm audit
-        continue-on-error: true
+      - name: Audit all dependencies
+        run: npm audit --audit-level=high
 
   secrets:
     runs-on: ubuntu-latest
