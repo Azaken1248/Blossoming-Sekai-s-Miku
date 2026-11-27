@@ -1,7 +1,8 @@
 import config from '../config.js';
 import { heldCrewRoles } from '../Utils/domain/roles.ts';
-import { MAX_STRIKES, shouldDemote } from '../Utils/domain/strikes.ts';
-import type { GuildPort, Sendable, UserPort } from './ports.ts';
+import { shouldDemote } from '../Utils/domain/strikes.ts';
+import type { GuildPort, Payload, Sendable, UserPort } from './ports.ts';
+import { demotionDm, demotionLog, logLine } from './views/notifier.ts';
 
 export const channelOf = (guild: GuildPort, channelId: string): Sendable | undefined =>
     guild.channels.cache.get(channelId);
@@ -10,10 +11,25 @@ export const logAction = async (guild: GuildPort, content: string, executorUser:
     const channel = channelOf(guild, config.LOG_CHANNEL_ID);
     if (channel) {
         const timestamp = new Date().toLocaleTimeString();
-        await channel.send(`\`[${timestamp}]\` 🎵 **${executorUser.username}**: ${content}`).catch(console.error);
+        await channel.send(logLine(timestamp, executorUser.username, content)).catch(console.error);
     } else {
         console.warn(`[LOG-ACTION] ⚠️ Log channel ${config.LOG_CHANNEL_ID} not found! Content: ${content}`);
     }
+};
+
+export const postForApproval = async (guild: GuildPort, payload: Payload): Promise<void> => {
+    const channel = channelOf(guild, config.APPROVAL_CHANNEL_ID);
+    if (channel) await channel.send(payload);
+};
+
+export const notify = (guild: GuildPort, channelId: string | null | undefined, content: string): void => {
+    if (!channelId) return;
+    const channel = channelOf(guild, channelId);
+    if (channel) void channel.send(content);
+};
+
+export const notifyLog = (guild: GuildPort, content: string): void => {
+    notify(guild, config.LOG_CHANNEL_ID, content);
 };
 
 export const checkDemotion = async (guild: GuildPort, discordId: string, currentStrikes: number): Promise<void> => {
@@ -26,14 +42,6 @@ export const checkDemotion = async (guild: GuildPort, discordId: string, current
     if (crewRoles.length === 0) return;
 
     await member.roles.remove(crewRoles).catch(() => {});
-    await member
-        .send(
-            `🚨 **Important Notice:** You've reached ${String(MAX_STRIKES)} strikes and your crew roles have been removed. Don't give up though - you can always make a comeback! ♪`,
-        )
-        .catch(() => {});
-    const channel = channelOf(guild, config.LOG_CHANNEL_ID);
-    if (channel)
-        void channel.send(
-            `🚨 **Demotion Notice** - <@${discordId}> has reached ${String(MAX_STRIKES)} strikes and crew roles have been removed.`,
-        );
+    await member.send(demotionDm).catch(() => {});
+    notifyLog(guild, demotionLog(discordId));
 };

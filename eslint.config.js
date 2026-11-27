@@ -66,6 +66,10 @@ export default tseslint.config(
         },
     },
     {
+        files: ['Discord/bot.ts'],
+        rules: { '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { arguments: false } }] },
+    },
+    {
         files: ['DB/Schemas/*.ts'],
         rules: { '@typescript-eslint/no-unsafe-class-instance-assignment': 'off' },
     },
@@ -77,7 +81,7 @@ export default tseslint.config(
         rules: { 'max-lines-per-function': 'off' },
     },
     layer(['Services/**', 'Utils/domain/**', 'Utils/permissions.ts'], [SCHEMAS, MONGOOSE, DISCORD, EXPRESS]),
-    layer(['bot.js', 'Discord/**', 'Utils/DiscordUtils/**'], [SCHEMAS, MONGOOSE, EXPRESS, DATA_LAYER]),
+    layer(['bot.js', 'Discord/**'], [SCHEMAS, MONGOOSE, EXPRESS, DATA_LAYER]),
     layer(['API/**'], [SCHEMAS, MONGOOSE, DISCORD]),
     layer(['DB/**', 'Utils/DBUtils/**', 'Utils/Backup/**', 'scripts/**', 'tools/**'], [DISCORD, EXPRESS]),
     ...(process.env['LINT_EXEMPTIONS'] === 'ignore' ? [] : overrides(exemptions)),

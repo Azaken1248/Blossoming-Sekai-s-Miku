@@ -58,6 +58,6 @@ export const loadBot = async (world, { silent = true, login = (token) => Promise
         restCalls,
         consoleErrors,
         emit: (event, ...args) => handlers.on.get(event)(...args),
-        ready: () => handlers.once.get('clientReady')(),
+        ready: () => handlers.once.get('clientReady')(world.client),
     };
 };

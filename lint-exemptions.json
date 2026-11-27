@@ -15,13 +15,6 @@
     "max-lines-per-function": 158,
     "no-restricted-imports": true
   },
-  "Utils/DiscordUtils/commands.js": {
-    "max-lines": 1427,
-    "max-lines-per-function": 162
-  },
-  "bot.js": {
-    "max-lines-per-function": 81
-  },
   "public/dashboard.js": {
     "max-lines": 639,
     "max-lines-per-function": 639

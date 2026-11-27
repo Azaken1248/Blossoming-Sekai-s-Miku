@@ -81,6 +81,30 @@ describe('/history', () => {
             ended,
         });
     });
+    test('stays on the first page when Previous is pressed there', async (t) => {
+        const { va } = state.cast;
+        for (let index = 0; index < 6; index += 1) {
+            await seedTask(state, va, { taskName: `Skit ${index}`, assignedAt: new Date(NOW - (index + 1) * DAY) });
+        }
+        await run(state, command('history', va));
+        state.world.take();
+        const [collector] = state.world.collectors;
+        await collect(collector, state.world.button('history_prev', { user: va }));
+        t.assert.snapshot(state.world.take());
+    });
+
+    test('a page asked for after every task was removed keeps the old embed', async (t) => {
+        const { va } = state.cast;
+        for (let index = 0; index < 6; index += 1) {
+            await seedTask(state, va, { taskName: `Skit ${index}`, assignedAt: new Date(NOW - (index + 1) * DAY) });
+        }
+        await run(state, command('history', va));
+        state.world.take();
+        const [collector] = state.world.collectors;
+        await state.Assignment.deleteMany({});
+        await collect(collector, state.world.button('history_next', { user: va }));
+        t.assert.snapshot(state.world.take());
+    });
 });
 
 describe('/help, /ping and /uptime', () => {
@@ -97,6 +121,15 @@ describe('/help, /ping and /uptime', () => {
     test('/uptime reports days, hours and minutes', async (t) => {
         state.world.client.uptime = 2 * DAY + 3 * 60 * 60 * 1000 + 25 * 60 * 1000 + 999;
         await run(state, command('uptime', state.cast.va));
+        t.assert.snapshot(await recording(state));
+    });
+});
+
+describe('access', () => {
+    test('lets an owner with no member record of their own manage strikes', async (t) => {
+        const { owner } = state.cast;
+        await state.User.deleteOne({ discordId: owner.id });
+        await run(state, state.world.command('strike', { user: owner, subcommand: 'list' }));
         t.assert.snapshot(await recording(state));
     });
 });

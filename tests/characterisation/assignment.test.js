@@ -127,6 +127,15 @@ describe('/bulkassign', () => {
         await run(state, state.world.userSelect('other_select_1', { user: state.cast.owner, users: [] }));
         t.assert.snapshot(await recording(state));
     });
+
+    test('treats a finished bulk assign as expired when the menu is used again', async (t) => {
+        const { owner, va } = state.cast;
+        await run(state, command('bulkassign', owner, { role: 'VA', task: 'skit' }));
+        await run(state, state.world.userSelect(`bulkassign_select_${NOW}500`, { user: owner, users: [va] }));
+        state.world.take();
+        await run(state, state.world.userSelect(`bulkassign_select_${NOW}500`, { user: owner, users: [va] }));
+        t.assert.snapshot(await recording(state));
+    });
 });
 
 describe('/removetask', () => {

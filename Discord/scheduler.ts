@@ -7,6 +7,7 @@ import type { ReminderType, Task } from '../Utils/domain/model.ts';
 import { formatStrikes } from '../Utils/domain/strikes.ts';
 import { channelOf, checkDemotion } from './notifier.ts';
 import type { GuildPort } from './ports.ts';
+import { deadlineMissed, reminder } from './views/scheduler.ts';
 
 export interface SchedulerClient {
     readonly guilds: { readonly cache: { first(): GuildPort | undefined } };
@@ -38,17 +39,6 @@ const logPendingAnalysis = (pendingTasks: readonly Task[]): void => {
     console.log();
 };
 
-const reminderText = (task: Task, reminderType: ReminderType, daysLeft: number): string => {
-    const deadlineTs = Math.round(task.deadline.getTime() / 1000);
-    const final = reminderType === 'final';
-    const reminderEmoji = final ? '🚨' : '⏰';
-    const reminderLabel = final ? '**FINAL REMINDER**' : '**Friendly Reminder**';
-    const encouragement = final
-        ? "You can do this! The deadline is almost here, so let's give it our all~ ♪"
-        : 'Keep up the great work! ♪';
-    return `${reminderEmoji} ${reminderLabel}\n<@${task.discordUserId}> Your task **${taskTitle(task)}** (${task.roleName}) is due in **${String(daysLeft)} day(s)**!\n${encouragement}\n📅 Deadline: <t:${String(deadlineTs)}:F> (<t:${String(deadlineTs)}:R>)`;
-};
-
 const sendReminder = async (guild: GuildPort, task: Task, reminderType: ReminderType): Promise<void> => {
     console.log(`[REMINDER-CHECK] Task: "${taskTitle(task)}" | User: ${task.discordUserId}`);
     console.log(`[REMINDER-CHECK]   Role: ${task.roleName} | Type: ${reminderType.toUpperCase()}`);
@@ -63,7 +53,7 @@ const sendReminder = async (guild: GuildPort, task: Task, reminderType: Reminder
         console.log(
             `[REMINDER-CHECK]   📤 Sending ${reminderType} reminder to channel ${config.REMINDER_CHANNEL_ID}...`,
         );
-        await reminderChannel.send(reminderText(task, reminderType, daysLeft));
+        await reminderChannel.send(reminder(task, reminderType, daysLeft));
         console.log(`[REMINDER-CHECK]   ✅ Reminder sent successfully`);
     } else {
         console.log(`[REMINDER-CHECK]   ❌ ERROR - Reminder channel not found (${config.REMINDER_CHANNEL_ID})`);
@@ -104,9 +94,7 @@ const announceOverdue = async (guild: GuildPort, task: Task, strikes: number): P
     console.log(`[OVERDUE-CHECK]   ⚡ Marked task as LATE. New total: ${formatStrikes(strikes)}`);
     const logChannel = channelOf(guild, config.LOG_CHANNEL_ID);
     if (logChannel) {
-        await logChannel.send(
-            `💔 **Oh no... Deadline Missed**\n<@${task.discordUserId}> The deadline for **${taskTitle(task)}** has passed...\nStrike added. Total: ${String(strikes)}/3\nLet's work together to stay on track next time, okay? ♪`,
-        );
+        await logChannel.send(deadlineMissed(task, strikes));
         console.log(`[OVERDUE-CHECK]   ✅ Notification sent`);
     } else {
         console.log(`[OVERDUE-CHECK]   ❌ ERROR - Log channel not found (${config.LOG_CHANNEL_ID})`);
