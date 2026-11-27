@@ -11,21 +11,31 @@ This document outlines the permission requirements for all bot commands and inte
 
 ## Command Permissions
 
-| Command          | Who Can Use       | Can Target Others         | Notes                           |
-| ---------------- | ----------------- | ------------------------- | ------------------------------- |
-| `/assign`        | Owners only       | ✅ Yes                    | Assign tasks to users           |
-| `/onboard`       | Owners only       | ✅ Yes                    | Onboard new users to the system |
-| `/strike list`   | Managers & Owners | N/A                       | View list of users with strikes |
-| `/strike add`    | Managers & Owners | ✅ Yes                    | Add strikes to users            |
-| `/strike remove` | Managers & Owners | ✅ Yes                    | Remove strikes from users       |
-| `/submit`        | Onboarded Users   | ❌ Self only (Owners: ✅) | Submit completed tasks          |
-| `/extension`     | Onboarded Users   | ❌ Self only (Owners: ✅) | Request task extensions         |
-| `/hiatus`        | Onboarded Users   | ❌ Self only              | Request hiatus from tasks       |
-| `/endhiatus`     | Onboarded Users   | ❌ Self only (Owners: ✅) | End your own hiatus             |
-| `/profile`       | Everyone          | ✅ Yes                    | View user profiles (read-only)  |
-| `/tasks`         | Everyone          | ✅ Yes                    | View user tasks (read-only)     |
-| `/history`       | Everyone          | ✅ Yes                    | View task history (read-only)   |
-| `/help`          | Everyone          | N/A                       | Display help information        |
+| Command          | Who Can Use       | Can Target Others                        | Notes                               |
+| ---------------- | ----------------- | ---------------------------------------- | ----------------------------------- |
+| `/assign`        | Owners only       | ✅ Yes                                   | Assign tasks to users               |
+| `/bulkassign`    | Owners only       | ✅ Yes                                   | Assign one task to up to 25 users   |
+| `/removetask`    | Managers & Owners | ✅ Yes                                   | Remove a task that is not completed |
+| `/onboard`       | Owners only       | ✅ Yes                                   | Onboard new users to the system     |
+| `/deboard`       | Owners only       | ✅ Yes                                   | Deboard a user, keeping their work  |
+| `/strike list`   | Managers & Owners | N/A                                      | View list of users with strikes     |
+| `/strike add`    | Managers & Owners | ✅ Yes                                   | Add strikes to users                |
+| `/strike remove` | Managers & Owners | ✅ Yes                                   | Remove strikes from users           |
+| `/submit`        | Onboarded Users   | ❌ Self only (Owners: ✅)                | Submit completed tasks              |
+| `/extension`     | Onboarded Users   | ❌ Self only (Owners: ✅)                | Request task extensions             |
+| `/hiatus`        | Onboarded Users   | ❌ Self only (Owners: ✅ grant directly) | Request hiatus from tasks           |
+| `/endhiatus`     | Onboarded Users   | ❌ Self only (Owners: ✅)                | End your own hiatus                 |
+| `/profile`       | Everyone          | ✅ Yes                                   | View user profiles (read-only)      |
+| `/card`          | Everyone          | ✅ Yes                                   | View a member's ID card             |
+| `/tasks`         | Everyone          | ✅ Yes                                   | View user tasks (read-only)         |
+| `/history`       | Everyone          | ✅ Yes                                   | View task history (read-only)       |
+| `/checkfree`     | Everyone          | ✅ Yes                                   | See who has no active task          |
+| `/help`          | Everyone          | N/A                                      | Display help information            |
+| `/ping`          | Everyone          | N/A                                      | Check the bot's response time       |
+| `/uptime`        | Everyone          | N/A                                      | See how long the bot has been up    |
+
+The table is enforced by `COMMAND_POLICY` and `APPROVAL_POLICY` in `Utils/permissions.ts`, applied in one place by
+`Discord/guard.ts`. A test fails if a registered command has no policy or no handler.
 
 ## Button Interaction Permissions
 
@@ -90,15 +100,5 @@ MANAGER_ROLE_IDS: ['PLACEHOLDER_MANAGER_ROLE_ID_1', 'PLACEHOLDER_MANAGER_ROLE_ID
 
 ## Error Messages
 
-When users attempt actions without proper permissions, they will receive one of these messages:
-
-- `❌ Only owners can assign tasks.`
-- `❌ Only owners can onboard users.`
-- `❌ Only managers and owners can manage strikes.`
-- `❌ You can only submit your own tasks.`
-- `❌ You can only request extensions for your own tasks.`
-- `❌ You can only end your own hiatus.`
-- `❌ User must be onboarded first.`
-- `❌ Only owners can approve submissions.`
-- `❌ Only managers and owners can approve extensions.`
-- `❌ Only managers and owners can approve or deny hiatus requests.`
+The wording members see when a policy refuses them lives in `Discord/views/permissions.ts`; `Utils/permissions.ts`
+returns only whether an action is allowed.

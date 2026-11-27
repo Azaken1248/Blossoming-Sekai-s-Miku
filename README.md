@@ -41,28 +41,32 @@ Key features include:
 
 ```
 blossoming-sekai's-miku/
-├── bot.js                  # Main bot entry point
-├── api.js                  # Express API server
+├── bot.js                  # Bot entry point (pm2 runs this); starts Discord/bot.ts
 ├── config.js               # Development configuration
 ├── configProd.js           # Production configuration
-├── package.json            # Project dependencies
-├── .env                    # Environment variables
-├── .gitignore              # Git ignore rules
-├── PERMISSIONS.md          # Detailed permission documentation
+├── PERMISSIONS.md          # Who may run which command
 │
+├── API/                    # Express API (api.js listens, app.js wires routes)
 ├── DB/
 │   ├── db.js               # MongoDB connection
-│   └── Schemas/
-│       ├── assignment.js   # Task assignment schema
-│       └── user.js         # User profile schema
+│   └── Schemas/            # Mongoose schemas
 │
+├── Discord/
+│   ├── bot.ts              # Client, database connection, event routing, login
+│   ├── router.ts           # Command name and custom id → handler
+│   ├── guard.ts            # Applies the permission policies and onboarding
+│   ├── commands/           # Slash command handlers: options → service → view
+│   ├── components/         # Approve/deny buttons, pickers, history pager
+│   ├── views/              # Every reply, embed and message members see
+│   ├── notifier.ts         # Log, approval and request channel posts, demotion
+│   ├── scheduler.ts        # Hourly reminders and overdue strikes
+│   └── definitions.ts      # Slash command definitions
+│
+├── Services/               # Business rules; no Discord, Express or Mongoose
 ├── Utils/
-│   ├── DBUtils/
-│   │   ├── taskUtils.js    # Task database operations
-│   │   └── userUtils.js    # User database operations
-│   │
-│   └── DiscordUtils/
-│       └── commands.js     # Command handlers and logic
+│   ├── DBUtils/            # Repositories: the only code that reads the schemas
+│   ├── domain/             # Plain rules and types shared by every layer
+│   └── permissions.ts      # Permission levels and policies
 │
 └── public/                 # Static files for web interface
 ```
