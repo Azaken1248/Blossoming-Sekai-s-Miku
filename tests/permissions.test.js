@@ -1,16 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import config from '../config.js';
-import { COMMAND_POLICY, UNKNOWN_COMMAND_MESSAGE, createPermissions } from '../Utils/permissions.ts';
+import { COMMAND_DEFINITIONS } from '../Discord/definitions.ts';
+import { refusalFor } from '../Discord/views/refusals.ts';
+import { DomainError } from '../Utils/domain/errors.ts';
+import { COMMANDS } from '../Discord/router.ts';
 import {
-    actorOf,
-    isManagerOrOwner as memberManages,
-    isOwner as memberOwns,
-    roleIdsOf,
-} from '../Utils/DiscordUtils/access.js';
+    HIATUS_DECISION_DENIAL,
+    commandDenial,
+    notOnboarded,
+    taskDecisionDenial,
+} from '../Discord/views/permissions.ts';
+import {
+    APPROVAL_POLICY,
+    COMMAND_POLICY,
+    createPermissions,
+    isApprovalAction,
+    isCommandName,
+} from '../Utils/permissions.ts';
 
-const { checkCommandPermission, hasPermission, isAdmin, isManager, isManagerOrOwner, isOwner } =
-    createPermissions(config);
+const { hasPermission, isAdmin, isManager, isManagerOrOwner, isOwner } = createPermissions(config);
 
 const member = (id, roleIds = []) => ({ id, roleIds });
 const owner = member('1', [config.OWNER_ROLE_ID]);
@@ -50,39 +59,47 @@ test('evaluates every permission level and denies unknown ones', () => {
     assert.equal(hasPermission(owner, 'ownr'), false);
 });
 
-test('checks commands against the policy table, denying unknown commands', () => {
-    assert.deepEqual(checkCommandPermission('dance', owner), { allowed: false, reason: UNKNOWN_COMMAND_MESSAGE });
-    assert.deepEqual(checkCommandPermission('assign', manager), {
-        allowed: false,
-        reason: COMMAND_POLICY.assign.denial,
-    });
-    assert.deepEqual(checkCommandPermission('assign', owner), { allowed: true, policy: COMMAND_POLICY.assign });
-    assert.deepEqual(checkCommandPermission('submit', plain, { actorId: '3', targetId: '3' }), {
-        allowed: true,
-        policy: COMMAND_POLICY.submit,
-    });
+test('every registered slash command has exactly one policy and one handler', () => {
+    const registered = COMMAND_DEFINITIONS.map((definition) => definition.name).sort();
+    assert.deepEqual(Object.keys(COMMAND_POLICY).sort(), registered);
+    assert.deepEqual(Object.keys(COMMANDS).sort(), registered);
 });
 
-test('falls back to a generic denial for a policy without its own wording', (t) => {
-    COMMAND_POLICY.probe = { permission: 'owner' };
-    t.after(() => delete COMMAND_POLICY.probe);
-    assert.deepEqual(checkCommandPermission('probe', plain), {
-        allowed: false,
-        reason: "You don't have permission to do that.",
-    });
+test('never treats an inherited property name as a command or an approval', () => {
+    assert.deepEqual(['assign', 'constructor', 'toString', 'dance'].map(isCommandName), [true, false, false, false]);
+    assert.deepEqual(['submit', 'hiatus', 'constructor', 'history'].map(isApprovalAction), [true, true, false, false]);
 });
 
-test('never treats an inherited property name as a command', () => {
-    assert.equal(checkCommandPermission('constructor', owner).reason, UNKNOWN_COMMAND_MESSAGE);
+test('has wording for every refusal a policy can produce', () => {
+    for (const [command, { permission }] of Object.entries(COMMAND_POLICY)) {
+        if (permission === 'anyone') continue;
+        assert.notEqual(commandDenial(command).content, "You don't have permission to do that.", command);
+    }
+    for (const action of Object.keys(APPROVAL_POLICY).filter((name) => name !== 'hiatus')) {
+        for (const decision of ['approve', 'deny']) assert.ok(taskDecisionDenial(action, decision).content);
+    }
+    assert.ok(HIATUS_DECISION_DENIAL.content);
 });
 
-test('reads the acting member from Discord', () => {
-    const discord = (id, roles) => ({ id, roles: { cache: new Map(roles.map((role) => [role, { id: role }])) } });
-    const boss = discord('1', [config.OWNER_ROLE_ID, 'x']);
-    assert.deepEqual(roleIdsOf(boss), [config.OWNER_ROLE_ID, 'x']);
-    assert.deepEqual(actorOf(boss), { id: '1', roleIds: [config.OWNER_ROLE_ID, 'x'] });
-    assert.deepEqual([actorOf(null), actorOf(undefined)], [null, null]);
-    assert.deepEqual([memberOwns(boss), memberOwns(null), memberOwns(discord('2', []))], [true, false, false]);
-    const lead = discord('3', [config.MANAGER_ROLE_IDS[0]]);
-    assert.deepEqual([memberOwns(lead), memberManages(lead), memberManages(undefined)], [false, true, false]);
+test('falls back to a generic denial for a command without its own wording', () => {
+    assert.deepEqual(commandDenial('help'), { content: "You don't have permission to do that." });
+});
+
+test('words a missing onboarding differently only for a member asking for their own hiatus', () => {
+    const generic = 'Looks like this user needs to be onboarded first! Ask an owner to help~ ♪';
+    assert.equal(notOnboarded('submit', true).content, generic);
+    assert.equal(notOnboarded('hiatus', false).content, generic);
+    assert.equal(
+        notOnboarded('hiatus', true).content,
+        'You need to be onboarded before requesting a hiatus! Talk to an owner to get started~ ♪',
+    );
+});
+
+test('rethrows a refusal it has no wording for, unchanged', () => {
+    const error = new DomainError('NO_TASKS');
+    assert.throws(
+        () => refusalFor(error, {}),
+        (thrown) => thrown === error,
+    );
+    assert.deepEqual(refusalFor(error, { NO_TASKS: () => 'none' }), { content: 'none' });
 });
