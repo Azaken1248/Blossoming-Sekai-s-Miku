@@ -75,7 +75,7 @@ blossoming-sekai's-miku/
 
 ### Prerequisites
 
-- Node.js 24 (see `.nvmrc`; `nvm use` picks it up)
+- Node.js 26 (see `.nvmrc`; `nvm use` picks it up)
 - MongoDB instance (local or cloud)
 - Discord Bot Token
 
