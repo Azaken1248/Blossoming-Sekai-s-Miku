@@ -6,3 +6,5 @@ coverage
 backups
 backup.log
 dist
+reports
+.stryker-tmp

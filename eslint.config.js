@@ -18,7 +18,7 @@ const layer = (files, banned) => ({
 
 export default tseslint.config(
     {
-        ignores: ['node_modules/', 'dist/', 'coverage/', 'config.js', 'configProd.js'],
+        ignores: ['node_modules/', 'dist/', 'coverage/', 'reports/', '.stryker-tmp/', 'config.js', 'configProd.js'],
     },
     js.configs.recommended,
     tseslint.configs.strict,

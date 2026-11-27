@@ -75,7 +75,7 @@ blossoming-sekai's-miku/
 
 ### Prerequisites
 
-- Node.js 24 (see `.nvmrc`; `nvm use` picks it up)
+- Node.js 26 (see `.nvmrc`; `nvm use` picks it up)
 - MongoDB instance (local or cloud)
 - Discord Bot Token
 
@@ -279,6 +279,18 @@ npm run coverage
 `npm run coverage` runs the tests and then the coverage gate. Every file must be fully covered unless `coverage-floors.json` lists it with the number of lines, branches, functions and statements it may leave uncovered. The gate fails if any file goes over its cap, and also if a file improves without its cap being lowered, so the caps always match reality. After adding tests, run `npm run coverage:update` to lower the caps; it never raises them. A cap can only go up by editing the file, which shows in review.
 
 The characterisation suite in `tests/characterisation/` records everything the bot says and stores for each command, button, menu and scheduler run. Regenerate its recordings with `--test-update-snapshots` only when a change is meant to alter behaviour.
+
+`npm run mutation` runs Stryker over `Utils/domain/` and `Services/` against their unit tests and fails below a 95% mutation score. The HTML report goes to `reports/mutation/`. CI runs it on pull requests that touch that code and every night.
+
+CI also fails on:
+
+- a production dependency with a moderate or worse advisory
+- any dependency with a high or worse advisory
+- a secret anywhere in the history (gitleaks)
+
+CodeQL scans every pull request with the `security-extended` queries and reports what it finds as a code scanning check on the PR.
+
+Dependabot opens weekly update PRs for npm packages and GitHub Actions. It holds back major versions of Express, TypeScript and `@types/node`, which move with the API rewrite, typescript-eslint support and the Node runtime.
 
 ## Permission Roles
 

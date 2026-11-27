@@ -24,7 +24,7 @@ export interface ExtensionOutcome {
 }
 
 const isCalled = (wanted: string) => (task: Task) =>
-    (task.taskName !== '' && task.taskName.toLowerCase() === wanted.toLowerCase()) || task.taskType === wanted;
+    task.taskName.toLowerCase() === wanted.toLowerCase() || task.taskType === wanted;
 
 const choose = (pending: NonEmpty<Task>, taskName: string | null | undefined): Task => {
     if (taskName) {

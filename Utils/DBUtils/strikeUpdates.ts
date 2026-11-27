@@ -1,8 +1,8 @@
-import type { ClientSession, FilterQuery, Model } from 'mongoose';
+import type { ClientSession, QueryFilter, Model } from 'mongoose';
 import type { StoredMember } from '../../DB/Schemas/user.ts';
 import { MAX_STRIKES } from '../domain/strikes.ts';
 
-type Filter = FilterQuery<StoredMember>;
+type Filter = QueryFilter<StoredMember>;
 
 const change = async (
     members: Model<StoredMember>,
@@ -12,7 +12,11 @@ const change = async (
     session: ClientSession | null,
 ): Promise<number | null> => {
     const updated = await members
-        .findOneAndUpdate({ ...filter, ...allowed }, { $inc: { strikes: amount } }, { new: true, session })
+        .findOneAndUpdate(
+            { ...filter, ...allowed },
+            { $inc: { strikes: amount } },
+            { returnDocument: 'after', session },
+        )
         .lean<StoredMember>();
     const member = updated ?? (await members.findOne(filter).session(session).lean<StoredMember>());
     return member ? (member.strikes ?? 0) : null;

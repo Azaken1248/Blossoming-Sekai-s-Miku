@@ -6,7 +6,7 @@ import { registerCommands } from './registration.ts';
 import { type IncomingInteraction, routeInteraction } from './router.ts';
 import { type SchedulerClient, startScheduler } from './scheduler.ts';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const BANNER = '═══════════════════════════════════════════';
 

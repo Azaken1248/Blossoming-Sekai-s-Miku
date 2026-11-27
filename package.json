@@ -39,7 +39,7 @@
     "!configProd.js"
   ],
   "engines": {
-    "node": ">=24"
+    "node": ">=26"
   },
   "scripts": {
     "start:bot": "node bot.js",
@@ -54,30 +54,54 @@
     "backup": "node scripts/backupDatabase.js",
     "restore": "node scripts/restoreDatabase.js",
     "prepare": "node .husky/install.mjs",
-    "coverage:update": "c8 npm test && node tools/check-coverage.js --update"
+    "coverage:update": "c8 npm test && node tools/check-coverage.js --update",
+    "mutation": "stryker run"
   },
   "dependencies": {
     "cors": "2.8.6",
     "discord.js": "14.28.1",
-    "dotenv": "17.4.2",
+    "dotenv": "18.0.10",
     "express": "4.22.3",
-    "mongoose": "8.24.10",
+    "mongoose": "9.13.1",
     "sharp": "0.35.5"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
     "@eslint/js": "10.0.1",
-    "@types/node": "24.19.2",
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/tap-runner": "10.1.1",
+    "@types/node": "26.6.11",
     "c8": "12.0.0",
-    "eslint": "10.15.0",
+    "eslint": "10.16.0",
     "eslint-plugin-security": "4.2.1",
     "globals": "17.14.0",
     "husky": "9.1.7",
     "lint-staged": "17.6.2",
-    "mongodb-memory-server": "10.4.3",
+    "mongodb-memory-server": "11.4.0",
     "prettier": "3.10.1",
     "supertest": "7.3.2",
     "typescript": "6.0.3",
     "typescript-eslint": "8.74.0"
+  },
+  "overrides": {
+    "@stryker-mutator/core": {
+      "minimatch": "11.0.9"
+    },
+    "@stryker-mutator/tap-runner": {
+      "glob": "14.0.6",
+      "minimatch": "11.0.9"
+    },
+    "test-exclude": {
+      "glob": "14.0.6",
+      "minimatch": "11.0.9"
+    },
+    "typed-rest-client": {
+      "qs": "6.17.1"
+    }
+  },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "8.0.38"
+    }
   }
 }
