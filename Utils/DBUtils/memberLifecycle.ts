@@ -24,7 +24,7 @@ export const createMemberLifecycle = ({ members, clock }: RepositoryDependencies
             .findOneAndUpdate(
                 { discordId },
                 { isDeboarded: false, deboarded_at: null, ...(username ? { username } : {}) },
-                { new: true },
+                { returnDocument: 'after' },
             )
             .lean<StoredMember>();
         return stored ? toMember(stored) : null;
@@ -35,7 +35,7 @@ export const createMemberLifecycle = ({ members, clock }: RepositoryDependencies
             .findOneAndUpdate(
                 { discordId, isDeboarded: { $ne: true } },
                 { isDeboarded: true, deboarded_at: clock.now(), deboarded_statusMessage: message },
-                { new: true },
+                { returnDocument: 'after' },
             )
             .lean<StoredMember>();
         return stored ? toMember(stored) : null;

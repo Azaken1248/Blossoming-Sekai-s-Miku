@@ -20,7 +20,7 @@ export const createTaskExtension = ({ tasks }: RepositoryDependencies): Pick<Tas
                     hasExtended: true,
                     extensionCount: used + 1,
                 },
-                { new: true },
+                { returnDocument: 'after' },
             )
             .lean<StoredTask>();
         if (updated) return toTask(updated);

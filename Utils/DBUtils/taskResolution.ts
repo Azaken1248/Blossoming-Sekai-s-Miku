@@ -18,7 +18,7 @@ export const createTaskResolution = ({
             .findOneAndUpdate(
                 { _id: id, status: { $in: OPEN_STATUSES } },
                 { status: TASK_STATUS.Completed, completedAt: clock.now() },
-                { new: true },
+                { returnDocument: 'after' },
             )
             .lean<StoredTask>();
         return stored ? toTask(stored) : null;
@@ -30,7 +30,7 @@ export const createTaskResolution = ({
                 .findOneAndUpdate(
                     { _id: id, status: { $in: OPEN_STATUSES } },
                     { status: TASK_STATUS.Completed, completedAt: clock.now() },
-                    { new: true, session },
+                    { returnDocument: 'after', session },
                 )
                 .lean<StoredTask>();
             if (!stored) return null;
@@ -44,7 +44,7 @@ export const createTaskResolution = ({
                 .findOneAndUpdate(
                     { _id: id, status: TASK_STATUS.Pending, deadline: { $lt: clock.now() } },
                     { status: TASK_STATUS.Late },
-                    { new: true, session },
+                    { returnDocument: 'after', session },
                 )
                 .lean<StoredTask>();
             if (!stored) return { outcome: 'skipped' };
