@@ -282,6 +282,8 @@ The characterisation suite in `tests/characterisation/` records everything the b
 
 `npm run mutation` runs Stryker over `Utils/domain/` and `Services/` against their unit tests and fails below a 95% mutation score. The HTML report goes to `reports/mutation/`. CI runs it on pull requests that touch that code and every night.
 
+CodeQL scans every pull request with the `security-extended` queries and reports what it finds as a code scanning check on the PR.
+
 ## Permission Roles
 
 ### Owner
