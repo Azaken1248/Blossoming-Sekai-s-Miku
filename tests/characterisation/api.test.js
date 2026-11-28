@@ -268,9 +268,40 @@ describe('GET /api/assignments', () => {
 });
 
 describe('analytics', () => {
-    for (const path of ['assignments?sort=-createdAt', 'users', 'stats?groupBy=status', 'assignments?status=NOPE']) {
+    for (const path of [
+        'assignments?sort=-createdAt',
+        'users',
+        'stats?groupBy=status',
+        'assignments?status=NOPE',
+        'assignments?deadline[lt]=2026-06-25&extensionCount[gte]=0&hasExtended=false&sort=deadline,-status',
+        'assignments?status[in][]=PENDING&status[in][]=LATE&taskType=skit&page=2&limit=1',
+        'assignments?deadline[where]=1',
+        'assignments?extensionCount=many',
+        'assignments?hasExtended=maybe',
+        'assignments?assignedAt=never',
+        'assignments?sort=password',
+        'assignments?sort=,',
+        'users?page=2&limit=1',
+        'users?limit=999',
+        'stats?groupBy=roleName&status=PENDING',
+        'stats?groupBy=$where',
+        'stats',
+    ]) {
         scenario(`GET ${path}`, async () => {
             await seedTask();
+            await seedTask({ taskName: 'Late one', status: 'LATE', hasExtended: true, extensionCount: 1 });
+            return send('get', `/api/v1/analytics/${path}`);
+        });
+    }
+    for (const [path, model, method] of [
+        ['assignments', 'Assignment', 'find'],
+        ['users', 'User', 'find'],
+        ['stats', 'Assignment', 'aggregate'],
+    ]) {
+        scenario(`hides a failure of ${path}`, (t) => {
+            t.mock.method({ User, Assignment }[model], method, () => {
+                throw new Error('down');
+            });
             return send('get', `/api/v1/analytics/${path}`);
         });
     }
