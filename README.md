@@ -21,20 +21,22 @@ Key features include:
 
 ### Core Technologies
 
-- **Node.js** - Runtime environment
-- **Discord.js v14.25.1** - Discord API wrapper
-- **MongoDB** - Database for persistent storage
-- **Mongoose v8.0.0** - MongoDB object modeling
+- **Node.js 26** - Runtime, running TypeScript directly through type stripping
+- **TypeScript 6** - Strict types for the bot, the services and the API
+- **Discord.js 14** - Discord API wrapper
+- **MongoDB 8** - Database for persistent storage
+- **Mongoose 9** - MongoDB object modeling
 
 ### Additional Dependencies
 
-- **Express.js v4.18.2** - Web server framework
-- **dotenv v17.2.3** - Environment variable management
-- **CORS v2.8.5** - Cross-origin resource sharing
+- **Express 4** - Web server framework for the API
+- **sharp** - Renders the profile card PNG
+- **dotenv** - Environment variable management
+- **cors** - Cross-origin resource sharing
 
 ### Development Tools
 
-- **ESM** - ES Modules for modern JavaScript
+- **ESLint, Prettier, node:test, c8, Stryker** - Lint, format, tests, coverage and mutation testing
 - **PM2** - Process management (recommended for deployment)
 
 ## Directory Structure
@@ -46,7 +48,13 @@ blossoming-sekai's-miku/
 ├── configProd.js           # Production configuration
 ├── PERMISSIONS.md          # Who may run which command
 │
-├── API/                    # Express API (api.js listens, app.js wires routes)
+├── API/                    # Express API: no schemas or data layer, only Services
+│   ├── api.js              # Entry point (pm2 runs this); starts server.ts
+│   ├── app.ts              # Middleware and routes
+│   ├── routes/, controllers/  # Read the request, call a service, answer
+│   ├── discord/            # Discord REST client and guild lookup
+│   ├── cards/              # ID card, profile card and share pages
+│   └── views/              # Miku's description and the landing page
 ├── DB/
 │   ├── db.js               # MongoDB connection
 │   └── Schemas/            # Mongoose schemas
@@ -346,11 +354,22 @@ See [PERMISSIONS.md](PERMISSIONS.md) for detailed permission documentation.
 
 ## API Endpoints
 
-The bot includes an Express API server for potential integrations:
+`npm run start:api` starts it. Routes marked _key_ need the `x-api-key` header.
 
-- Web dashboard support
-- External tool integration
-- Analytics and reporting
+| Route                                                     | What it does                                                                                                                                                                                                                   |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /api/users?limit&search`                             | Members, with names, avatars and roles from Discord when `BOT_TOKEN` and `GUILD_ID` are set                                                                                                                                    |
+| `POST /api/users` _key_                                   | Create a member (`discordId`, `username`)                                                                                                                                                                                      |
+| `GET /api/users/:discordId`                               | A member with their tasks                                                                                                                                                                                                      |
+| `GET /api/users/:discordId/summary`                       | Profile summary used by the web app                                                                                                                                                                                            |
+| `GET /api/users/:discordId/card.png`                      | The ID card image                                                                                                                                                                                                              |
+| `GET /api/users/share/:discordId`                         | Link preview page that redirects to the web profile                                                                                                                                                                            |
+| `POST /api/users/:discordId/strikes/add`, `/remove` _key_ | Change an existing member's strikes                                                                                                                                                                                            |
+| `POST /api/assignments` _key_                             | Assign a task: `discordId`, `roleCategoryId`, `taskType` (one the role lists, or `custom`), optional `deadlineHours` (required for `custom`; otherwise the role rule sets the deadline), `roleName`, `taskName`, `description` |
+| `POST /api/assignments/:taskId/complete`, `/extend` _key_ | Complete a task, or extend it by `extensionHours`                                                                                                                                                                              |
+| `GET /api/assignments/pending/:discordUserId`, `/overdue` | A member's next pending task; all overdue tasks                                                                                                                                                                                |
+| `GET /api/v1/analytics/assignments`, `/users`, `/stats`   | Filtered, sorted and paged tasks and members, and grouped totals                                                                                                                                                               |
+| `GET /share/user/:discordId`, `/card.svg`                 | Share page and its SVG card                                                                                                                                                                                                    |
 
 ## Credits
 

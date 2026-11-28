@@ -29,7 +29,7 @@ test('connects to the database and listens on the configured host and port', asy
     assert.deepEqual(
         log.mock.calls.map((call) => call.arguments[0]),
         [
-            'API Server running strictly as an API on http://[::1]:2019',
+            'API Server running on http://[::1]:2019',
             '[CORS] Allowing https://sekai.azaken.com [from default]',
             '[AUTH] ✅ API_KEY configured; write endpoints are protected.',
         ],

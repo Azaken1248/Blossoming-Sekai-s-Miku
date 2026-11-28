@@ -10,7 +10,7 @@ const HOST = readHost(process.env.HOST);
 void connectDB();
 
 app.listen(PORT, HOST, () => {
-    console.log(`API Server running strictly as an API on ${describeAddress(HOST, PORT)}`);
+    console.log(`API Server running on ${describeAddress(HOST, PORT)}`);
     console.log(describeCorsPolicy());
     reportApiKeyStatus();
 });

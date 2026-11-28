@@ -50,10 +50,12 @@ export const LANDING_PAGE = `
     <body>
         <div class="container">
             <h1>Blossoming Sekai API</h1>
-            <p>Pure API Backend. No static files served here.</p>
+            <p>The Blossoming Sekai API, plus the profile share pages and the files under /public.</p>
             <div class="endpoint"><span class="method">USE</span> /api/users</div>
             <div class="endpoint"><span class="method">USE</span> /api/assignments</div>
             <div class="endpoint"><span class="method">USE</span> /api/v1/analytics</div>
+            <div class="endpoint"><span class="method">GET</span> /share/user/:discordId</div>
+            <div class="endpoint"><span class="method">GET</span> /public</div>
             <div class="status">● System Operational</div>
         </div>
     </body>
