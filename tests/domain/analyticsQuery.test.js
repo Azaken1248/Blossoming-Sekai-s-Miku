@@ -1,23 +1,23 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import QueryBuilder, { DEFAULT_LIMIT, MAX_LIMIT, QueryError, buildFilter } from '../../API/utils/queryBuilder.js';
+import {
+    DEFAULT_LIMIT,
+    MAX_LIMIT,
+    QueryError,
+    buildFilter,
+    buildSort,
+    groupByOf,
+    pageOf,
+} from '../../Utils/domain/analyticsQuery.ts';
 
-const recorder = () => {
-    const calls = [];
-    const query = { calls };
-    for (const name of ['find', 'sort', 'skip', 'limit']) {
-        query[name] = (value) => {
-            calls.push([name, value]);
-            return query;
-        };
-    }
-    return query;
-};
-
-const rejects = (query, message) =>
+const rejects = (run, message) =>
     assert.throws(
-        () => buildFilter(query),
-        (error) => error instanceof QueryError && error.status === 400 && error.message === message,
+        run,
+        (error) =>
+            error instanceof QueryError &&
+            error.name === 'QueryError' &&
+            error.status === 400 &&
+            error.message === message,
     );
 
 describe('buildFilter', () => {
@@ -50,10 +50,10 @@ describe('buildFilter', () => {
     });
 
     test('refuses values that do not fit the field', () => {
-        rejects({ status: 'DONE' }, 'status must be one of: PENDING, COMPLETED, LATE, EXCUSED');
-        rejects({ hasExtended: 'yes' }, 'hasExtended must be true or false');
-        rejects({ extensionCount: 'many' }, 'extensionCount must be a number');
-        rejects({ deadline: 'soon' }, 'deadline must be a valid date');
+        rejects(() => buildFilter({ status: 'DONE' }), 'status must be one of: PENDING, COMPLETED, LATE, EXCUSED');
+        rejects(() => buildFilter({ hasExtended: 'yes' }), 'hasExtended must be true or false');
+        rejects(() => buildFilter({ extensionCount: 'many' }), 'extensionCount must be a number');
+        rejects(() => buildFilter({ deadline: 'soon' }), 'deadline must be a valid date');
     });
 
     test('accepts allowed operators and refuses the rest', () => {
@@ -61,54 +61,95 @@ describe('buildFilter', () => {
             extensionCount: { $gte: 1, $lt: 3 },
             status: { $in: ['LATE', 'PENDING'] },
         });
+        assert.deepEqual(buildFilter({ deadline: { nin: ['2026-01-01'] } }), {
+            deadline: { $nin: [new Date('2026-01-01')] },
+        });
         assert.deepEqual(buildFilter({ deadline: {} }), {});
-        rejects({ taskName: { regex: '.*' } }, 'Operator "regex" is not supported for taskName');
-        rejects({ status: { in: 'LATE' } }, 'Operator "in" is not supported for status');
-        rejects({ deadline: { where: '1' } }, 'Operator "where" is not supported for deadline');
+        rejects(() => buildFilter({ taskName: { regex: '.*' } }), 'Operator "regex" is not supported for taskName');
+        rejects(() => buildFilter({ status: { in: 'LATE' } }), 'Operator "in" is not supported for status');
+        rejects(() => buildFilter({ deadline: { where: '1' } }), 'Operator "where" is not supported for deadline');
+    });
+
+    test('knows every filterable field and comparison', () => {
+        const day = '2026-01-01';
+        assert.deepEqual(
+            buildFilter({
+                roleName: 'VA',
+                roleCategoryId: '1',
+                discordUserId: '2',
+                assignedAt: { gt: day },
+                completedAt: { lte: day },
+                deadline: { ne: day },
+            }),
+            {
+                roleName: 'VA',
+                roleCategoryId: '1',
+                discordUserId: '2',
+                assignedAt: { $gt: new Date(day) },
+                completedAt: { $lte: new Date(day) },
+                deadline: { $ne: new Date(day) },
+            },
+        );
+        rejects(() => buildFilter({ roleName: { gt: 'a' } }), 'Operator "gt" is not supported for roleName');
+    });
+
+    test('takes a custom field list', () => {
+        assert.deepEqual(buildFilter({ status: 'x', note: 'y' }, { note: { type: 'string' } }), { note: 'y' });
     });
 });
 
-describe('QueryBuilder', () => {
-    test('filters, sorts by several fields and pages', () => {
-        const query = recorder();
-        const built = new QueryBuilder(query, {
-            status: 'LATE',
-            sort: '-createdAt, deadline',
-            page: '3',
-            limit: '20',
-        })
-            .filter()
-            .sort()
-            .paginate();
-        assert.deepEqual(query.calls, [
-            ['find', { status: 'LATE' }],
-            ['sort', '-assignedAt deadline'],
-            ['skip', 40],
-            ['limit', 20],
-        ]);
-        assert.deepEqual([built.page, built.limit], [3, 20]);
+describe('buildSort', () => {
+    test('sorts newest first by default', () => {
+        assert.equal(buildSort(undefined), '-assignedAt');
+        assert.equal(buildSort(null), '-assignedAt');
+        assert.equal(buildSort(''), '-assignedAt');
+        assert.equal(buildSort(' , '), '-assignedAt');
     });
-
-    test('uses defaults without a query string', () => {
-        const query = recorder();
-        new QueryBuilder(query, undefined).filter().sort().paginate();
-        assert.deepEqual(query.calls, [
-            ['find', {}],
-            ['sort', '-assignedAt'],
-            ['skip', 0],
-            ['limit', DEFAULT_LIMIT],
-        ]);
+    test('sorts by several fields and maps createdAt to assignedAt', () => {
+        assert.equal(buildSort('-createdAt, deadline'), '-assignedAt deadline');
+        assert.equal(buildSort(['status', '-roleName']), 'status -roleName');
     });
+    test('refuses a field that is not sortable', () => {
+        rejects(
+            () => buildSort('-password'),
+            'Cannot sort by "password". Allowed: assignedAt, deadline, completedAt, status, roleName, taskType, extensionCount',
+        );
+    });
+    test('reads nested lists, objects and numbers the way the query string would print them', () => {
+        assert.equal(buildSort([['status', 'deadline'], 'roleName']), 'status deadline roleName');
+        const allowed = 'Allowed: assignedAt, deadline, completedAt, status, roleName, taskType, extensionCount';
+        rejects(() => buildSort({ a: '1' }), `Cannot sort by "[object Object]". ${allowed}`);
+        assert.equal(buildSort([null, undefined]), '-assignedAt');
+        rejects(() => buildSort(5), `Cannot sort by "5". ${allowed}`);
+        rejects(() => buildSort(true), `Cannot sort by "true". ${allowed}`);
+    });
+});
 
+describe('pageOf', () => {
     test('bounds the page and the limit', () => {
-        const bounds = (queryString) => {
-            const { page, limit } = new QueryBuilder(recorder(), queryString).paginate();
-            return [page, limit];
+        const bounds = (query, limit) => {
+            const { page, limit: size, skip } = pageOf(query, limit);
+            return [page, size, skip];
         };
         assert.deepEqual([DEFAULT_LIMIT, MAX_LIMIT], [100, 200]);
-        assert.deepEqual(bounds({ page: '-2', limit: '-5' }), [1, 1]);
-        assert.deepEqual(bounds({ page: 'x', limit: 'x' }), [1, 100]);
-        assert.deepEqual(bounds({ limit: '200' }), [1, 200]);
-        assert.deepEqual(bounds({ limit: '201' }), [1, 200]);
+        assert.deepEqual(bounds({ page: '3', limit: '20' }), [3, 20, 40]);
+        assert.deepEqual(bounds({ page: '-2', limit: '-5' }), [1, 1, 0]);
+        assert.deepEqual(bounds({ page: 'x', limit: 'x' }), [1, 100, 0]);
+        assert.deepEqual(bounds({ limit: '200' }), [1, 200, 0]);
+        assert.deepEqual(bounds({ limit: '201' }), [1, 200, 0]);
+        assert.deepEqual(bounds({}, MAX_LIMIT), [1, 200, 0]);
+    });
+});
+
+describe('groupByOf', () => {
+    test('groups by status unless told otherwise', () => {
+        assert.equal(groupByOf({}), 'status');
+        assert.equal(groupByOf({ groupBy: 'roleName' }), 'roleName');
+    });
+    test('refuses anything else', () => {
+        const message =
+            'groupBy must be one of: status, roleName, roleCategoryId, taskType, discordUserId, hasExtended';
+        rejects(() => groupByOf({ groupBy: '$where' }), message);
+        rejects(() => groupByOf({ groupBy: ['status', 'roleName'] }), message);
     });
 });

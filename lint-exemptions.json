@@ -3,9 +3,6 @@
     "max-lines-per-function": 71,
     "no-restricted-imports": true
   },
-  "API/controllers/analyticsController.js": {
-    "no-restricted-imports": true
-  },
   "API/controllers/assignmentController.js": {
     "max-lines-per-function": 60,
     "no-restricted-imports": true

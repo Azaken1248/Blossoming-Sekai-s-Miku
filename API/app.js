@@ -7,7 +7,7 @@ import fs from 'fs';
 
 import userRoutes from './routes/users.js';
 import assignmentRoutes from './routes/assignments.js';
-import analyticsRoutes from './routes/analytics.js';
+import analyticsRoutes from './routes/analytics.ts';
 import { buildUserSummary } from './controllers/userController.js';
 import { buildCorsOptions } from './corsPolicy.js';
 

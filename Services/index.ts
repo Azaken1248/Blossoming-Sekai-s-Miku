@@ -1,5 +1,7 @@
 import config from '../config.js';
+import * as analyticsRecords from '../Utils/DBUtils/analyticsRecords.ts';
 import { DEFAULT_DEBOARDED_MESSAGE, members, tasks } from '../Utils/DBUtils/index.ts';
+import { createAnalyticsService } from './analyticsService.ts';
 import { createApprovalService } from './approvalService.ts';
 import { createAssignmentService } from './assignmentService.ts';
 import { createCardService, readCardServiceUrl } from './cardService.ts';
@@ -13,6 +15,7 @@ import { createSubmissionService } from './submissionService.ts';
 const rules = config.RULES;
 const clock = { now: () => new Date() };
 
+export const analyticsService = createAnalyticsService({ records: analyticsRecords });
 export const approvalService = createApprovalService({ tasks, rules });
 export const assignmentService = createAssignmentService({ tasks, members, rules, clock });
 export const cardService = createCardService({

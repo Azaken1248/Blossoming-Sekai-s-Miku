@@ -3,7 +3,7 @@ import {
     getFilteredAssignments,
     getAssignmentStats,
     getUsersWithAssignments,
-} from '../controllers/analyticsController.js';
+} from '../controllers/analyticsController.ts';
 
 const router = express.Router();
 
