@@ -32,7 +32,7 @@ before(async () => {
         throw new Error('the API must not call out in this test');
     });
     database = await startDatabase('sekai_char_api');
-    ({ default: app } = await import('../../API/app.js'));
+    ({ default: app } = await import('../../API/app.ts'));
     ({ default: User } = await import('../../DB/Schemas/user.ts'));
     ({ default: Assignment } = await import('../../DB/Schemas/assignment.ts'));
 });

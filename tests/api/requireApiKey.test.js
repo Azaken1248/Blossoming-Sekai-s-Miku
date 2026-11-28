@@ -2,7 +2,7 @@ import { after, before, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { startDatabase } from '../support/database.js';
-import { reportApiKeyStatus, requireApiKey } from '../../API/middleware/requireApiKey.js';
+import { reportApiKeyStatus, requireApiKey } from '../../API/middleware/requireApiKey.ts';
 
 const KEY = 'a'.repeat(64);
 const MEMBER = '100000000000000001';
@@ -23,7 +23,7 @@ let savedKey;
 before(async () => {
     savedKey = process.env.API_KEY;
     database = await startDatabase('sekai_api_auth');
-    ({ default: app } = await import('../../API/app.js'));
+    ({ default: app } = await import('../../API/app.ts'));
 });
 
 beforeEach(async (t) => {

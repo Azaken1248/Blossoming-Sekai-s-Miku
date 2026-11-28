@@ -4,13 +4,16 @@ import { members, tasks } from './index.ts';
 import { containsText } from './searchPattern.ts';
 import { TASK_STATUS } from '../domain/model.ts';
 import type { NewTask } from './types.ts';
+import type { TaskRole } from '../domain/profile.ts';
+
+export type ApiRecord = { readonly discordId: string; readonly [field: string]: unknown };
 
 const DEFAULT_LIST_LIMIT = 100;
 const MAX_LIST_LIMIT = 500;
 
 interface ListOptions {
     readonly limit?: unknown;
-    readonly search?: string | null;
+    readonly search?: string | null | undefined;
 }
 
 const taskRecord = (id: string) => Assignment.findById(id);
@@ -34,12 +37,20 @@ export const fetchPendingTask = async (discordUserId: string) => {
 export const fetchOverdueTasks = () =>
     Assignment.find({ status: TASK_STATUS.Pending, deadline: { $lt: new Date() } }).populate('userId');
 
+export const taskOwner = async (discordId: string) => {
+    const owner = await User.findOne({ discordId }).select('_id discordId isDeboarded').lean();
+    return owner
+        ? { memberId: owner._id.toString(), discordId: owner.discordId, isDeboarded: Boolean(owner.isDeboarded) }
+        : null;
+};
+
 export const findOrCreateUser = async (discordId: string, username: string) => {
     await members.findOrCreate(discordId, username);
     return User.findOne({ discordId });
 };
 
-export const getUserProfile = (discordId: string) => User.findOne({ discordId }).populate('assignments').lean();
+export const getUserProfile = (discordId: string) =>
+    User.findOne({ discordId }).populate('assignments').lean<ApiRecord>();
 
 export const listUsers = ({ limit = DEFAULT_LIST_LIMIT, search = '' }: ListOptions = {}) => {
     const text = (search ?? '').trim();
@@ -49,5 +60,15 @@ export const listUsers = ({ limit = DEFAULT_LIST_LIMIT, search = '' }: ListOptio
         .sort('-joinedAt')
         .limit(Math.max(1, Math.min(Number(limit) || DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT)))
         .select('discordId username strikes isOnHiatus roles joinedAt')
-        .lean();
+        .lean<ApiRecord[]>();
 };
+
+export const summaryRecord = (discordId: string) =>
+    User.findOne({ discordId })
+        .select('discordId username strikes isOnHiatus isDeboarded roles joinedAt')
+        .lean<ApiRecord>();
+
+export const storedMember = (discordId: string) => User.findOne({ discordId }).lean<ApiRecord>();
+
+export const taskRoles = (discordId: string) =>
+    Assignment.find({ discordUserId: discordId }).select('status roleName').lean<TaskRole[]>();

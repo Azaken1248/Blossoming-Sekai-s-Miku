@@ -1,17 +1,4 @@
 {
-  "API/app.js": {
-    "max-lines-per-function": 71,
-    "no-restricted-imports": true
-  },
-  "API/controllers/assignmentController.js": {
-    "max-lines-per-function": 60,
-    "no-restricted-imports": true
-  },
-  "API/controllers/userController.js": {
-    "max-lines": 597,
-    "max-lines-per-function": 158,
-    "no-restricted-imports": true
-  },
   "public/dashboard.js": {
     "max-lines": 639,
     "max-lines-per-function": 639

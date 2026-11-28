@@ -1,23 +1,15 @@
 import express from 'express';
-import {
-    listUsers,
-    createUser,
-    getUser,
-    getUserSummary,
-    addStrike,
-    removeStrike,
-    generateShareCard,
-    getCardImage,
-} from '../controllers/userController.js';
-
-import { requireApiKey } from '../middleware/requireApiKey.js';
+import { getCardImage, getRedirectPage } from '../controllers/cardController.ts';
+import { addStrike, createUser, removeStrike } from '../controllers/memberWrites.ts';
+import { getUser, getUserSummary, listUsers } from '../controllers/userController.ts';
+import { requireApiKey } from '../middleware/requireApiKey.ts';
 
 const router = express.Router();
 
 router.get('/', listUsers);
 router.post('/', requireApiKey, createUser);
 
-router.get('/share/:discordId', generateShareCard);
+router.get('/share/:discordId', getRedirectPage);
 router.get('/:discordId/card.png', getCardImage);
 
 router.get('/:discordId/summary', getUserSummary);

@@ -5,9 +5,9 @@ import {
     extendAssignment,
     getPendingTask,
     getOverdueTasks,
-} from '../controllers/assignmentController.js';
+} from '../controllers/assignmentController.ts';
 
-import { requireApiKey } from '../middleware/requireApiKey.js';
+import { requireApiKey } from '../middleware/requireApiKey.ts';
 
 const router = express.Router();
 

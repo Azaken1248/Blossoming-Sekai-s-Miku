@@ -9,7 +9,7 @@ let app;
 before(async () => {
     process.env.API_KEY = 'k'.repeat(40);
     database = await startDatabase('sekai_api_users');
-    ({ default: app } = await import('../../API/app.js'));
+    ({ default: app } = await import('../../API/app.ts'));
 });
 
 beforeEach(async () => {

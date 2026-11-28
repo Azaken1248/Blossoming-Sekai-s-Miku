@@ -14,7 +14,7 @@ test('connects to the database and listens on the configured host and port', asy
     mock.module('dotenv', { exports: { default: { config: () => ({ parsed: {} }) } } });
     const connect = t.mock.method(mongoose, 'connect', async () => mongoose);
     const log = t.mock.method(console, 'log', () => {});
-    const { default: app } = await import('../../API/app.js');
+    const { default: app } = await import('../../API/app.ts');
     const listen = t.mock.method(app, 'listen', () => {});
 
     await import('../../API/api.js');

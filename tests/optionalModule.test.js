@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { importOptionalDefault } from '../API/optionalModule.js';
+import { importOptionalDefault } from '../API/optionalModule.ts';
 
 const here = (name) => new URL(name, import.meta.url);
 

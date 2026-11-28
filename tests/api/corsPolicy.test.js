@@ -9,7 +9,7 @@ import {
     describeCorsPolicy,
     isOriginAllowed,
     parseOriginList,
-} from '../../API/corsPolicy.js';
+} from '../../API/corsPolicy.ts';
 
 const useEnvironment = (t, values) => {
     const saved = Object.fromEntries(Object.keys(values).map((name) => [name, process.env[name]]));

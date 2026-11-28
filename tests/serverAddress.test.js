@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_HOST, DEFAULT_PORT, describeAddress, readHost, readPort } from '../API/serverAddress.js';
+import { DEFAULT_HOST, DEFAULT_PORT, describeAddress, readHost, readPort } from '../API/serverAddress.ts';
 
 test('defaults to 3000 when PORT is unset or blank', () => {
     assert.equal(readPort(undefined), DEFAULT_PORT);

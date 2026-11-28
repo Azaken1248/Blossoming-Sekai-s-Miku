@@ -9,7 +9,7 @@ const SCHEMAS = ['(^|/)DB/Schemas/', 'Only Utils/DBUtils reads the schemas.'];
 const MONGOOSE = ['^mongoose$', 'Only the data layer talks to MongoDB.'];
 const DISCORD = ['^discord\\.js$', 'Only the Discord layer uses discord.js.'];
 const EXPRESS = ['^express$', 'Only the API uses Express.'];
-const DATA_LAYER = ['(^|/)DBUtils/', 'The Discord layer goes through Services, not the data layer.'];
+const DATA_LAYER = ['(^|/)DBUtils/', 'Discord and the API go through Services, not the data layer.'];
 
 const layer = (files, banned) => ({
     files,
@@ -94,7 +94,7 @@ export default tseslint.config(
             ],
         },
     },
-    layer(['API/**'], [SCHEMAS, MONGOOSE, DISCORD]),
+    layer(['API/**'], [SCHEMAS, MONGOOSE, DISCORD, DATA_LAYER]),
     layer(['DB/**', 'Utils/DBUtils/**', 'Utils/Backup/**', 'scripts/**', 'tools/**'], [DISCORD, EXPRESS]),
     ...(process.env['LINT_EXEMPTIONS'] === 'ignore' ? [] : overrides(exemptions)),
 );

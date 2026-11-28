@@ -47,7 +47,7 @@ export const useApiWorld = (databaseName) => {
         });
         mock.module('sharp', { exports: { default: sharp } });
         world.database = await startDatabase(databaseName);
-        ({ default: world.app } = await import('../../API/app.js'));
+        ({ default: world.app } = await import('../../API/app.ts'));
         ({ default: world.User } = await import('../../DB/Schemas/user.ts'));
         ({ default: world.Assignment } = await import('../../DB/Schemas/assignment.ts'));
     });
