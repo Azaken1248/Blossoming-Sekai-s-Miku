@@ -11,7 +11,7 @@
     "no-restricted-imports": true
   },
   "API/controllers/userController.js": {
-    "max-lines": 709,
+    "max-lines": 597,
     "max-lines-per-function": 158,
     "no-restricted-imports": true
   },

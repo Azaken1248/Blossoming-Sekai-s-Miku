@@ -6,24 +6,12 @@ import config from '../../config.js';
 import { importOptionalDefault } from '../optionalModule.js';
 import { buildRoleNames } from '../roleNames.js';
 import sharp from 'sharp';
-import { MINUTE } from '../../Utils/domain/durations.ts';
 import { MAX_STRIKES } from '../../Utils/domain/strikes.ts';
 import { SearchTooLongError } from '../../Utils/DBUtils/searchPattern.ts';
+import { avatarUrl as discordAvatarUrl, discordRest, readDiscordAuth } from '../discord/rest.ts';
+import { loadImage } from '../cards/images.ts';
 
 const configProd = await importOptionalDefault(new URL('../../configProd.js', import.meta.url));
-
-const DISCORD_API = 'https://discord.com/api/v10';
-const roleCache = {
-    guildId: null,
-    expiresAt: 0,
-    roleMap: new Map(),
-};
-
-const memberCache = {
-    guildId: null,
-    expiresAt: 0,
-    memberMap: new Map(),
-};
 
 const escapeXml = (unsafe) => {
     if (!unsafe) return '';
@@ -56,17 +44,6 @@ const escapeHtml = (unsafe) => {
         .replaceAll("'", '&#039;');
 };
 
-const fetchAsBase64 = async (url) => {
-    try {
-        const response = await fetch(url);
-        const buffer = Buffer.from(await response.arrayBuffer());
-        const mimeType = response.headers.get('content-type') || 'image/png';
-        return `data:${mimeType};base64,${buffer.toString('base64')}`;
-    } catch {
-        return '';
-    }
-};
-
 const stripEmojis = (str) => {
     if (!str) return '';
     return str
@@ -87,112 +64,23 @@ const wrapText = (text, maxLength) => {
 
 const fallbackRoleMap = buildRoleNames(config, configProd);
 
-const getDiscordAuth = () => {
-    const botToken = process.env.BOT_TOKEN || process.env.DISCORD_TOKEN;
-    const guildId = process.env.GUILD_ID || process.env.DISCORD_GUILD_ID || process.env.SERVER_GUILD_ID;
-    return { botToken, guildId };
-};
-
-const buildAvatarUrl = (discordId, avatarHash) => {
-    if (!discordId || !avatarHash) return null;
-    const ext = avatarHash.startsWith('a_') ? 'gif' : 'png';
-    return `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.${ext}?size=512`;
-};
-
-const fetchDiscordJson = async (path, botToken) => {
-    const response = await fetch(`${DISCORD_API}${path}`, {
-        headers: {
-            Authorization: `Bot ${botToken}`,
-        },
-    });
-
-    if (!response.ok) return null;
-    return await response.json();
-};
-
-const fetchDiscordWithResponse = async (path, botToken) => {
-    return await fetch(`${DISCORD_API}${path}`, {
-        headers: {
-            Authorization: `Bot ${botToken}`,
-        },
-    });
-};
-
-const getGuildRoleMap = async (guildId, botToken) => {
-    const now = Date.now();
-    if (roleCache.guildId === guildId && roleCache.expiresAt > now && roleCache.roleMap.size > 0) {
-        return roleCache.roleMap;
-    }
-
-    const roles = await fetchDiscordJson(`/guilds/${guildId}/roles`, botToken);
-    if (!Array.isArray(roles)) {
-        return roleCache.roleMap;
-    }
-
-    const map = new Map(roles.map((role) => [role.id, role.name]));
-    roleCache.guildId = guildId;
-    roleCache.expiresAt = now + 10 * MINUTE;
-    roleCache.roleMap = map;
-    return map;
-};
-
-const getGuildMembersMap = async (guildId, botToken) => {
-    const now = Date.now();
-    if (memberCache.guildId === guildId && memberCache.expiresAt > now && memberCache.memberMap.size > 0) {
-        return memberCache.memberMap;
-    }
-
-    const allMembers = [];
-    let after = null;
-
-    while (true) {
-        const suffix = after ? `?limit=1000&after=${after}` : '?limit=1000';
-        const response = await fetchDiscordWithResponse(`/guilds/${guildId}/members${suffix}`, botToken);
-        if (!response.ok) {
-            break;
-        }
-
-        const chunk = await response.json();
-        if (!Array.isArray(chunk) || chunk.length === 0) {
-            break;
-        }
-
-        allMembers.push(...chunk);
-        if (chunk.length < 1000) {
-            break;
-        }
-
-        after = chunk[chunk.length - 1]?.user?.id;
-        if (!after) {
-            break;
-        }
-    }
-
-    const map = new Map(allMembers.filter((member) => member?.user?.id).map((member) => [member.user.id, member]));
-
-    memberCache.guildId = guildId;
-    memberCache.expiresAt = now + 2 * MINUTE;
-    memberCache.memberMap = map;
-    return map;
-};
-
 const getDiscordProfileAndRoles = async (discordId) => {
-    const { botToken, guildId } = getDiscordAuth();
+    const { botToken, guildId } = readDiscordAuth();
     if (!botToken) {
         return { avatarUrl: null, roles: [] };
     }
 
     try {
         const [user, member] = await Promise.all([
-            fetchDiscordJson(`/users/${discordId}`, botToken),
-            guildId ? fetchDiscordJson(`/guilds/${guildId}/members/${discordId}`, botToken) : Promise.resolve(null),
+            discordRest.user(discordId, botToken),
+            guildId ? discordRest.member(guildId, discordId, botToken) : Promise.resolve(null),
         ]);
 
-        const avatarUrl = buildAvatarUrl(discordId, user?.avatar);
+        const avatarUrl = discordAvatarUrl(discordId, user?.avatar);
 
         let roles = [];
         if (guildId && member?.roles?.length) {
-            const roleMap = await getGuildRoleMap(guildId, botToken);
+            const roleMap = await discordRest.roleNames(guildId, botToken);
             roles = member.roles
                 .map((roleId) => roleMap.get(roleId))
                 .filter(Boolean)
@@ -253,7 +141,7 @@ const getDisplayUsername = (user, guildMember) => {
 const buildAvatarFromGuildMember = (guildMember) => {
     const discordUser = guildMember?.user;
     if (!discordUser?.id || !discordUser?.avatar) return null;
-    return buildAvatarUrl(discordUser.id, discordUser.avatar);
+    return discordAvatarUrl(discordUser.id, discordUser.avatar);
 };
 
 const getMemberRoleNames = (guildMember, guildRoleMap) => {
@@ -271,7 +159,7 @@ export const listUsers = async (req, res) => {
             search: req.query.search,
         });
 
-        const { botToken, guildId } = getDiscordAuth();
+        const { botToken, guildId } = readDiscordAuth();
         if (!botToken || !guildId) {
             const data = users.map((user) => ({
                 ...user,
@@ -282,8 +170,8 @@ export const listUsers = async (req, res) => {
         }
 
         const [guildRoleMap, guildMembersMap] = await Promise.all([
-            getGuildRoleMap(guildId, botToken),
-            getGuildMembersMap(guildId, botToken),
+            discordRest.roleNames(guildId, botToken),
+            discordRest.members(guildId, botToken),
         ]);
 
         const data = users
@@ -416,14 +304,14 @@ export const buildUserSummary = async (discordId) => {
 
     const discordData = await getDiscordProfileAndRoles(discordId);
     const mappedStoredRoles = mapStoredRolesToNames(Array.isArray(user.roles) ? user.roles : []);
-    const { botToken, guildId } = getDiscordAuth();
+    const { botToken, guildId } = readDiscordAuth();
 
     let guildMember = null;
     let guildRoleMap = new Map();
     if (botToken && guildId) {
         const [membersMap, rolesMap] = await Promise.all([
-            getGuildMembersMap(guildId, botToken),
-            getGuildRoleMap(guildId, botToken),
+            discordRest.members(guildId, botToken),
+            discordRest.roleNames(guildId, botToken),
         ]);
         guildMember = membersMap.get(discordId) || null;
         guildRoleMap = rolesMap;
@@ -570,14 +458,14 @@ export const getCardImage = async (req, res) => {
 
         const discordData = await getDiscordProfileAndRoles(req.params.discordId);
         const mappedStoredRoles = mapStoredRolesToNames(Array.isArray(user.roles) ? user.roles : []);
-        const { botToken, guildId } = getDiscordAuth();
+        const { botToken, guildId } = readDiscordAuth();
 
         let guildMember = null;
         let guildRoleMap = new Map();
         if (botToken && guildId) {
             const [membersMap, rolesMap] = await Promise.all([
-                getGuildMembersMap(guildId, botToken),
-                getGuildRoleMap(guildId, botToken),
+                discordRest.members(guildId, botToken),
+                discordRest.roleNames(guildId, botToken),
             ]);
             guildMember = membersMap.get(req.params.discordId) || null;
             guildRoleMap = rolesMap;
@@ -616,8 +504,8 @@ export const getCardImage = async (req, res) => {
         const [quoteLine1, quoteLine2] = wrapText(stripEmojis(rawMikuDescription), 48);
         const quoteY1 = quoteLine2 ? 142 : 150;
 
-        const avatarB64 = await fetchAsBase64(rawAvatarUrl);
-        const decorB64 = await fetchAsBase64('https://sekai.azaken.com/assets/PNG%202.png');
+        const avatarB64 = await loadImage(rawAvatarUrl);
+        const decorB64 = await loadImage('https://sekai.azaken.com/assets/PNG%202.png');
 
         const renderRole = (index, roleName, yOffset) => {
             if (!roleName || roleName === '-') return '';

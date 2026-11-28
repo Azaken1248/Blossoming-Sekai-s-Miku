@@ -12,9 +12,9 @@
     "statements": 2
   },
   "API/controllers/userController.js": {
-    "lines": 23,
-    "branches": 26,
+    "lines": 21,
+    "branches": 24,
     "functions": 0,
-    "statements": 23
+    "statements": 21
   }
 }
