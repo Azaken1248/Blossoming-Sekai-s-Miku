@@ -290,6 +290,7 @@ describe('analytics', () => {
         scenario(`GET ${path}`, async () => {
             await seedTask();
             await seedTask({ taskName: 'Late one', status: 'LATE', hasExtended: true, extensionCount: 1 });
+            if (path.startsWith('stats')) await seedTask({ taskName: 'Another pending' });
             return send('get', `/api/v1/analytics/${path}`);
         });
     }

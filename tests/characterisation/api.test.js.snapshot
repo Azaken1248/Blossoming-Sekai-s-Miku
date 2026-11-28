@@ -4623,16 +4623,16 @@ exports[`analytics > GET stats 1`] = `
   "body": {
     "data": [
       {
-        "_id": "LATE",
-        "avgExtensions": 1,
-        "extendedTasks": 1,
-        "firstRemindersSent": 0,
-        "totalTasks": 1
-      },
-      {
         "_id": "PENDING",
         "avgExtensions": 0,
         "extendedTasks": 0,
+        "firstRemindersSent": 0,
+        "totalTasks": 2
+      },
+      {
+        "_id": "LATE",
+        "avgExtensions": 1,
+        "extendedTasks": 1,
         "firstRemindersSent": 0,
         "totalTasks": 1
       }
@@ -4645,6 +4645,27 @@ exports[`analytics > GET stats 1`] = `
       {
         "__v": 0,
         "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Another pending",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
         "assignedAt": "2026-06-12T12:00:00.000Z",
         "completedAt": null,
         "customExtension": null,
@@ -4665,7 +4686,7 @@ exports[`analytics > GET stats 1`] = `
       },
       {
         "__v": 0,
-        "_id": "<id 3>",
+        "_id": "<id 4>",
         "assignedAt": "2026-06-12T12:00:00.000Z",
         "completedAt": null,
         "customExtension": null,
@@ -4690,6 +4711,7 @@ exports[`analytics > GET stats 1`] = `
         "__v": 0,
         "_id": "<id 2>",
         "assignments": [
+          "<id 4>",
           "<id 3>",
           "<id 1>"
         ],
@@ -4706,7 +4728,7 @@ exports[`analytics > GET stats 1`] = `
       },
       {
         "__v": 0,
-        "_id": "<id 4>",
+        "_id": "<id 5>",
         "assignments": [],
         "cardImage": null,
         "deboarded_at": null,
@@ -4743,6 +4765,27 @@ exports[`analytics > GET stats?groupBy=$where 1`] = `
         "deadline": "2026-06-26T12:00:00.000Z",
         "description": "",
         "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Another pending",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
         "extensionCount": 1,
         "finalReminderSent": false,
         "firstReminderSent": false,
@@ -4757,7 +4800,7 @@ exports[`analytics > GET stats?groupBy=$where 1`] = `
       },
       {
         "__v": 0,
-        "_id": "<id 3>",
+        "_id": "<id 4>",
         "assignedAt": "2026-06-12T12:00:00.000Z",
         "completedAt": null,
         "customExtension": null,
@@ -4782,6 +4825,7 @@ exports[`analytics > GET stats?groupBy=$where 1`] = `
         "__v": 0,
         "_id": "<id 2>",
         "assignments": [
+          "<id 4>",
           "<id 3>",
           "<id 1>"
         ],
@@ -4798,7 +4842,7 @@ exports[`analytics > GET stats?groupBy=$where 1`] = `
       },
       {
         "__v": 0,
-        "_id": "<id 4>",
+        "_id": "<id 5>",
         "assignments": [],
         "cardImage": null,
         "deboarded_at": null,
@@ -4828,7 +4872,7 @@ exports[`analytics > GET stats?groupBy=roleName&status=PENDING 1`] = `
         "avgExtensions": 0,
         "extendedTasks": 0,
         "firstRemindersSent": 0,
-        "totalTasks": 1
+        "totalTasks": 2
       }
     ],
     "groupBy": "roleName",
@@ -4839,6 +4883,27 @@ exports[`analytics > GET stats?groupBy=roleName&status=PENDING 1`] = `
       {
         "__v": 0,
         "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Another pending",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
         "assignedAt": "2026-06-12T12:00:00.000Z",
         "completedAt": null,
         "customExtension": null,
@@ -4859,7 +4924,7 @@ exports[`analytics > GET stats?groupBy=roleName&status=PENDING 1`] = `
       },
       {
         "__v": 0,
-        "_id": "<id 3>",
+        "_id": "<id 4>",
         "assignedAt": "2026-06-12T12:00:00.000Z",
         "completedAt": null,
         "customExtension": null,
@@ -4884,6 +4949,7 @@ exports[`analytics > GET stats?groupBy=roleName&status=PENDING 1`] = `
         "__v": 0,
         "_id": "<id 2>",
         "assignments": [
+          "<id 4>",
           "<id 3>",
           "<id 1>"
         ],
@@ -4900,7 +4966,7 @@ exports[`analytics > GET stats?groupBy=roleName&status=PENDING 1`] = `
       },
       {
         "__v": 0,
-        "_id": "<id 4>",
+        "_id": "<id 5>",
         "assignments": [],
         "cardImage": null,
         "deboarded_at": null,
@@ -4930,7 +4996,7 @@ exports[`analytics > GET stats?groupBy=status 1`] = `
         "avgExtensions": 0,
         "extendedTasks": 0,
         "firstRemindersSent": 0,
-        "totalTasks": 1
+        "totalTasks": 2
       },
       {
         "_id": "LATE",
@@ -4954,6 +5020,27 @@ exports[`analytics > GET stats?groupBy=status 1`] = `
         "deadline": "2026-06-26T12:00:00.000Z",
         "description": "",
         "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Another pending",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
         "extensionCount": 1,
         "finalReminderSent": false,
         "firstReminderSent": false,
@@ -4968,7 +5055,7 @@ exports[`analytics > GET stats?groupBy=status 1`] = `
       },
       {
         "__v": 0,
-        "_id": "<id 3>",
+        "_id": "<id 4>",
         "assignedAt": "2026-06-12T12:00:00.000Z",
         "completedAt": null,
         "customExtension": null,
@@ -4993,6 +5080,7 @@ exports[`analytics > GET stats?groupBy=status 1`] = `
         "__v": 0,
         "_id": "<id 2>",
         "assignments": [
+          "<id 4>",
           "<id 3>",
           "<id 1>"
         ],
@@ -5009,7 +5097,7 @@ exports[`analytics > GET stats?groupBy=status 1`] = `
       },
       {
         "__v": 0,
-        "_id": "<id 4>",
+        "_id": "<id 5>",
         "assignments": [],
         "cardImage": null,
         "deboarded_at": null,
