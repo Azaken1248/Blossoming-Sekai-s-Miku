@@ -16,6 +16,7 @@ export interface DomainErrorDetails {
     NOT_ON_HIATUS: undefined;
     REASON_REQUIRED: undefined;
     ROLE_MISSING: { readonly roleName: string };
+    ROLE_UNKNOWN: { readonly roleCategoryId: string };
     TASK_AMBIGUOUS: { readonly tasks: readonly Pick<Task, 'taskName' | 'taskType' | 'roleName'>[] };
     TASK_CHANGED: undefined;
     TASK_GONE: undefined;

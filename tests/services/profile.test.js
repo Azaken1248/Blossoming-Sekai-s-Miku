@@ -167,7 +167,10 @@ test('stored records pass through unchanged', async () => {
     ]);
 });
 
-test('the record service hands every call to the records', async () => {
+const RULES = { 10: { name: 'VA', tasks: { skit: 1000 }, extension: 0 } };
+const NOW = new Date('2026-06-15T12:00:00.000Z');
+
+const recordWorld = (owner) => {
     const calls = [];
     const records = Object.fromEntries(
         [
@@ -182,40 +185,89 @@ test('the record service hands every call to the records', async () => {
             name,
             async (...args) => {
                 calls.push([name, ...args]);
+                if (name === 'taskOwner') return owner;
                 return name === 'fetchOverdueTasks' ? [] : name;
             },
         ]),
     );
-    const service = createRecordService({ records });
+    return { calls, service: createRecordService({ records, rules: RULES, clock: { now: () => NOW } }) };
+};
+
+const request = (changes = {}) => ({
+    discordId: '1',
+    roleCategoryId: '10',
+    roleName: undefined,
+    taskType: 'skit',
+    taskName: 'n',
+    description: 'd',
+    duration: null,
+    ...changes,
+});
+
+test('the record service hands every call to the records', async () => {
+    const { calls, service } = recordWorld(null);
     assert.deepEqual(
         await Promise.all([
             service.register('1', 'one'),
-            service.taskOwner('1'),
-            service.createTask({ taskType: 'x' }),
             service.complete('t'),
             service.extend('t', 5),
             service.pending('1'),
             service.overdue(),
         ]),
-        [
-            'findOrCreateUser',
-            'taskOwner',
-            'createAssignment',
-            'completeAssignment',
-            'extendAssignment',
-            'fetchPendingTask',
-            [],
-        ],
+        ['findOrCreateUser', 'completeAssignment', 'extendAssignment', 'fetchPendingTask', []],
     );
     assert.deepEqual(calls, [
         ['findOrCreateUser', '1', 'one'],
-        ['taskOwner', '1'],
-        ['createAssignment', { taskType: 'x' }],
         ['completeAssignment', 't'],
         ['extendAssignment', 't', 5],
         ['fetchPendingTask', '1'],
         ['fetchOverdueTasks'],
     ]);
+});
+
+describe('assigning through the API', () => {
+    const owner = { memberId: 'm', discordId: '1', isDeboarded: false };
+
+    test('takes the deadline and role name from the rules', async () => {
+        const { calls, service } = recordWorld(owner);
+        assert.equal(await service.assign(request()), 'createAssignment');
+        assert.deepEqual(calls, [
+            ['taskOwner', '1'],
+            [
+                'createAssignment',
+                {
+                    memberId: 'm',
+                    discordUserId: '1',
+                    roleCategoryId: '10',
+                    roleName: 'VA',
+                    taskType: 'skit',
+                    taskName: 'n',
+                    description: 'd',
+                    deadline: new Date(NOW.getTime() + 1000),
+                },
+            ],
+        ]);
+    });
+
+    test('a given duration and role name win', async () => {
+        const { calls, service } = recordWorld(owner);
+        await service.assign(request({ duration: 5, roleName: 'Lead' }));
+        assert.equal(calls[1][1].roleName, 'Lead');
+        assert.deepEqual(calls[1][1].deadline, new Date(NOW.getTime() + 5));
+    });
+
+    test('refuses before looking the member up', async () => {
+        const { calls, service } = recordWorld(owner);
+        await assert.rejects(service.assign(request({ taskType: 'nope' })), { code: 'TASK_TYPE_INVALID' });
+        assert.deepEqual(calls, []);
+    });
+
+    test('refuses a member who is missing or deboarded', async () => {
+        await assert.rejects(recordWorld(null).service.assign(request()), { code: 'MEMBER_NOT_FOUND' });
+        const deboarded = recordWorld({ ...owner, isDeboarded: true });
+        await assert.rejects(deboarded.service.assign(request()), { code: 'MEMBER_DEBOARDED' });
+        assert.deepEqual(deboarded.calls, [['taskOwner', '1']]);
+    });
 });
 
 test('strikes on an existing member go straight to the records', async () => {

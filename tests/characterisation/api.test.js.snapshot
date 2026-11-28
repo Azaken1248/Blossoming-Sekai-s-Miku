@@ -1569,6 +1569,52 @@ exports[`POST /api/assignments > lists the missing fields 1`] = `
 }
 `;
 
+exports[`POST /api/assignments > needs deadlineHours for a custom task 1`] = `
+{
+  "body": {
+    "error": "deadlineHours is required for a custom task"
+  },
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
 exports[`POST /api/assignments > refuses a deadline over a year 1`] = `
 {
   "body": {
@@ -1707,6 +1753,98 @@ exports[`POST /api/assignments > refuses a member with no record 1`] = `
 }
 `;
 
+exports[`POST /api/assignments > refuses a task type the role does not list 1`] = `
+{
+  "body": {
+    "error": "taskType \\"nope\\" is not a VA task. Use one of: skit, story, joke_cover, or custom with deadlineHours"
+  },
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`POST /api/assignments > refuses a task type the role does not list, even with deadlineHours 1`] = `
+{
+  "body": {
+    "error": "taskType \\"nope\\" is not a VA task. Use one of: skit, story, joke_cover, or custom with deadlineHours"
+  },
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
 exports[`POST /api/assignments > refuses a zero deadline 1`] = `
 {
   "body": {
@@ -1841,6 +1979,188 @@ exports[`POST /api/assignments > refuses an unknown role 1`] = `
   },
   "errors": [],
   "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`POST /api/assignments > takes a custom task with deadlineHours 1`] = `
+{
+  "body": {
+    "data": {
+      "__v": 0,
+      "_id": "<id 1>",
+      "assignedAt": "2026-06-15T12:00:00.000Z",
+      "completedAt": null,
+      "customExtension": null,
+      "deadline": "2026-06-15T18:00:00.000Z",
+      "description": "",
+      "discordUserId": "100000000000000003",
+      "extensionCount": 0,
+      "finalReminderSent": false,
+      "firstReminderSent": false,
+      "hasExtended": false,
+      "roleCategoryId": "1449411540351713503",
+      "roleName": "VA",
+      "status": "PENDING",
+      "submissionChannelId": null,
+      "taskName": "",
+      "taskType": "custom",
+      "userId": "<id 2>"
+    },
+    "success": true
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-15T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-15T18:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "",
+        "taskType": "custom",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 201,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`POST /api/assignments > takes the deadline from the role rules without deadlineHours 1`] = `
+{
+  "body": {
+    "data": {
+      "__v": 0,
+      "_id": "<id 1>",
+      "assignedAt": "2026-06-15T12:00:00.000Z",
+      "completedAt": null,
+      "customExtension": null,
+      "deadline": "2026-06-29T12:00:00.000Z",
+      "description": "",
+      "discordUserId": "100000000000000003",
+      "extensionCount": 0,
+      "finalReminderSent": false,
+      "firstReminderSent": false,
+      "hasExtended": false,
+      "roleCategoryId": "1449411540351713503",
+      "roleName": "VA",
+      "status": "PENDING",
+      "submissionChannelId": null,
+      "taskName": "",
+      "taskType": "skit",
+      "userId": "<id 2>"
+    },
+    "success": true
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-15T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-29T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 201,
   "type": "application/json; charset=utf-8"
 }
 `;

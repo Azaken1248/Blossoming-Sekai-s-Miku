@@ -1,4 +1,7 @@
-import type { NewTask } from '../Utils/DBUtils/types.ts';
+import type { Clock, NewTask } from '../Utils/DBUtils/types.ts';
+import { plannedDeadline } from '../Utils/domain/assignments.ts';
+import { DomainError } from '../Utils/domain/errors.ts';
+import type { RoleRule, RoleRules } from '../Utils/domain/model.ts';
 
 export interface TaskOwner {
     readonly memberId: string;
@@ -16,12 +19,49 @@ export interface StoredRecords {
     readonly fetchOverdueTasks: () => Promise<readonly unknown[]>;
 }
 
-export const createRecordService = ({ records }: { readonly records: StoredRecords }) => ({
-    register: async (discordId: string, username: string) => records.findOrCreateUser(discordId, username),
-    taskOwner: async (discordId: string) => records.taskOwner(discordId),
-    createTask: async (task: NewTask) => records.createAssignment(task),
-    complete: async (id: string) => records.completeAssignment(id),
-    extend: async (id: string, extensionMs: number) => records.extendAssignment(id, extensionMs),
-    pending: async (discordUserId: string) => records.fetchPendingTask(discordUserId),
-    overdue: async () => records.fetchOverdueTasks(),
-});
+export interface StoredAssignment {
+    readonly discordId: string;
+    readonly roleCategoryId: string;
+    readonly roleName: string | undefined;
+    readonly taskType: string;
+    readonly taskName: string;
+    readonly description: string;
+    readonly duration: number | null;
+}
+
+interface Dependencies {
+    readonly records: StoredRecords;
+    readonly rules: RoleRules;
+    readonly clock: Clock;
+}
+
+const assignWith =
+    ({ records, rules, clock }: Dependencies) =>
+    async ({ discordId, roleName, taskName, description, ...request }: StoredAssignment) => {
+        const deadline = plannedDeadline(request, rules, clock.now());
+        const owner = await records.taskOwner(discordId);
+        if (!owner) throw new DomainError('MEMBER_NOT_FOUND');
+        if (owner.isDeboarded) throw new DomainError('MEMBER_DEBOARDED');
+        return records.createAssignment({
+            memberId: owner.memberId,
+            discordUserId: owner.discordId,
+            roleCategoryId: request.roleCategoryId,
+            roleName: roleName || (rules[request.roleCategoryId] as RoleRule).name,
+            taskType: request.taskType,
+            taskName,
+            description,
+            deadline,
+        });
+    };
+
+export const createRecordService = (dependencies: Dependencies) => {
+    const { records } = dependencies;
+    return {
+        register: async (discordId: string, username: string) => records.findOrCreateUser(discordId, username),
+        assign: assignWith(dependencies),
+        complete: async (id: string) => records.completeAssignment(id),
+        extend: async (id: string, extensionMs: number) => records.extendAssignment(id, extensionMs),
+        pending: async (discordUserId: string) => records.fetchPendingTask(discordUserId),
+        overdue: async () => records.fetchOverdueTasks(),
+    };
+};

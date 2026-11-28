@@ -1,16 +1,12 @@
 import type { Request, Response } from 'express';
-import config from '../../config.js';
 import { recordService } from '../../Services/index.ts';
 import { HOUR } from '../../Utils/domain/durations.ts';
+import { DomainError, type DomainErrorCode, type DomainErrorDetails } from '../../Utils/domain/errors.ts';
 import { handle } from './handle.ts';
 
 const SNOWFLAKE = /^\d{17,20}$/;
 const MAX_HOURS = 24 * 365;
 const REQUIRED = ['discordId', 'roleCategoryId', 'taskType'] as const;
-
-interface RoleRule {
-    readonly name: string;
-}
 
 interface NewAssignmentBody {
     readonly discordId?: unknown;
@@ -22,8 +18,6 @@ interface NewAssignmentBody {
     readonly deadlineHours?: unknown;
 }
 
-const rules = config.RULES as Readonly<Record<string, RoleRule | undefined>>;
-
 const parseHours = (value: unknown): number | null => {
     const hours = Number(value);
     return Number.isFinite(hours) && hours > 0 && hours <= MAX_HOURS ? hours : null;
@@ -32,7 +26,9 @@ const parseHours = (value: unknown): number | null => {
 const hasCode = (error: unknown, code: string) => (error as { readonly code?: unknown } | null)?.code === code;
 const isCastError = (error: unknown) => (error as { readonly name?: unknown } | null)?.name === 'CastError';
 
-type Checked = { readonly refusal: string } | { readonly hours: number; readonly rule: RoleRule };
+const isGiven = (value: unknown) => value !== undefined && value !== null && value !== '';
+
+type Checked = { readonly refusal: string } | { readonly duration: number | null };
 
 const check = (body: NewAssignmentBody): Checked => {
     const missing = REQUIRED.filter((field) => !body[field]);
@@ -40,16 +36,42 @@ const check = (body: NewAssignmentBody): Checked => {
     if (!SNOWFLAKE.test(String(body.discordId))) {
         return { refusal: 'discordId must be a Discord snowflake (17-20 digits)' };
     }
+    if (!isGiven(body.deadlineHours)) return { duration: null };
     const hours = parseHours(body.deadlineHours);
-    if (hours === null) {
-        return { refusal: `deadlineHours must be a number greater than 0 and at most ${String(MAX_HOURS)}` };
-    }
-    const rule = rules[String(body.roleCategoryId)];
-    return rule ? { hours, rule } : { refusal: `Unknown roleCategoryId: ${String(body.roleCategoryId)}` };
+    return hours === null
+        ? { refusal: `deadlineHours must be a number greater than 0 and at most ${String(MAX_HOURS)}` }
+        : { duration: hours * HOUR };
+};
+
+type Refusal = readonly [status: number, message: string];
+
+type ApiRefusals = {
+    readonly [Code in DomainErrorCode]?: (details: DomainErrorDetails[Code]) => Refusal;
+};
+
+const ASSIGN_REFUSALS: ApiRefusals = {
+    ROLE_UNKNOWN: ({ roleCategoryId }) => [400, `Unknown roleCategoryId: ${roleCategoryId}`],
+    TASK_TYPE_INVALID: ({ taskType, roleName, validTasks }) => [
+        400,
+        `taskType "${taskType}" is not a ${roleName} task. Use one of: ${validTasks.join(', ')}, or custom with deadlineHours`,
+    ],
+    CUSTOM_DURATION_REQUIRED: () => [400, 'deadlineHours is required for a custom task'],
+    MEMBER_NOT_FOUND: () => [404, 'User not found. Create user first.'],
+    MEMBER_DEBOARDED: () => [409, 'User has been deboarded and cannot receive new assignments.'],
+};
+
+const refuseAssignment = (error: unknown, res: Response) => {
+    if (!(error instanceof DomainError)) return false;
+    const { code, details } = error as DomainError;
+    const refusal = ASSIGN_REFUSALS[code] as ((details: unknown) => Refusal) | undefined;
+    if (!refusal) return false;
+    const [status, message] = refusal(details);
+    res.status(status).json({ error: message });
+    return true;
 };
 
 export const createAssignment = handle(
-    { label: 'createAssignment', failure: 'Failed to create assignment' },
+    { label: 'createAssignment', failure: 'Failed to create assignment', known: refuseAssignment },
     async (req, res) => {
         const body = (req.body ?? {}) as NewAssignmentBody;
         const checked = check(body);
@@ -57,24 +79,14 @@ export const createAssignment = handle(
             res.status(400).json({ error: checked.refusal });
             return;
         }
-        const owner = await recordService.taskOwner(String(body.discordId));
-        if (!owner) {
-            res.status(404).json({ error: 'User not found. Create user first.' });
-            return;
-        }
-        if (owner.isDeboarded) {
-            res.status(409).json({ error: 'User has been deboarded and cannot receive new assignments.' });
-            return;
-        }
-        const assignment = await recordService.createTask({
-            memberId: owner.memberId,
-            discordUserId: owner.discordId,
+        const assignment = await recordService.assign({
+            discordId: String(body.discordId),
             roleCategoryId: String(body.roleCategoryId),
-            roleName: (body.roleName as string | undefined) || checked.rule.name,
+            roleName: body.roleName as string | undefined,
             taskType: String(body.taskType),
             taskName: (body.taskName as string | undefined) ?? '',
             description: (body.description as string | undefined) ?? '',
-            deadline: new Date(Date.now() + checked.hours * HOUR),
+            duration: checked.duration,
         });
         res.status(201).json({ success: true, data: assignment });
     },

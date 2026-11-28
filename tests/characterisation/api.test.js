@@ -185,6 +185,15 @@ describe('POST /api/assignments', () => {
     scenario('refuses a zero deadline', () => create({ deadlineHours: 0 }));
     scenario('refuses a deadline over a year', () => create({ deadlineHours: 8761 }));
     scenario('refuses an unknown role', () => create({ roleCategoryId: '1' }));
+    scenario('takes the deadline from the role rules without deadlineHours', () =>
+        create({ deadlineHours: undefined }),
+    );
+    scenario('refuses a task type the role does not list', () =>
+        create({ taskType: 'nope', deadlineHours: undefined }),
+    );
+    scenario('refuses a task type the role does not list, even with deadlineHours', () => create({ taskType: 'nope' }));
+    scenario('needs deadlineHours for a custom task', () => create({ taskType: 'custom', deadlineHours: '' }));
+    scenario('takes a custom task with deadlineHours', () => create({ taskType: 'custom', deadlineHours: 6 }));
     scenario('refuses a member with no record', () => create({ discordId: '100000000000000099' }));
     scenario('refuses a deboarded member', async () => {
         await User.updateOne({ discordId: MEMBER }, { isDeboarded: true });
