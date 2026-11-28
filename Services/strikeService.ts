@@ -24,6 +24,8 @@ export const createStrikeService = ({ members }: { readonly members: Members }) 
         add: (target: StrikeTarget) => change(target, members.addStrike),
         remove: (target: StrikeTarget) => change(target, members.removeStrike),
         list: (): Promise<Member[]> => members.listWithStrikes(),
+        addExisting: (discordId: string) => members.addStrike(discordId),
+        removeExisting: (discordId: string) => members.removeStrike(discordId),
     };
 };
 

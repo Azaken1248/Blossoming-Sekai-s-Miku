@@ -41,6 +41,32 @@ export const freshDeadline = (
     return duration ? after(now, duration) : null;
 };
 
+export interface StoredAssignmentRequest {
+    readonly roleCategoryId: string;
+    readonly taskType: string;
+    readonly duration: number | null;
+}
+
+export const plannedDeadline = (
+    { roleCategoryId, taskType, duration }: StoredAssignmentRequest,
+    rules: RoleRules,
+    now: Date,
+): Date => {
+    if (!Object.hasOwn(rules, roleCategoryId)) throw new DomainError('ROLE_UNKNOWN', { roleCategoryId });
+    const rule = rules[roleCategoryId] as RoleRule;
+    const ruled = durationOf(rule, taskType);
+    if (taskType !== CUSTOM_TASK_TYPE && ruled === undefined) {
+        throw new DomainError('TASK_TYPE_INVALID', {
+            taskType,
+            roleName: rule.name,
+            validTasks: Object.keys(rule.tasks),
+        });
+    }
+    const chosen = duration ?? ruled;
+    if (chosen === undefined) throw new DomainError('CUSTOM_DURATION_REQUIRED');
+    return after(now, chosen);
+};
+
 const rulesNamed = (rules: RoleRules, roleName: string) =>
     Object.entries(rules).filter(([, rule]) => rule.name === roleName);
 

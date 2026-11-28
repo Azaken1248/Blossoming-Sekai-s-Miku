@@ -14,7 +14,7 @@ test('connects to the database and listens on the configured host and port', asy
     mock.module('dotenv', { exports: { default: { config: () => ({ parsed: {} }) } } });
     const connect = t.mock.method(mongoose, 'connect', async () => mongoose);
     const log = t.mock.method(console, 'log', () => {});
-    const { default: app } = await import('../../API/app.js');
+    const { default: app } = await import('../../API/app.ts');
     const listen = t.mock.method(app, 'listen', () => {});
 
     await import('../../API/api.js');
@@ -29,7 +29,7 @@ test('connects to the database and listens on the configured host and port', asy
     assert.deepEqual(
         log.mock.calls.map((call) => call.arguments[0]),
         [
-            'API Server running strictly as an API on http://[::1]:2019',
+            'API Server running on http://[::1]:2019',
             '[CORS] Allowing https://sekai.azaken.com [from default]',
             '[AUTH] ✅ API_KEY configured; write endpoints are protected.',
         ],

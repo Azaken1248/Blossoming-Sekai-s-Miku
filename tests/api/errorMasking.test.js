@@ -9,7 +9,6 @@ const INTERNAL = 'E11000 duplicate key at mongodb+srv://admin:hunter2@cluster0.i
 let database;
 let app;
 let User;
-let generateCardImage;
 
 before(async () => {
     process.env.API_KEY = KEY;
@@ -17,9 +16,8 @@ before(async () => {
         Reflect.deleteProperty(process.env, name);
     }
     database = await startDatabase('sekai_api_masking');
-    ({ default: app } = await import('../../API/app.js'));
+    ({ default: app } = await import('../../API/app.ts'));
     ({ default: User } = await import('../../DB/Schemas/user.ts'));
-    ({ generateCardImage } = await import('../../API/controllers/userController.js'));
 });
 
 beforeEach(() => database.reset());
@@ -65,26 +63,4 @@ test('POST /api/users answers a failure with a generic 500 and logs the real err
         .expect(500);
     assert.deepEqual(response.body, { error: 'Failed to create user' });
     assertLoggedNotLeaked(response, errors, '[API] createUser failed:');
-});
-
-test('generateCardImage answers a failure with a generic 500 and logs the real error', async (t) => {
-    const errors = failWithInternalDetail(t, 'findOne');
-    const outcome = {};
-    const res = {
-        status(code) {
-            outcome.status = code;
-            return this;
-        },
-        json(body) {
-            outcome.body = body;
-            return this;
-        },
-    };
-    await generateCardImage({ params: { discordId: '100000000000000001' } }, res);
-    assert.deepEqual(outcome, { status: 500, body: { error: 'Failed to generate card image' } });
-    assertLoggedNotLeaked(
-        { body: outcome.body, text: JSON.stringify(outcome.body) },
-        errors,
-        'Error generating card image:',
-    );
 });

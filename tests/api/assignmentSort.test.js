@@ -10,7 +10,7 @@ let app;
 
 before(async () => {
     database = await startDatabase('sekai_api_sort');
-    ({ default: app } = await import('../../API/app.js'));
+    ({ default: app } = await import('../../API/app.ts'));
 });
 
 beforeEach(async () => {

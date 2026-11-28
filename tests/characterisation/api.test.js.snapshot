@@ -38,7 +38,12 @@ exports[`GET /api/assignments > hides a failure of overdue 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] getOverdueTasks failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -84,7 +89,12 @@ exports[`GET /api/assignments > hides a failure of pending/100000000000000003 1`
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] getPendingTask failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -714,7 +724,12 @@ exports[`GET /api/users/:discordId > hides a failure 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] getUser failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -1497,7 +1512,12 @@ exports[`POST /api/assignments > hides a failure 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] createAssignment failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -1507,6 +1527,52 @@ exports[`POST /api/assignments > lists the missing fields 1`] = `
 {
   "body": {
     "error": "Missing required field(s): discordId, roleCategoryId, taskType"
+  },
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`POST /api/assignments > needs deadlineHours for a custom task 1`] = `
+{
+  "body": {
+    "error": "deadlineHours is required for a custom task"
   },
   "database": {
     "assignments": [],
@@ -1687,6 +1753,98 @@ exports[`POST /api/assignments > refuses a member with no record 1`] = `
 }
 `;
 
+exports[`POST /api/assignments > refuses a task type the role does not list 1`] = `
+{
+  "body": {
+    "error": "taskType \\"nope\\" is not a VA task. Use one of: skit, story, joke_cover, or custom with deadlineHours"
+  },
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`POST /api/assignments > refuses a task type the role does not list, even with deadlineHours 1`] = `
+{
+  "body": {
+    "error": "taskType \\"nope\\" is not a VA task. Use one of: skit, story, joke_cover, or custom with deadlineHours"
+  },
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
 exports[`POST /api/assignments > refuses a zero deadline 1`] = `
 {
   "body": {
@@ -1825,6 +1983,188 @@ exports[`POST /api/assignments > refuses an unknown role 1`] = `
 }
 `;
 
+exports[`POST /api/assignments > takes a custom task with deadlineHours 1`] = `
+{
+  "body": {
+    "data": {
+      "__v": 0,
+      "_id": "<id 1>",
+      "assignedAt": "2026-06-15T12:00:00.000Z",
+      "completedAt": null,
+      "customExtension": null,
+      "deadline": "2026-06-15T18:00:00.000Z",
+      "description": "",
+      "discordUserId": "100000000000000003",
+      "extensionCount": 0,
+      "finalReminderSent": false,
+      "firstReminderSent": false,
+      "hasExtended": false,
+      "roleCategoryId": "1449411540351713503",
+      "roleName": "VA",
+      "status": "PENDING",
+      "submissionChannelId": null,
+      "taskName": "",
+      "taskType": "custom",
+      "userId": "<id 2>"
+    },
+    "success": true
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-15T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-15T18:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "",
+        "taskType": "custom",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 201,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`POST /api/assignments > takes the deadline from the role rules without deadlineHours 1`] = `
+{
+  "body": {
+    "data": {
+      "__v": 0,
+      "_id": "<id 1>",
+      "assignedAt": "2026-06-15T12:00:00.000Z",
+      "completedAt": null,
+      "customExtension": null,
+      "deadline": "2026-06-29T12:00:00.000Z",
+      "description": "",
+      "discordUserId": "100000000000000003",
+      "extensionCount": 0,
+      "finalReminderSent": false,
+      "firstReminderSent": false,
+      "hasExtended": false,
+      "roleCategoryId": "1449411540351713503",
+      "roleName": "VA",
+      "status": "PENDING",
+      "submissionChannelId": null,
+      "taskName": "",
+      "taskType": "skit",
+      "userId": "<id 2>"
+    },
+    "success": true
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-15T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-29T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 201,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
 exports[`POST /api/assignments/:taskId/complete > hides a failure 1`] = `
 {
   "body": {
@@ -1865,7 +2205,12 @@ exports[`POST /api/assignments/:taskId/complete > hides a failure 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] completeAssignment failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -3509,7 +3854,965 @@ exports[`POST /api/users > returns an existing member unchanged 1`] = `
 }
 `;
 
+exports[`analytics > GET assignments?assignedAt=never 1`] = `
+{
+  "body": {
+    "error": "assignedAt must be a valid date"
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET assignments?deadline[lt]=2026-06-25&extensionCount[gte]=0&hasExtended=false&sort=deadline,-status 1`] = `
+{
+  "body": {
+    "count": 0,
+    "data": [],
+    "limit": 100,
+    "page": 1,
+    "success": true
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET assignments?deadline[where]=1 1`] = `
+{
+  "body": {
+    "error": "Operator \\"where\\" is not supported for deadline"
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET assignments?extensionCount=many 1`] = `
+{
+  "body": {
+    "error": "extensionCount must be a number"
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET assignments?hasExtended=maybe 1`] = `
+{
+  "body": {
+    "error": "hasExtended must be true or false"
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET assignments?sort=, 1`] = `
+{
+  "body": {
+    "count": 2,
+    "data": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": {
+          "_id": "<id 2>",
+          "discordId": "100000000000000003",
+          "isOnHiatus": false,
+          "joinedAt": "2026-01-10T00:00:00.000Z",
+          "roles": [],
+          "strikes": 0,
+          "username": "va.one"
+        }
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": {
+          "_id": "<id 2>",
+          "discordId": "100000000000000003",
+          "isOnHiatus": false,
+          "joinedAt": "2026-01-10T00:00:00.000Z",
+          "roles": [],
+          "strikes": 0,
+          "username": "va.one"
+        }
+      }
+    ],
+    "limit": 100,
+    "page": 1,
+    "success": true
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 1>",
+          "<id 3>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
 exports[`analytics > GET assignments?sort=-createdAt 1`] = `
+{
+  "body": {
+    "count": 2,
+    "data": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": {
+          "_id": "<id 2>",
+          "discordId": "100000000000000003",
+          "isOnHiatus": false,
+          "joinedAt": "2026-01-10T00:00:00.000Z",
+          "roles": [],
+          "strikes": 0,
+          "username": "va.one"
+        }
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": {
+          "_id": "<id 2>",
+          "discordId": "100000000000000003",
+          "isOnHiatus": false,
+          "joinedAt": "2026-01-10T00:00:00.000Z",
+          "roles": [],
+          "strikes": 0,
+          "username": "va.one"
+        }
+      }
+    ],
+    "limit": 100,
+    "page": 1,
+    "success": true
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 1>",
+          "<id 3>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET assignments?sort=password 1`] = `
+{
+  "body": {
+    "error": "Cannot sort by \\"password\\". Allowed: assignedAt, deadline, completedAt, status, roleName, taskType, extensionCount"
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET assignments?status=NOPE 1`] = `
+{
+  "body": {
+    "error": "status must be one of: PENDING, COMPLETED, LATE, EXCUSED"
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET assignments?status[in][]=PENDING&status[in][]=LATE&taskType=skit&page=2&limit=1 1`] = `
 {
   "body": {
     "count": 1,
@@ -3544,12 +4847,33 @@ exports[`analytics > GET assignments?sort=-createdAt 1`] = `
         }
       }
     ],
-    "limit": 100,
-    "page": 1,
+    "limit": 1,
+    "page": 2,
     "success": true
   },
   "database": {
     "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
       {
         "__v": 0,
         "_id": "<id 1>",
@@ -3577,7 +4901,8 @@ exports[`analytics > GET assignments?sort=-createdAt 1`] = `
         "__v": 0,
         "_id": "<id 2>",
         "assignments": [
-          "<id 1>"
+          "<id 1>",
+          "<id 3>"
         ],
         "cardImage": null,
         "deboarded_at": null,
@@ -3592,7 +4917,7 @@ exports[`analytics > GET assignments?sort=-createdAt 1`] = `
       },
       {
         "__v": 0,
-        "_id": "<id 3>",
+        "_id": "<id 4>",
         "assignments": [],
         "cardImage": null,
         "deboarded_at": null,
@@ -3613,77 +4938,7 @@ exports[`analytics > GET assignments?sort=-createdAt 1`] = `
 }
 `;
 
-exports[`analytics > GET assignments?status=NOPE 1`] = `
-{
-  "body": {
-    "error": "status must be one of: PENDING, COMPLETED, LATE, EXCUSED"
-  },
-  "database": {
-    "assignments": [
-      {
-        "__v": 0,
-        "_id": "<id 1>",
-        "assignedAt": "2026-06-12T12:00:00.000Z",
-        "completedAt": null,
-        "customExtension": null,
-        "deadline": "2026-06-26T12:00:00.000Z",
-        "description": "",
-        "discordUserId": "100000000000000003",
-        "extensionCount": 0,
-        "finalReminderSent": false,
-        "firstReminderSent": false,
-        "hasExtended": false,
-        "roleCategoryId": "1449411540351713503",
-        "roleName": "VA",
-        "status": "PENDING",
-        "submissionChannelId": null,
-        "taskName": "Morning skit",
-        "taskType": "skit",
-        "userId": "<id 2>"
-      }
-    ],
-    "users": [
-      {
-        "__v": 0,
-        "_id": "<id 2>",
-        "assignments": [
-          "<id 1>"
-        ],
-        "cardImage": null,
-        "deboarded_at": null,
-        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
-        "discordId": "100000000000000003",
-        "isDeboarded": false,
-        "isOnHiatus": false,
-        "joinedAt": "2026-01-10T00:00:00.000Z",
-        "roles": [],
-        "strikes": 0,
-        "username": "va.one"
-      },
-      {
-        "__v": 0,
-        "_id": "<id 3>",
-        "assignments": [],
-        "cardImage": null,
-        "deboarded_at": null,
-        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
-        "discordId": "100000000000000004",
-        "isDeboarded": false,
-        "isOnHiatus": false,
-        "joinedAt": "2026-01-11T00:00:00.000Z",
-        "roles": [],
-        "strikes": 3,
-        "username": "editor.one"
-      }
-    ]
-  },
-  "errors": [],
-  "status": 400,
-  "type": "application/json; charset=utf-8"
-}
-`;
-
-exports[`analytics > GET stats?groupBy=status 1`] = `
+exports[`analytics > GET stats 1`] = `
 {
   "body": {
     "data": [
@@ -3691,6 +4946,13 @@ exports[`analytics > GET stats?groupBy=status 1`] = `
         "_id": "PENDING",
         "avgExtensions": 0,
         "extendedTasks": 0,
+        "firstRemindersSent": 0,
+        "totalTasks": 2
+      },
+      {
+        "_id": "LATE",
+        "avgExtensions": 1,
+        "extendedTasks": 1,
         "firstRemindersSent": 0,
         "totalTasks": 1
       }
@@ -3717,6 +4979,48 @@ exports[`analytics > GET stats?groupBy=status 1`] = `
         "roleName": "VA",
         "status": "PENDING",
         "submissionChannelId": null,
+        "taskName": "Another pending",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
         "taskName": "Morning skit",
         "taskType": "skit",
         "userId": "<id 2>"
@@ -3727,6 +5031,8 @@ exports[`analytics > GET stats?groupBy=status 1`] = `
         "__v": 0,
         "_id": "<id 2>",
         "assignments": [
+          "<id 4>",
+          "<id 3>",
           "<id 1>"
         ],
         "cardImage": null,
@@ -3742,7 +5048,376 @@ exports[`analytics > GET stats?groupBy=status 1`] = `
       },
       {
         "__v": 0,
+        "_id": "<id 5>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET stats?groupBy=$where 1`] = `
+{
+  "body": {
+    "error": "groupBy must be one of: status, roleName, roleCategoryId, taskType, discordUserId, hasExtended"
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Another pending",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
         "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 4>",
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 5>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 400,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET stats?groupBy=roleName&status=PENDING 1`] = `
+{
+  "body": {
+    "data": [
+      {
+        "_id": "VA",
+        "avgExtensions": 0,
+        "extendedTasks": 0,
+        "firstRemindersSent": 0,
+        "totalTasks": 2
+      }
+    ],
+    "groupBy": "roleName",
+    "success": true
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Another pending",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 4>",
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 5>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET stats?groupBy=status 1`] = `
+{
+  "body": {
+    "data": [
+      {
+        "_id": "PENDING",
+        "avgExtensions": 0,
+        "extendedTasks": 0,
+        "firstRemindersSent": 0,
+        "totalTasks": 2
+      },
+      {
+        "_id": "LATE",
+        "avgExtensions": 1,
+        "extendedTasks": 1,
+        "firstRemindersSent": 0,
+        "totalTasks": 1
+      }
+    ],
+    "groupBy": "status",
+    "success": true
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Another pending",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 4>",
+          "<id 3>",
+          "<id 1>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 5>",
         "assignments": [],
         "cardImage": null,
         "deboarded_at": null,
@@ -3805,6 +5480,27 @@ exports[`analytics > GET users 1`] = `
         "deadline": "2026-06-26T12:00:00.000Z",
         "description": "",
         "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
         "extensionCount": 0,
         "finalReminderSent": false,
         "firstReminderSent": false,
@@ -3823,6 +5519,7 @@ exports[`analytics > GET users 1`] = `
         "__v": 0,
         "_id": "<id 2>",
         "assignments": [
+          "<id 4>",
           "<id 3>"
         ],
         "cardImage": null,
@@ -3855,6 +5552,385 @@ exports[`analytics > GET users 1`] = `
   },
   "errors": [],
   "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET users?limit=999 1`] = `
+{
+  "body": {
+    "count": 2,
+    "data": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      },
+      {
+        "_id": "<id 2>",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      }
+    ],
+    "limit": 200,
+    "page": 1,
+    "success": true,
+    "total": 2
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 2>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [
+          "<id 4>",
+          "<id 3>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > GET users?page=2&limit=1 1`] = `
+{
+  "body": {
+    "count": 1,
+    "data": [
+      {
+        "_id": "<id 1>",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      }
+    ],
+    "limit": 1,
+    "page": 2,
+    "success": true,
+    "total": 2
+  },
+  "database": {
+    "assignments": [
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 1,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": true,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "LATE",
+        "submissionChannelId": null,
+        "taskName": "Late one",
+        "taskType": "skit",
+        "userId": "<id 1>"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 3>",
+        "assignedAt": "2026-06-12T12:00:00.000Z",
+        "completedAt": null,
+        "customExtension": null,
+        "deadline": "2026-06-26T12:00:00.000Z",
+        "description": "",
+        "discordUserId": "100000000000000003",
+        "extensionCount": 0,
+        "finalReminderSent": false,
+        "firstReminderSent": false,
+        "hasExtended": false,
+        "roleCategoryId": "1449411540351713503",
+        "roleName": "VA",
+        "status": "PENDING",
+        "submissionChannelId": null,
+        "taskName": "Morning skit",
+        "taskType": "skit",
+        "userId": "<id 1>"
+      }
+    ],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [
+          "<id 3>",
+          "<id 2>"
+        ],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 4>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > hides a failure of assignments 1`] = `
+{
+  "body": {
+    "error": "Failed to fetch assignments"
+  },
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [
+    [
+      "[API] assignments failed:",
+      "Error"
+    ]
+  ],
+  "status": 500,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > hides a failure of stats 1`] = `
+{
+  "body": {
+    "error": "Failed to fetch stats"
+  },
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [
+    [
+      "[API] stats failed:",
+      "Error"
+    ]
+  ],
+  "status": 500,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`analytics > hides a failure of users 1`] = `
+{
+  "body": {
+    "error": "Failed to fetch users"
+  },
+  "database": {
+    "assignments": [],
+    "users": [
+      {
+        "__v": 0,
+        "_id": "<id 1>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000003",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "strikes": 0,
+        "username": "va.one"
+      },
+      {
+        "__v": 0,
+        "_id": "<id 2>",
+        "assignments": [],
+        "cardImage": null,
+        "deboarded_at": null,
+        "deboarded_statusMessage": "✨ ~Scouted in a different SEKAI~ ✨",
+        "discordId": "100000000000000004",
+        "isDeboarded": false,
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "strikes": 3,
+        "username": "editor.one"
+      }
+    ]
+  },
+  "errors": [
+    [
+      "[API] users failed:",
+      "Error"
+    ]
+  ],
+  "status": 500,
   "type": "application/json; charset=utf-8"
 }
 `;
@@ -4040,7 +6116,12 @@ exports[`strikes > hides a failure when asked to add 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] addStrike failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -4086,7 +6167,12 @@ exports[`strikes > hides a failure when asked to remove 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] removeStrike failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }

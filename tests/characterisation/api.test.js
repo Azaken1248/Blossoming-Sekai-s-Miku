@@ -32,7 +32,7 @@ before(async () => {
         throw new Error('the API must not call out in this test');
     });
     database = await startDatabase('sekai_char_api');
-    ({ default: app } = await import('../../API/app.js'));
+    ({ default: app } = await import('../../API/app.ts'));
     ({ default: User } = await import('../../DB/Schemas/user.ts'));
     ({ default: Assignment } = await import('../../DB/Schemas/assignment.ts'));
 });
@@ -88,7 +88,7 @@ const record = async (t, call) => {
     t.assert.snapshot(JSON.parse(text));
 };
 
-const scenario = (name, run) => test(name, async (t) => record(t, await run(t)));
+const scenario = (name, run) => test(name, (t) => record(t, run(t)));
 
 describe('POST /api/users', () => {
     scenario('creates a member, trimming the username', () =>
@@ -185,6 +185,15 @@ describe('POST /api/assignments', () => {
     scenario('refuses a zero deadline', () => create({ deadlineHours: 0 }));
     scenario('refuses a deadline over a year', () => create({ deadlineHours: 8761 }));
     scenario('refuses an unknown role', () => create({ roleCategoryId: '1' }));
+    scenario('takes the deadline from the role rules without deadlineHours', () =>
+        create({ deadlineHours: undefined }),
+    );
+    scenario('refuses a task type the role does not list', () =>
+        create({ taskType: 'nope', deadlineHours: undefined }),
+    );
+    scenario('refuses a task type the role does not list, even with deadlineHours', () => create({ taskType: 'nope' }));
+    scenario('needs deadlineHours for a custom task', () => create({ taskType: 'custom', deadlineHours: '' }));
+    scenario('takes a custom task with deadlineHours', () => create({ taskType: 'custom', deadlineHours: 6 }));
     scenario('refuses a member with no record', () => create({ discordId: '100000000000000099' }));
     scenario('refuses a deboarded member', async () => {
         await User.updateOne({ discordId: MEMBER }, { isDeboarded: true });
@@ -268,9 +277,41 @@ describe('GET /api/assignments', () => {
 });
 
 describe('analytics', () => {
-    for (const path of ['assignments?sort=-createdAt', 'users', 'stats?groupBy=status', 'assignments?status=NOPE']) {
+    for (const path of [
+        'assignments?sort=-createdAt',
+        'users',
+        'stats?groupBy=status',
+        'assignments?status=NOPE',
+        'assignments?deadline[lt]=2026-06-25&extensionCount[gte]=0&hasExtended=false&sort=deadline,-status',
+        'assignments?status[in][]=PENDING&status[in][]=LATE&taskType=skit&page=2&limit=1',
+        'assignments?deadline[where]=1',
+        'assignments?extensionCount=many',
+        'assignments?hasExtended=maybe',
+        'assignments?assignedAt=never',
+        'assignments?sort=password',
+        'assignments?sort=,',
+        'users?page=2&limit=1',
+        'users?limit=999',
+        'stats?groupBy=roleName&status=PENDING',
+        'stats?groupBy=$where',
+        'stats',
+    ]) {
         scenario(`GET ${path}`, async () => {
             await seedTask();
+            await seedTask({ taskName: 'Late one', status: 'LATE', hasExtended: true, extensionCount: 1 });
+            if (path.startsWith('stats')) await seedTask({ taskName: 'Another pending' });
+            return send('get', `/api/v1/analytics/${path}`);
+        });
+    }
+    for (const [path, model, method] of [
+        ['assignments', 'Assignment', 'find'],
+        ['users', 'User', 'find'],
+        ['stats', 'Assignment', 'aggregate'],
+    ]) {
+        scenario(`hides a failure of ${path}`, (t) => {
+            t.mock.method({ User, Assignment }[model], method, () => {
+                throw new Error('down');
+            });
             return send('get', `/api/v1/analytics/${path}`);
         });
     }

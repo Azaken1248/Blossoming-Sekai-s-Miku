@@ -13,7 +13,7 @@ let User;
 
 before(async () => {
     database = await startDatabase('sekai_api_analytics');
-    ({ default: app } = await import('../../API/app.js'));
+    ({ default: app } = await import('../../API/app.ts'));
     ({ default: Assignment } = await import('../../DB/Schemas/assignment.ts'));
     ({ default: User } = await import('../../DB/Schemas/user.ts'));
 });

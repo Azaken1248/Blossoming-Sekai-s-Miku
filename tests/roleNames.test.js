@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildRoleNames } from '../API/roleNames.js';
+import { buildRoleNames } from '../API/roleNames.ts';
 
 const entries = (...configs) => [...buildRoleNames(...configs)];
 

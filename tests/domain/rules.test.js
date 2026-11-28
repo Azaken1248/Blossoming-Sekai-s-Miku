@@ -7,6 +7,7 @@ import {
     isOpen,
     isPending,
     planAssignment,
+    plannedDeadline,
     taskTitle,
 } from '../../Utils/domain/assignments.ts';
 import { DAY, HOUR, MINUTE, WEEK } from '../../Utils/domain/durations.ts';
@@ -192,5 +193,31 @@ describe('crew roles', () => {
 
     test('are named when the rule has a name', () => {
         assert.deepEqual(crewRoleNames(['unknown', 'nameless', 'ed', 'va1'], CREW, rules), ['VA', 'Editor']);
+    });
+});
+
+describe('plannedDeadline', () => {
+    const rules = { 10: { name: 'VA', tasks: { skit: 1000 }, extension: 0 } };
+    const now = new Date('2026-06-15T12:00:00.000Z');
+    const plan = (changes) =>
+        plannedDeadline({ roleCategoryId: '10', taskType: 'skit', duration: null, ...changes }, rules, now);
+
+    test('uses the role rule unless a duration is given', () => {
+        assert.deepEqual(plan({}), new Date(now.getTime() + 1000));
+        assert.deepEqual(plan({ duration: 7 }), new Date(now.getTime() + 7));
+        assert.deepEqual(plan({ taskType: 'custom', duration: 9 }), new Date(now.getTime() + 9));
+    });
+
+    test('refuses an unknown role, an unknown task and a custom task with no duration', () => {
+        assert.throws(() => plan({ roleCategoryId: '11' }), {
+            code: 'ROLE_UNKNOWN',
+            details: { roleCategoryId: '11' },
+        });
+        assert.throws(() => plan({ roleCategoryId: 'toString' }), { code: 'ROLE_UNKNOWN' });
+        assert.throws(() => plan({ taskType: 'nope', duration: 5 }), {
+            code: 'TASK_TYPE_INVALID',
+            details: { taskType: 'nope', roleName: 'VA', validTasks: ['skit'] },
+        });
+        assert.throws(() => plan({ taskType: 'custom' }), { code: 'CUSTOM_DURATION_REQUIRED' });
     });
 });
