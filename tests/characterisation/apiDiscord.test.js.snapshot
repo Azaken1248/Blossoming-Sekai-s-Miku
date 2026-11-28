@@ -1,0 +1,625 @@
+exports[`GET /api/users with Discord > a failing role lookup reuses the last role map, even from another guild 1`] = `
+{
+  "body": {
+    "count": 2,
+    "data": [
+      {
+        "_id": "<id 1>",
+        "actualRoles": [],
+        "avatarUrl": null,
+        "discordId": "100000000000000004",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "storedRoles": [],
+        "strikes": 0,
+        "username": "editor_handle"
+      },
+      {
+        "_id": "<id 2>",
+        "actualRoles": [
+          "Voice Actor"
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/100000000000000003/abc.png?size=512",
+        "discordId": "100000000000000003",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [
+          "1449411540351713503",
+          "Custom"
+        ],
+        "storedRoles": [
+          "VA",
+          "Custom"
+        ],
+        "strikes": 0,
+        "username": "VA One"
+      }
+    ],
+    "success": true
+  },
+  "discord": [
+    "/api/v10/guilds/900000000000000004/roles",
+    "/api/v10/guilds/900000000000000004/members?limit=1000"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users with Discord > asks for one more page after exactly a thousand members 1`] = `
+{
+  "body": {
+    "count": 1,
+    "names": [
+      "VA One"
+    ]
+  },
+  "discord": [
+    "/api/v10/guilds/900000000000000003/roles",
+    "/api/v10/guilds/900000000000000003/members?limit=1000",
+    "/api/v10/guilds/900000000000000003/members?limit=1000&after=100000000000000003"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users with Discord > enriches members in the guild and leaves out the rest 1`] = `
+{
+  "body": {
+    "count": 2,
+    "data": [
+      {
+        "_id": "<id 1>",
+        "actualRoles": [
+          "VA"
+        ],
+        "avatarUrl": null,
+        "discordId": "100000000000000004",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [
+          "1449411540351713503"
+        ],
+        "storedRoles": [
+          "VA"
+        ],
+        "strikes": 0,
+        "username": "editor_handle"
+      },
+      {
+        "_id": "<id 2>",
+        "actualRoles": [
+          "Voice Actor"
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/100000000000000003/abc.png?size=512",
+        "discordId": "100000000000000003",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "storedRoles": [],
+        "strikes": 0,
+        "username": "VA One"
+      }
+    ],
+    "success": true
+  },
+  "discord": [
+    "/api/v10/guilds/900000000000000001/roles",
+    "/api/v10/guilds/900000000000000001/members?limit=1000"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users with Discord > keeps the member list for two minutes and the roles for ten 1`] = `
+{
+  "body": {
+    "count": 2,
+    "data": [
+      {
+        "_id": "<id 1>",
+        "actualRoles": [],
+        "avatarUrl": null,
+        "discordId": "100000000000000004",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "storedRoles": [],
+        "strikes": 0,
+        "username": "editor_handle"
+      },
+      {
+        "_id": "<id 2>",
+        "actualRoles": [
+          "Voice Actor"
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/100000000000000003/abc.png?size=512",
+        "discordId": "100000000000000003",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "storedRoles": [],
+        "strikes": 0,
+        "username": "VA One"
+      }
+    ],
+    "success": true
+  },
+  "discord": [
+    "/api/v10/guilds/900000000000000007/roles",
+    "/api/v10/guilds/900000000000000007/members?limit=1000",
+    "/api/v10/guilds/900000000000000007/members?limit=1000",
+    "/api/v10/guilds/900000000000000007/roles",
+    "/api/v10/guilds/900000000000000007/members?limit=1000"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users with Discord > keeps the old roles when a refresh fails 1`] = `
+{
+  "body": {
+    "count": 2,
+    "data": [
+      {
+        "_id": "<id 1>",
+        "actualRoles": [],
+        "avatarUrl": null,
+        "discordId": "100000000000000004",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "storedRoles": [],
+        "strikes": 0,
+        "username": "editor_handle"
+      },
+      {
+        "_id": "<id 2>",
+        "actualRoles": [
+          "Voice Actor"
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/100000000000000003/abc.png?size=512",
+        "discordId": "100000000000000003",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "storedRoles": [],
+        "strikes": 0,
+        "username": "VA One"
+      }
+    ],
+    "success": true
+  },
+  "discord": [
+    "/api/v10/guilds/900000000000000008/roles",
+    "/api/v10/guilds/900000000000000008/members?limit=1000",
+    "/api/v10/guilds/900000000000000008/roles",
+    "/api/v10/guilds/900000000000000008/members?limit=1000"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users with Discord > lists from the database alone without a guild 1`] = `
+{
+  "body": {
+    "count": 3,
+    "data": [
+      {
+        "_id": "<id 1>",
+        "actualRoles": [],
+        "discordId": "100000000000000005",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-12T00:00:00.000Z",
+        "roles": [],
+        "storedRoles": [],
+        "strikes": 0,
+        "username": "gone.one"
+      },
+      {
+        "_id": "<id 2>",
+        "actualRoles": [],
+        "discordId": "100000000000000004",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-11T00:00:00.000Z",
+        "roles": [],
+        "storedRoles": [],
+        "strikes": 0,
+        "username": "editor.one"
+      },
+      {
+        "_id": "<id 3>",
+        "actualRoles": [],
+        "discordId": "100000000000000003",
+        "isOnHiatus": false,
+        "joinedAt": "2026-01-10T00:00:00.000Z",
+        "roles": [],
+        "storedRoles": [],
+        "strikes": 0,
+        "username": "va.one"
+      }
+    ],
+    "success": true
+  },
+  "discord": [],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users with Discord > lists nobody when the member list fails 1`] = `
+{
+  "body": {
+    "count": 0,
+    "data": [],
+    "success": true
+  },
+  "discord": [
+    "/api/v10/guilds/900000000000000005/roles",
+    "/api/v10/guilds/900000000000000005/members?limit=1000"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users with Discord > pages through the guild a thousand members at a time 1`] = `
+{
+  "body": {
+    "count": 2,
+    "names": [
+      "editor_handle",
+      "VA One"
+    ]
+  },
+  "discord": [
+    "/api/v10/guilds/900000000000000002/roles",
+    "/api/v10/guilds/900000000000000002/members?limit=1000",
+    "/api/v10/guilds/900000000000000002/members?limit=1000&after=090000000000000999"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users/:discordId/summary with Discord > a failing member list fails the summary 1`] = `
+{
+  "body": {
+    "error": "Failed to build user summary"
+  },
+  "discord": [
+    "/api/v10/users/100000000000000003",
+    "/api/v10/guilds/900000000000000015/members/100000000000000003",
+    "/api/v10/guilds/900000000000000015/members?limit=1000",
+    "/api/v10/guilds/900000000000000015/roles"
+  ],
+  "errors": [
+    [
+      "[API] getUserSummary failed:",
+      "network down"
+    ]
+  ],
+  "renders": [],
+  "status": 500,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users/:discordId/summary with Discord > a failing user lookup leaves the avatar empty 1`] = `
+{
+  "body": {
+    "data": {
+      "_id": "<id 1>",
+      "actualRoles": [],
+      "avatarUrl": null,
+      "discordId": "100000000000000003",
+      "isDeboarded": false,
+      "isGuildMember": false,
+      "isOnHiatus": false,
+      "joinedAt": "2026-01-10T00:00:00.000Z",
+      "mikuDescription": "🌟 va.one is growing brighter every day! Miku can't wait to see what magic you'll create~ 💫",
+      "roles": [],
+      "storedRoles": [],
+      "strikes": 0,
+      "tasksCompleted": 0,
+      "topTaskRoles": [],
+      "totalAssignments": 0,
+      "username": "va.one"
+    },
+    "success": true
+  },
+  "discord": [
+    "/api/v10/users/100000000000000003",
+    "/api/v10/guilds/900000000000000014/members/100000000000000003",
+    "/api/v10/guilds/900000000000000014/members?limit=1000",
+    "/api/v10/guilds/900000000000000014/roles"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users/:discordId/summary with Discord > a member in the guild with an animated avatar 1`] = `
+{
+  "body": {
+    "data": {
+      "_id": "<id 1>",
+      "actualRoles": [
+        "Editor"
+      ],
+      "avatarUrl": "https://cdn.discordapp.com/avatars/100000000000000003/a_anim.gif?size=512",
+      "discordId": "100000000000000003",
+      "isDeboarded": false,
+      "isGuildMember": true,
+      "isOnHiatus": false,
+      "joinedAt": "2026-01-10T00:00:00.000Z",
+      "mikuDescription": "🌸 user003 shines brightest as a VA & SVA creator! Miku adores your dedication~ 💚",
+      "roles": [],
+      "storedRoles": [],
+      "strikes": 0,
+      "tasksCompleted": 1,
+      "topTaskRoles": [
+        "VA",
+        "SVA"
+      ],
+      "totalAssignments": 2,
+      "username": "user003"
+    },
+    "success": true
+  },
+  "discord": [
+    "/api/v10/users/100000000000000003",
+    "/api/v10/guilds/900000000000000009/members/100000000000000003",
+    "/api/v10/guilds/900000000000000009/roles",
+    "/api/v10/guilds/900000000000000009/members?limit=1000"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users/:discordId/summary with Discord > a member who left the guild keeps their Discord avatar and stored roles 1`] = `
+{
+  "body": {
+    "data": {
+      "_id": "<id 1>",
+      "actualRoles": [
+        "VA"
+      ],
+      "avatarUrl": "https://cdn.discordapp.com/avatars/100000000000000005/def.png?size=512",
+      "discordId": "100000000000000005",
+      "isDeboarded": false,
+      "isGuildMember": false,
+      "isOnHiatus": false,
+      "joinedAt": "2026-01-12T00:00:00.000Z",
+      "mikuDescription": "🌸 gone.one shines brightest as a VA creator! Miku adores your dedication~ 💚",
+      "roles": [
+        "1449411540351713503"
+      ],
+      "storedRoles": [
+        "VA"
+      ],
+      "strikes": 0,
+      "tasksCompleted": 0,
+      "topTaskRoles": [
+        "VA"
+      ],
+      "totalAssignments": 0,
+      "username": "gone.one"
+    },
+    "success": true
+  },
+  "discord": [
+    "/api/v10/users/100000000000000005",
+    "/api/v10/guilds/900000000000000010/members/100000000000000005",
+    "/api/v10/guilds/900000000000000010/members?limit=1000",
+    "/api/v10/guilds/900000000000000010/roles"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users/:discordId/summary with Discord > a member with no roles and no tasks 1`] = `
+{
+  "body": {
+    "data": {
+      "_id": "<id 1>",
+      "actualRoles": [],
+      "avatarUrl": null,
+      "discordId": "100000000000000005",
+      "isDeboarded": false,
+      "isGuildMember": true,
+      "isOnHiatus": false,
+      "joinedAt": "2026-01-12T00:00:00.000Z",
+      "mikuDescription": "🌟 user005 is growing brighter every day! Miku can't wait to see what magic you'll create~ 💫",
+      "roles": [],
+      "storedRoles": [],
+      "strikes": 0,
+      "tasksCompleted": 0,
+      "topTaskRoles": [],
+      "totalAssignments": 0,
+      "username": "user005"
+    },
+    "success": true
+  },
+  "discord": [
+    "/api/v10/users/100000000000000005",
+    "/api/v10/guilds/900000000000000012/members/100000000000000005",
+    "/api/v10/guilds/900000000000000012/members?limit=1000",
+    "/api/v10/guilds/900000000000000012/roles"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users/:discordId/summary with Discord > a member with no roles anywhere shows their task roles 1`] = `
+{
+  "body": {
+    "data": {
+      "_id": "<id 1>",
+      "actualRoles": [
+        "editor",
+        "VA"
+      ],
+      "avatarUrl": null,
+      "discordId": "100000000000000005",
+      "isDeboarded": false,
+      "isGuildMember": false,
+      "isOnHiatus": false,
+      "joinedAt": "2026-01-12T00:00:00.000Z",
+      "mikuDescription": "🌸 gone.one shines brightest as an editor & VA creator! Miku adores your dedication~ 💚",
+      "roles": [],
+      "storedRoles": [],
+      "strikes": 0,
+      "tasksCompleted": 0,
+      "topTaskRoles": [
+        "editor",
+        "VA"
+      ],
+      "totalAssignments": 3,
+      "username": "gone.one"
+    },
+    "success": true
+  },
+  "discord": [
+    "/api/v10/users/100000000000000005",
+    "/api/v10/guilds/900000000000000011/members/100000000000000005",
+    "/api/v10/guilds/900000000000000011/members?limit=1000",
+    "/api/v10/guilds/900000000000000011/roles"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`GET /api/users/:discordId/summary with Discord > a token without a guild looks up only the user 1`] = `
+{
+  "body": {
+    "data": {
+      "_id": "<id 1>",
+      "actualRoles": [],
+      "avatarUrl": "https://cdn.discordapp.com/avatars/100000000000000003/abc.png?size=512",
+      "discordId": "100000000000000003",
+      "isDeboarded": false,
+      "isGuildMember": false,
+      "isOnHiatus": false,
+      "joinedAt": "2026-01-10T00:00:00.000Z",
+      "mikuDescription": "🌟 va.one is growing brighter every day! Miku can't wait to see what magic you'll create~ 💫",
+      "roles": [],
+      "storedRoles": [],
+      "strikes": 0,
+      "tasksCompleted": 0,
+      "topTaskRoles": [],
+      "totalAssignments": 0,
+      "username": "va.one"
+    },
+    "success": true
+  },
+  "discord": [
+    "/api/v10/users/100000000000000003"
+  ],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`Miku descriptions > a role starting with a vowel 1`] = `
+{
+  "body": "🌸 va.one shines brightest as an editor creator! Miku adores your dedication~ 💚",
+  "discord": [],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`Miku descriptions > fifteen tasks done 1`] = `
+{
+  "body": "🎵 va.one is a Sekai superstar! Your consistent magic keeps the whole vibe alive~ ✨💖",
+  "discord": [],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`Miku descriptions > nothing yet 1`] = `
+{
+  "body": "🌟 va.one is growing brighter every day! Miku can't wait to see what magic you'll create~ 💫",
+  "discord": [],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`Miku descriptions > on hiatus 1`] = `
+{
+  "body": "✨ va.one is taking a lil' rest! Miku's saving up the spotlight for their next grand entrance~ 💙",
+  "discord": [],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`Miku descriptions > two strikes 1`] = `
+{
+  "body": "💫 va.one has so much potential! Miku believes in you and your amazing comeback story~ ⭐",
+  "discord": [],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;
+
+exports[`Miku descriptions > two task roles 1`] = `
+{
+  "body": "🌸 va.one shines brightest as a mixer & VA creator! Miku adores your dedication~ 💚",
+  "discord": [],
+  "errors": [],
+  "renders": [],
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+}
+`;

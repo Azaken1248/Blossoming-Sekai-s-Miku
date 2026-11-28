@@ -1,20 +1,20 @@
 {
   "API/app.js": {
-    "lines": 232,
-    "branches": 2,
-    "functions": 7,
-    "statements": 232
+    "lines": 4,
+    "branches": 15,
+    "functions": 0,
+    "statements": 4
   },
   "API/controllers/assignmentController.js": {
-    "lines": 5,
-    "branches": 3,
+    "lines": 2,
+    "branches": 2,
     "functions": 0,
-    "statements": 5
+    "statements": 2
   },
   "API/controllers/userController.js": {
-    "lines": 346,
-    "branches": 37,
-    "functions": 10,
-    "statements": 346
+    "lines": 23,
+    "branches": 26,
+    "functions": 0,
+    "statements": 23
   }
 }

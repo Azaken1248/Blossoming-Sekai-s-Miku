@@ -88,7 +88,7 @@ const record = async (t, call) => {
     t.assert.snapshot(JSON.parse(text));
 };
 
-const scenario = (name, run) => test(name, async (t) => record(t, await run(t)));
+const scenario = (name, run) => test(name, (t) => record(t, run(t)));
 
 describe('POST /api/users', () => {
     scenario('creates a member, trimming the username', () =>

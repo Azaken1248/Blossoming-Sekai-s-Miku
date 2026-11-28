@@ -38,7 +38,12 @@ exports[`GET /api/assignments > hides a failure of overdue 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] getOverdueTasks failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -84,7 +89,12 @@ exports[`GET /api/assignments > hides a failure of pending/100000000000000003 1`
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] getPendingTask failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -714,7 +724,12 @@ exports[`GET /api/users/:discordId > hides a failure 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] getUser failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -1497,7 +1512,12 @@ exports[`POST /api/assignments > hides a failure 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] createAssignment failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -1865,7 +1885,12 @@ exports[`POST /api/assignments/:taskId/complete > hides a failure 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] completeAssignment failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -4040,7 +4065,12 @@ exports[`strikes > hides a failure when asked to add 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] addStrike failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
@@ -4086,7 +4116,12 @@ exports[`strikes > hides a failure when asked to remove 1`] = `
       }
     ]
   },
-  "errors": [],
+  "errors": [
+    [
+      "[API] removeStrike failed:",
+      "Error"
+    ]
+  ],
   "status": 500,
   "type": "application/json; charset=utf-8"
 }
